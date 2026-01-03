@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (event: 'edit', goalId: string): void
   (event: 'add-child', goalId: string): void
   (event: 'generate-children', goalId: string): void
+  (event: 'manage-flashcards', goalId: string): void
   (event: 'delete', goalId: string): void
 }>()
 
@@ -63,6 +64,12 @@ const toggle = () => {
         </button>
         <button
           class="btn btn-ghost btn-xs"
+          @click.stop="emit('manage-flashcards', goal._id)"
+        >
+          {{ goal.flashcards.length }}
+        </button>
+        <button
+          class="btn btn-ghost btn-xs"
           @click.stop="emit('edit', goal._id)"
         >
           <Pencil :size="16" />
@@ -100,6 +107,7 @@ const toggle = () => {
         @edit="emit('edit', $event)"
         @add-child="emit('add-child', $event)"
         @generate-children="emit('generate-children', $event)"
+        @manage-flashcards="emit('manage-flashcards', $event)"
         @delete="emit('delete', $event)"
       />
       <div

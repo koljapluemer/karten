@@ -79,6 +79,50 @@ export const useLearningGoalsStore = defineStore('learningGoals', () => {
     )
   }
 
+  const attachFlashcardToGoal = async (goalId: string, cardId: string): Promise<void> => {
+    const current = learningGoals.value.find((entry) => entry._id === goalId)
+    if (!current) return
+    if (current.flashcards.includes(cardId)) return
+    const updated: LearningGoalDoc = {
+      ...current,
+      flashcards: [...current.flashcards, cardId],
+      updatedAt: new Date().toISOString()
+    }
+    const result = await db.put(updated)
+    learningGoals.value = learningGoals.value.map((entry) =>
+      entry._id === goalId ? { ...updated, _rev: result.rev } : entry
+    )
+  }
+
+  const detachFlashcardFromGoal = async (goalId: string, cardId: string): Promise<void> => {
+    const current = learningGoals.value.find((entry) => entry._id === goalId)
+    if (!current) return
+    const updated: LearningGoalDoc = {
+      ...current,
+      flashcards: current.flashcards.filter((id) => id !== cardId),
+      updatedAt: new Date().toISOString()
+    }
+    const result = await db.put(updated)
+    learningGoals.value = learningGoals.value.map((entry) =>
+      entry._id === goalId ? { ...updated, _rev: result.rev } : entry
+    )
+  }
+
+  const removeFlashcardFromAllGoals = async (cardId: string): Promise<void> => {
+    const affected = learningGoals.value.filter((goal) => goal.flashcards.includes(cardId))
+    for (const goal of affected) {
+      const updated: LearningGoalDoc = {
+        ...goal,
+        flashcards: goal.flashcards.filter((id) => id !== cardId),
+        updatedAt: new Date().toISOString()
+      }
+      const result = await db.put(updated)
+      learningGoals.value = learningGoals.value.map((entry) =>
+        entry._id === goal._id ? { ...updated, _rev: result.rev } : entry
+      )
+    }
+  }
+
   const removeChildGoal = async (parent: LearningGoalDoc, childId: string): Promise<void> => {
     const updated: LearningGoalDoc = {
       ...parent,
@@ -109,6 +153,9 @@ export const useLearningGoalsStore = defineStore('learningGoals', () => {
     createLearningGoal,
     addChildGoal,
     updateLearningGoal,
-    deleteLearningGoal
+    deleteLearningGoal,
+    attachFlashcardToGoal,
+    detachFlashcardFromGoal,
+    removeFlashcardFromAllGoals
   }
 })

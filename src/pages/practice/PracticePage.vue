@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { usePracticeFlow } from './usePracticeFlow'
 import PracticeChooseScreen from './PracticeChooseScreen.vue'
-import FlashcardAddForm from './FlashcardAddForm.vue'
+import FlashcardAddForm from '@/features/flashcard-add/FlashcardAddForm.vue'
 import PracticeLessonScreen from './PracticeLessonScreen.vue'
 
 const {
@@ -37,8 +37,6 @@ onMounted(() => {
 
     <FlashcardAddForm
       v-else-if="screen.name === 'adding'"
-      :step="screen.step"
-      :total="screen.total"
       @added="handleCardAdded"
     />
 

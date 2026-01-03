@@ -33,10 +33,37 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
     return stored
   }
 
+  const updateFlashcard = async (
+    cardId: string,
+    updates: Partial<Pick<FlashCardDoc, 'front' | 'back'>>
+  ): Promise<void> => {
+    const current = flashcards.value.find((entry) => entry._id === cardId)
+    if (!current) return
+    const updated: FlashCardDoc = {
+      ...current,
+      front: updates.front ?? current.front,
+      back: updates.back ?? current.back,
+      updatedAt: new Date().toISOString()
+    }
+    const result = await db.put(updated)
+    flashcards.value = flashcards.value.map((entry) =>
+      entry._id === cardId ? { ...updated, _rev: result.rev } : entry
+    )
+  }
+
+  const deleteFlashcard = async (cardId: string): Promise<void> => {
+    const current = flashcards.value.find((entry) => entry._id === cardId)
+    if (!current || !current._rev) return
+    await db.put({ ...current, _deleted: true } as FlashCardDoc & { _deleted: boolean })
+    flashcards.value = flashcards.value.filter((entry) => entry._id !== cardId)
+  }
+
   return {
     flashcards,
     isLoaded,
     loadFlashcards,
-    createFlashcard
+    createFlashcard,
+    updateFlashcard,
+    deleteFlashcard
   }
 })

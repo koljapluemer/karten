@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
-import MarkdownContent from '@/dumb/MarkdownContent.vue'
+import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
 
 const props = defineProps<{
   card: FlashCardDoc
@@ -15,10 +15,17 @@ const emit = defineEmits<{
 }>()
 
 const isRevealed = ref(false)
+const isFlipping = ref(false)
+const flipTimer = ref<number | null>(null)
 const showBack = computed(() => isRevealed.value)
 
 const handleReveal = () => {
   isRevealed.value = true
+  isFlipping.value = true
+  if (flipTimer.value) window.clearTimeout(flipTimer.value)
+  flipTimer.value = window.setTimeout(() => {
+    isFlipping.value = false
+  }, 400)
 }
 
 const handleAnswer = (score: number) => {
@@ -26,6 +33,10 @@ const handleAnswer = (score: number) => {
   emit('answered', score)
   isRevealed.value = false
 }
+
+onBeforeUnmount(() => {
+  if (flipTimer.value) window.clearTimeout(flipTimer.value)
+})
 </script>
 
 <template>
@@ -35,17 +46,13 @@ const handleAnswer = (score: number) => {
       <span>{{ position }} / {{ total }}</span>
     </div>
 
-    <div class="card bg-base-100 border border-base-300">
-      <div class="card-body gap-6">
-        <MarkdownContent :value="card.front" />
-
-        <div
-          v-if="showBack"
-          class="border-t border-base-200 pt-4"
-        >
-          <MarkdownContent :value="card.back || ''" />
-        </div>
-      </div>
+    <div class="w-full">
+      <FlashcardRenderer
+        :front="card.front"
+        :back="card.back"
+        :show-back="showBack"
+        :flipped="isFlipping"
+      />
     </div>
 
     <div

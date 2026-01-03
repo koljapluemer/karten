@@ -4,14 +4,20 @@ import { Plus, X } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useLearningGoalsStore } from '@/entities/learning-goals/learningGoalsStore'
 import type { LearningGoalDoc } from '@/entities/learning-goals/LearningGoal'
+import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
+import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { getOpenAIKey } from '@/app/storage/llmSettings'
 import MarkdownContent from '@/dumb/MarkdownContent.vue'
 import LearningGoalNode from './LearningGoalNode.vue'
 import LearningGoalModal from '@/features/learning-goal-add/LearningGoalModal.vue'
 import ChildGoalsModal from '@/features/learning-goal-ai/ChildGoalsModal.vue'
+import GoalFlashcardsModal from './GoalFlashcardsModal.vue'
+import FlashcardPreviewModal from './FlashcardPreviewModal.vue'
+import FlashcardModal from '@/features/flashcard-add/FlashcardModal.vue'
 
 const store = useLearningGoalsStore()
 const router = useRouter()
+const flashcardsStore = useFlashcardsStore()
 
 const modalOpen = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
@@ -24,9 +30,18 @@ const viewOpen = ref(false)
 const viewGoalId = ref<string | null>(null)
 const aiModalOpen = ref(false)
 const aiGoalId = ref<string | null>(null)
+const flashcardsModalOpen = ref(false)
+const flashcardsGoalId = ref<string | null>(null)
+const flashcardPreviewOpen = ref(false)
+const flashcardPreviewId = ref<string | null>(null)
+const flashcardEditOpen = ref(false)
+const flashcardEditId = ref<string | null>(null)
+const flashcardAddOpen = ref(false)
+const isFlashcardSaving = ref(false)
 
 onMounted(() => {
   store.loadLearningGoals()
+  flashcardsStore.loadFlashcards()
 })
 
 const goalMap = computed<Record<string, LearningGoalDoc>>(() => {
@@ -67,6 +82,21 @@ const aiChildren = computed(() => {
   return aiGoal.value.requiresLearning
     .map((id) => goalMap.value[id])
     .filter((goal): goal is LearningGoalDoc => Boolean(goal))
+})
+
+const flashcardsGoal = computed(() => {
+  if (!flashcardsGoalId.value) return null
+  return store.learningGoals.find((goal) => goal._id === flashcardsGoalId.value) ?? null
+})
+
+const previewCard = computed(() => {
+  if (!flashcardPreviewId.value) return null
+  return flashcardsStore.flashcards.find((card) => card._id === flashcardPreviewId.value) ?? null
+})
+
+const editCard = computed<FlashCardDoc | null>(() => {
+  if (!flashcardEditId.value) return null
+  return flashcardsStore.flashcards.find((card) => card._id === flashcardEditId.value) ?? null
 })
 
 const openAddGoal = (parentId?: string) => {
@@ -150,6 +180,76 @@ const handleAiAccept = async (
 const closeAiModal = () => {
   aiModalOpen.value = false
 }
+
+const openFlashcardsModal = (goalId: string) => {
+  flashcardsGoalId.value = goalId
+  flashcardsModalOpen.value = true
+}
+
+const closeFlashcardsModal = () => {
+  flashcardsModalOpen.value = false
+}
+
+const openFlashcardPreview = (cardId: string) => {
+  flashcardPreviewId.value = cardId
+  flashcardPreviewOpen.value = true
+}
+
+const closeFlashcardPreview = () => {
+  flashcardPreviewOpen.value = false
+  flashcardPreviewId.value = null
+}
+
+const openFlashcardEdit = (cardId: string) => {
+  flashcardEditId.value = cardId
+  flashcardEditOpen.value = true
+}
+
+const closeFlashcardEdit = () => {
+  flashcardEditOpen.value = false
+  flashcardEditId.value = null
+}
+
+const openFlashcardAdd = () => {
+  flashcardAddOpen.value = true
+}
+
+const closeFlashcardAdd = () => {
+  flashcardAddOpen.value = false
+}
+
+const handleFlashcardAdd = async (payload: { front: string; back: string }) => {
+  if (!flashcardsGoalId.value || isFlashcardSaving.value) return
+  isFlashcardSaving.value = true
+  try {
+    const card = await flashcardsStore.createFlashcard(payload.front, payload.back)
+    await store.attachFlashcardToGoal(flashcardsGoalId.value, card._id)
+    flashcardAddOpen.value = false
+  } finally {
+    isFlashcardSaving.value = false
+  }
+}
+
+const handleFlashcardEdit = async (payload: { front: string; back: string }) => {
+  if (!flashcardEditId.value || isFlashcardSaving.value) return
+  isFlashcardSaving.value = true
+  try {
+    await flashcardsStore.updateFlashcard(flashcardEditId.value, payload)
+    closeFlashcardEdit()
+  } finally {
+    isFlashcardSaving.value = false
+  }
+}
+
+const handleFlashcardDetach = async (cardId: string) => {
+  if (!flashcardsGoalId.value) return
+  await store.detachFlashcardFromGoal(flashcardsGoalId.value, cardId)
+}
+
+const handleFlashcardDelete = async (cardId: string) => {
+  await flashcardsStore.deleteFlashcard(cardId)
+  await store.removeFlashcardFromAllGoals(cardId)
+}
 </script>
 
 <template>
@@ -192,6 +292,7 @@ const closeAiModal = () => {
         @edit="openEditGoal"
         @add-child="openAddGoal"
         @generate-children="openGenerateChildren"
+        @manage-flashcards="openFlashcardsModal"
         @delete="handleDelete"
       />
     </div>
@@ -259,6 +360,44 @@ const closeAiModal = () => {
       :direct-children="aiChildren"
       @close="closeAiModal"
       @accept="handleAiAccept"
+    />
+
+    <GoalFlashcardsModal
+      :open="flashcardsModalOpen"
+      :goal="flashcardsGoal"
+      :flashcards="flashcardsStore.flashcards"
+      @close="closeFlashcardsModal"
+      @add="openFlashcardAdd"
+      @view="openFlashcardPreview"
+      @edit="openFlashcardEdit"
+      @detach="handleFlashcardDetach"
+      @delete="handleFlashcardDelete"
+    />
+
+    <FlashcardPreviewModal
+      :open="flashcardPreviewOpen"
+      :card="previewCard"
+      @close="closeFlashcardPreview"
+    />
+
+    <FlashcardModal
+      :open="flashcardAddOpen"
+      title="Add Flashcard"
+      submit-label="Add Flashcard"
+      :is-saving="isFlashcardSaving"
+      @close="closeFlashcardAdd"
+      @save="handleFlashcardAdd"
+    />
+
+    <FlashcardModal
+      :open="flashcardEditOpen"
+      title="Edit Flashcard"
+      submit-label="Save Changes"
+      :initial-front="editCard?.front"
+      :initial-back="editCard?.back"
+      :is-saving="isFlashcardSaving"
+      @close="closeFlashcardEdit"
+      @save="handleFlashcardEdit"
     />
   </div>
 </template>
