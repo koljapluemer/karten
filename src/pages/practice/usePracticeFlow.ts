@@ -1,6 +1,8 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
-import { useLibraryStore } from '@/entities/library/libraryStore'
+import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
+import { useProgressStore } from '@/entities/progress/progressStore'
+import * as ebisu from '@/entities/ebisu'
 import { takeRandom } from '@/dumb/random'
 
 type PracticeScreen =
@@ -12,24 +14,49 @@ type PracticeScreen =
 const MIN_LESSON = 3
 const MAX_LESSON = 15
 const ADDING_TOTAL = 3
+const HOURS_IN_MS = 1000 * 60 * 60
 
 const randomLessonTarget = (): number => {
   return Math.floor(Math.random() * (MAX_LESSON - MIN_LESSON + 1)) + MIN_LESSON
 }
 
+const hoursSince = (isoTime: string): number => {
+  const delta = Date.now() - Date.parse(isoTime)
+  return Math.max(delta / HOURS_IN_MS, 0)
+}
+
 export const usePracticeFlow = () => {
-  const store = useLibraryStore()
+  const flashcardsStore = useFlashcardsStore()
+  const progressStore = useProgressStore()
   const screen = ref<PracticeScreen>({ name: 'loading' })
 
+  const dueFlashcards = computed(() => {
+    return flashcardsStore.flashcards.filter((card) => {
+      const entry = progressStore.progressByCardId[card._id]
+      if (!entry) return false
+      const recall = ebisu.predictRecall(entry.model, hoursSince(entry.lastReviewedAt), true)
+      return recall < 0.9
+    })
+  })
+
+  const unseenFlashcards = computed(() => {
+    return flashcardsStore.flashcards.filter((card) => !progressStore.progressByCardId[card._id])
+  })
+
+  const dueOrUnseenFlashcards = computed(() => [
+    ...unseenFlashcards.value,
+    ...dueFlashcards.value
+  ])
+
   const decideInitialScreen = () => {
-    const hasDue = store.dueOrUnseenFlashcards.length > 0
+    const hasDue = dueOrUnseenFlashcards.value.length > 0
     screen.value = hasDue
       ? { name: 'choose' }
       : { name: 'adding', step: 1, total: ADDING_TOTAL }
   }
 
   const start = async () => {
-    await store.loadAll()
+    await Promise.all([flashcardsStore.loadFlashcards(), progressStore.loadProgress()])
     decideInitialScreen()
   }
 
@@ -56,7 +83,7 @@ export const usePracticeFlow = () => {
 
   const startLesson = () => {
     const target = randomLessonTarget()
-    const available = store.dueOrUnseenFlashcards
+    const available = dueOrUnseenFlashcards.value
     if (available.length === 0) {
       startAddingFlow()
       return

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { BookOpen, BarChart3 } from 'lucide-vue-next'
+import { BookOpen, BarChart3, Target } from 'lucide-vue-next'
 import { RouterLink, useRoute } from 'vue-router'
 import { computed } from 'vue'
 
 const route = useRoute()
 const isOnStatsPage = computed(() => route.name === 'stats')
+const isOnGoalsPage = computed(() => route.name === 'learning-goals')
 </script>
 
 <template>
@@ -12,10 +13,18 @@ const isOnStatsPage = computed(() => route.name === 'stats')
     <RouterLink
       to="/"
       class="btn btn-ghost"
-      :class="{ 'btn-active': !isOnStatsPage }"
+      :class="{ 'btn-active': !isOnStatsPage && !isOnGoalsPage }"
     >
       <BookOpen :size="20" />
       <span class="hidden sm:inline ml-2">Practice</span>
+    </RouterLink>
+    <RouterLink
+      to="/goals"
+      class="btn btn-ghost"
+      :class="{ 'btn-active': isOnGoalsPage }"
+    >
+      <Target :size="20" />
+      <span class="hidden sm:inline ml-2">Goals</span>
     </RouterLink>
     <RouterLink
       to="/stats"

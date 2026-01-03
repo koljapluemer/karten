@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
-import { useLibraryStore } from '@/entities/library/libraryStore'
+import { useProgressStore } from '@/entities/progress/progressStore'
+import { usePracticeLogStore } from '@/entities/practice/practiceLogStore'
 import FlashcardPracticeCard from './FlashcardPracticeCard.vue'
 
 const props = defineProps<{
@@ -14,7 +15,8 @@ const emit = defineEmits<{
   (event: 'advance'): void
 }>()
 
-const store = useLibraryStore()
+const progressStore = useProgressStore()
+const practiceLogStore = usePracticeLogStore()
 const isBusy = ref(false)
 
 const currentCard = computed(() => props.cards[props.index])
@@ -23,7 +25,9 @@ const handleAnswer = async (score: number) => {
   if (!currentCard.value || isBusy.value) return
   isBusy.value = true
   try {
-    await store.recordFlashcardReview(currentCard.value._id, score)
+    const now = new Date().toISOString()
+    await progressStore.updateProgress(currentCard.value._id, score, now)
+    await practiceLogStore.logPractice(currentCard.value._id, now)
     if (props.index >= props.cards.length - 1) {
       emit('complete')
     } else {

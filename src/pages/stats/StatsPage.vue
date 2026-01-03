@@ -1,20 +1,65 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useLibraryStore } from '@/entities/library/libraryStore'
+import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
+import { useTaskcardsStore } from '@/entities/taskcards/taskcardsStore'
+import { useLearningGoalsStore } from '@/entities/learning-goals/learningGoalsStore'
+import { useProgressStore } from '@/entities/progress/progressStore'
+import { usePracticeLogStore } from '@/entities/practice/practiceLogStore'
+import * as ebisu from '@/entities/ebisu'
 import DailyCountsChart from './DailyCountsChart.vue'
 import StreakVisualization from './StreakVisualization.vue'
 
-const store = useLibraryStore()
+const flashcardsStore = useFlashcardsStore()
+const taskcardsStore = useTaskcardsStore()
+const learningGoalsStore = useLearningGoalsStore()
+const progressStore = useProgressStore()
+const practiceLogStore = usePracticeLogStore()
 
 onMounted(() => {
-  store.loadAll()
+  void Promise.all([
+    flashcardsStore.loadFlashcards(),
+    taskcardsStore.loadTaskcards(),
+    learningGoalsStore.loadLearningGoals(),
+    progressStore.loadProgress(),
+    practiceLogStore.loadPracticeLogs()
+  ])
 })
 
-const dailyCounts = computed(() => store.getDailyPracticeCounts(14))
-const counts = computed(() => store.libraryCounts)
-const dueCount = computed(() => store.dueFlashcards.length)
-const unseenCount = computed(() => store.unseenFlashcards.length)
-const reviewCount = computed(() => store.progress.reduce((sum, entry) => sum + entry.totalReviews, 0))
+const HOURS_IN_MS = 1000 * 60 * 60
+
+const hoursSince = (isoTime: string): number => {
+  const delta = Date.now() - Date.parse(isoTime)
+  return Math.max(delta / HOURS_IN_MS, 0)
+}
+
+const dailyCounts = computed(() => practiceLogStore.getDailyPracticeCounts(14))
+const counts = computed(() => ({
+  flashcards: flashcardsStore.flashcards.length,
+  taskcards: taskcardsStore.taskcards.length,
+  learningGoals: learningGoalsStore.learningGoals.length,
+  total:
+    flashcardsStore.flashcards.length +
+    taskcardsStore.taskcards.length +
+    learningGoalsStore.learningGoals.length
+}))
+
+const dueCount = computed(() => {
+  return flashcardsStore.flashcards.filter((card) => {
+    const entry = progressStore.progressByCardId[card._id]
+    if (!entry) return false
+    const recall = ebisu.predictRecall(entry.model, hoursSince(entry.lastReviewedAt), true)
+    return recall < 0.9
+  }).length
+})
+
+const unseenCount = computed(() => {
+  return flashcardsStore.flashcards.filter((card) => !progressStore.progressByCardId[card._id])
+    .length
+})
+
+const reviewCount = computed(() =>
+  progressStore.progress.reduce((sum, entry) => sum + entry.totalReviews, 0)
+)
 </script>
 
 <template>

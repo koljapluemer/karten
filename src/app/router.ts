@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import PracticePage from '@/pages/practice/PracticePage.vue'
+import LearningGoalsPage from '@/pages/learning-goals/LearningGoalsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -8,6 +9,11 @@ const router = createRouter({
       path: '/',
       name: 'practice',
       component: PracticePage
+    },
+    {
+      path: '/goals',
+      name: 'learning-goals',
+      component: LearningGoalsPage
     },
     {
       path: '/stats',

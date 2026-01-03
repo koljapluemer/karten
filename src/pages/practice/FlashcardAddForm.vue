@@ -1,19 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { MilkdownProvider } from '@milkdown/vue'
-import { useLibraryStore } from '@/entities/library/libraryStore'
-import MarkdownEditor from './MarkdownEditor.vue'
+import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
+import MarkdownEditor from '@/dumb/MarkdownEditor.vue'
 
-defineProps<{
-  step: number
-  total: number
-}>()
 
 const emit = defineEmits<{
   (event: 'added'): void
 }>()
 
-const store = useLibraryStore()
+const store = useFlashcardsStore()
 const front = ref('')
 const back = ref('')
 const isSaving = ref(false)
@@ -48,9 +44,6 @@ const handleSave = async () => {
       <h2 class="text-2xl font-semibold">
         Add Flashcard
       </h2>
-      <div class="badge badge-outline">
-        {{ step }} / {{ total }}
-      </div>
     </div>
 
     <div class="space-y-4">

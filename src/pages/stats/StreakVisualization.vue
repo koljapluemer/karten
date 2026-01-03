@@ -2,9 +2,9 @@
 import { computed } from 'vue'
 import { Flame, Circle } from 'lucide-vue-next'
 import { format, subDays } from 'date-fns'
-import { useLibraryStore } from '@/entities/library/libraryStore'
+import { usePracticeLogStore } from '@/entities/practice/practiceLogStore'
 
-const store = useLibraryStore()
+const store = usePracticeLogStore()
 
 interface DayData {
   date: string
