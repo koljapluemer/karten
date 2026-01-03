@@ -14,6 +14,7 @@ import ChildGoalsModal from '@/features/learning-goal-ai/ChildGoalsModal.vue'
 import GoalFlashcardsModal from './GoalFlashcardsModal.vue'
 import FlashcardPreviewModal from './FlashcardPreviewModal.vue'
 import FlashcardModal from '@/features/flashcard-add/FlashcardModal.vue'
+import FlashcardAIModal from '@/features/flashcard-ai/FlashcardAIModal.vue'
 
 const store = useLearningGoalsStore()
 const router = useRouter()
@@ -38,6 +39,8 @@ const flashcardEditOpen = ref(false)
 const flashcardEditId = ref<string | null>(null)
 const flashcardAddOpen = ref(false)
 const isFlashcardSaving = ref(false)
+const aiFlashcardsOpen = ref(false)
+const aiFlashcardsGoalId = ref<string | null>(null)
 
 onMounted(() => {
   store.loadLearningGoals()
@@ -97,6 +100,17 @@ const previewCard = computed(() => {
 const editCard = computed<FlashCardDoc | null>(() => {
   if (!flashcardEditId.value) return null
   return flashcardsStore.flashcards.find((card) => card._id === flashcardEditId.value) ?? null
+})
+
+const aiFlashcardsGoal = computed(() => {
+  if (!aiFlashcardsGoalId.value) return null
+  return store.learningGoals.find((goal) => goal._id === aiFlashcardsGoalId.value) ?? null
+})
+
+const aiFlashcards = computed(() => {
+  if (!aiFlashcardsGoal.value) return []
+  const ids = new Set(aiFlashcardsGoal.value.flashcards)
+  return flashcardsStore.flashcards.filter((card) => ids.has(card._id))
 })
 
 const openAddGoal = (parentId?: string) => {
@@ -218,6 +232,25 @@ const closeFlashcardAdd = () => {
   flashcardAddOpen.value = false
 }
 
+const openFlashcardAI = (goalId: string) => {
+  const key = getOpenAIKey()
+  if (!key) {
+    router.push('/settings?redirect=/goals')
+    return
+  }
+  aiFlashcardsGoalId.value = goalId
+  aiFlashcardsOpen.value = true
+}
+
+const closeFlashcardAI = () => {
+  aiFlashcardsOpen.value = false
+}
+
+const openFlashcardAIFromModal = () => {
+  if (!flashcardsGoalId.value) return
+  openFlashcardAI(flashcardsGoalId.value)
+}
+
 const handleFlashcardAdd = async (payload: { front: string; back: string }) => {
   if (!flashcardsGoalId.value || isFlashcardSaving.value) return
   isFlashcardSaving.value = true
@@ -249,6 +282,22 @@ const handleFlashcardDetach = async (cardId: string) => {
 const handleFlashcardDelete = async (cardId: string) => {
   await flashcardsStore.deleteFlashcard(cardId)
   await store.removeFlashcardFromAllGoals(cardId)
+}
+
+const handleFlashcardAiAccept = async (
+  cards: { front: string; back: string }[],
+  generateAgain: boolean
+) => {
+  if (!aiFlashcardsGoalId.value) return
+  for (const card of cards) {
+    const created = await flashcardsStore.createFlashcard(card.front, card.back)
+    await store.attachFlashcardToGoal(aiFlashcardsGoalId.value, created._id)
+  }
+  aiFlashcardsOpen.value = false
+  if (generateAgain && aiFlashcardsGoalId.value) {
+    await nextTick()
+    aiFlashcardsOpen.value = true
+  }
 }
 </script>
 
@@ -293,6 +342,7 @@ const handleFlashcardDelete = async (cardId: string) => {
         @add-child="openAddGoal"
         @generate-children="openGenerateChildren"
         @manage-flashcards="openFlashcardsModal"
+        @generate-flashcards="openFlashcardAI"
         @delete="handleDelete"
       />
     </div>
@@ -368,6 +418,7 @@ const handleFlashcardDelete = async (cardId: string) => {
       :flashcards="flashcardsStore.flashcards"
       @close="closeFlashcardsModal"
       @add="openFlashcardAdd"
+      @generate="openFlashcardAIFromModal"
       @view="openFlashcardPreview"
       @edit="openFlashcardEdit"
       @detach="handleFlashcardDetach"
@@ -398,6 +449,14 @@ const handleFlashcardDelete = async (cardId: string) => {
       :is-saving="isFlashcardSaving"
       @close="closeFlashcardEdit"
       @save="handleFlashcardEdit"
+    />
+
+    <FlashcardAIModal
+      :open="aiFlashcardsOpen"
+      :goal="aiFlashcardsGoal"
+      :attached-flashcards="aiFlashcards"
+      @close="closeFlashcardAI"
+      @accept="handleFlashcardAiAccept"
     />
   </div>
 </template>

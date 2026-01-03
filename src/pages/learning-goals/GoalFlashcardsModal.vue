@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Eye, Link2Off, Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import { Eye, Link2Off, Pencil, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
 import MarkdownContent from '@/dumb/MarkdownContent.vue'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
 import type { LearningGoalDoc } from '@/entities/learning-goals/LearningGoal'
@@ -14,6 +14,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'close'): void
   (event: 'add'): void
+  (event: 'generate'): void
   (event: 'view', cardId: string): void
   (event: 'edit', cardId: string): void
   (event: 'detach', cardId: string): void
@@ -43,13 +44,22 @@ const attachedFlashcards = computed(() => {
             {{ goal?.title || 'Learning Goal' }}
           </p>
         </div>
-        <button
-          class="btn btn-outline btn-sm"
-          @click="emit('add')"
-        >
-          <Plus :size="16" />
-          Add Flashcard
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            class="btn btn-outline btn-sm"
+            @click="emit('generate')"
+          >
+            <Sparkles :size="16" />
+            Generate
+          </button>
+          <button
+            class="btn btn-outline btn-sm"
+            @click="emit('add')"
+          >
+            <Plus :size="16" />
+            Add Flashcard
+          </button>
+        </div>
       </div>
 
       <div

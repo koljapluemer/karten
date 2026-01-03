@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ChevronDown, ChevronRight, Eye, Pencil, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
+import { ChevronDown, ChevronRight, Eye, Pencil, Plus, Sparkles, Trash2, Wand2 } from 'lucide-vue-next'
 import type { LearningGoalDoc } from '@/entities/learning-goals/LearningGoal'
 
 defineOptions({ name: 'LearningGoalNode' })
@@ -16,6 +16,7 @@ const emit = defineEmits<{
   (event: 'add-child', goalId: string): void
   (event: 'generate-children', goalId: string): void
   (event: 'manage-flashcards', goalId: string): void
+  (event: 'generate-flashcards', goalId: string): void
   (event: 'delete', goalId: string): void
 }>()
 
@@ -70,6 +71,12 @@ const toggle = () => {
         </button>
         <button
           class="btn btn-ghost btn-xs"
+          @click.stop="emit('generate-flashcards', goal._id)"
+        >
+          <Wand2 :size="16" />
+        </button>
+        <button
+          class="btn btn-ghost btn-xs"
           @click.stop="emit('edit', goal._id)"
         >
           <Pencil :size="16" />
@@ -108,6 +115,7 @@ const toggle = () => {
         @add-child="emit('add-child', $event)"
         @generate-children="emit('generate-children', $event)"
         @manage-flashcards="emit('manage-flashcards', $event)"
+        @generate-flashcards="emit('generate-flashcards', $event)"
         @delete="emit('delete', $event)"
       />
       <div
