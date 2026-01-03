@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ChevronDown, ChevronRight, Eye, Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import { ChevronDown, ChevronRight, Eye, Pencil, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
 import type { LearningGoalDoc } from '@/entities/learning-goals/LearningGoal'
 
 defineOptions({ name: 'LearningGoalNode' })
@@ -14,6 +14,7 @@ const emit = defineEmits<{
   (event: 'view', goalId: string): void
   (event: 'edit', goalId: string): void
   (event: 'add-child', goalId: string): void
+  (event: 'generate-children', goalId: string): void
   (event: 'delete', goalId: string): void
 }>()
 
@@ -73,6 +74,12 @@ const toggle = () => {
           <Plus :size="16" />
         </button>
         <button
+          class="btn btn-ghost btn-xs"
+          @click.stop="emit('generate-children', goal._id)"
+        >
+          <Sparkles :size="16" />
+        </button>
+        <button
           class="btn btn-ghost btn-xs text-error"
           @click.stop="emit('delete', goal._id)"
         >
@@ -92,6 +99,7 @@ const toggle = () => {
         @view="emit('view', $event)"
         @edit="emit('edit', $event)"
         @add-child="emit('add-child', $event)"
+        @generate-children="emit('generate-children', $event)"
         @delete="emit('delete', $event)"
       />
       <div

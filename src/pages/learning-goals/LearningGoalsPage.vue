@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { Plus, X } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 import { useLearningGoalsStore } from '@/entities/learning-goals/learningGoalsStore'
 import type { LearningGoalDoc } from '@/entities/learning-goals/LearningGoal'
+import { getOpenAIKey } from '@/app/storage/llmSettings'
 import MarkdownContent from '@/dumb/MarkdownContent.vue'
 import LearningGoalNode from './LearningGoalNode.vue'
 import LearningGoalModal from '@/features/learning-goal-add/LearningGoalModal.vue'
+import ChildGoalsModal from '@/features/learning-goal-ai/ChildGoalsModal.vue'
 
 const store = useLearningGoalsStore()
+const router = useRouter()
 
 const modalOpen = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
@@ -18,6 +22,8 @@ const modalKey = ref(0)
 
 const viewOpen = ref(false)
 const viewGoalId = ref<string | null>(null)
+const aiModalOpen = ref(false)
+const aiGoalId = ref<string | null>(null)
 
 onMounted(() => {
   store.loadLearningGoals()
@@ -50,6 +56,18 @@ const editingGoal = computed(() =>
 const viewGoal = computed(() =>
   viewGoalId.value ? store.learningGoals.find((goal) => goal._id === viewGoalId.value) : undefined
 )
+
+const aiGoal = computed(() => {
+  if (!aiGoalId.value) return null
+  return store.learningGoals.find((goal) => goal._id === aiGoalId.value) ?? null
+})
+
+const aiChildren = computed(() => {
+  if (!aiGoal.value) return []
+  return aiGoal.value.requiresLearning
+    .map((id) => goalMap.value[id])
+    .filter((goal): goal is LearningGoalDoc => Boolean(goal))
+})
 
 const openAddGoal = (parentId?: string) => {
   modalMode.value = 'add'
@@ -102,6 +120,36 @@ const closeView = () => {
 const handleDelete = async (goalId: string) => {
   await store.deleteLearningGoal(goalId)
 }
+
+const openGenerateChildren = (goalId: string) => {
+  const key = getOpenAIKey()
+  if (!key) {
+    router.push('/settings?redirect=/goals')
+    return
+  }
+  aiGoalId.value = goalId
+  aiModalOpen.value = true
+}
+
+const handleAiAccept = async (
+  goals: { title: string; content?: string }[],
+  generateAgain: boolean
+) => {
+  if (aiGoalId.value) {
+    for (const goal of goals) {
+      await store.createLearningGoal(goal.title, goal.content, aiGoalId.value)
+    }
+  }
+  aiModalOpen.value = false
+  if (generateAgain && aiGoalId.value) {
+    await nextTick()
+    aiModalOpen.value = true
+  }
+}
+
+const closeAiModal = () => {
+  aiModalOpen.value = false
+}
 </script>
 
 <template>
@@ -143,6 +191,7 @@ const handleDelete = async (goalId: string) => {
         @view="openView"
         @edit="openEditGoal"
         @add-child="openAddGoal"
+        @generate-children="openGenerateChildren"
         @delete="handleDelete"
       />
     </div>
@@ -203,5 +252,13 @@ const handleDelete = async (goalId: string) => {
         </button>
       </form>
     </dialog>
+
+    <ChildGoalsModal
+      :open="aiModalOpen"
+      :goal="aiGoal"
+      :direct-children="aiChildren"
+      @close="closeAiModal"
+      @accept="handleAiAccept"
+    />
   </div>
 </template>
