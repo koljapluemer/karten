@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useCardsStore } from '@/entities/cards/cardsStore'
+import { useLibraryStore } from '@/entities/library/libraryStore'
 import DailyCountsChart from './DailyCountsChart.vue'
 import StreakVisualization from './StreakVisualization.vue'
 
-const store = useCardsStore()
+const store = useLibraryStore()
 
 onMounted(() => {
   store.loadAll()
 })
 
 const dailyCounts = computed(() => store.getDailyPracticeCounts(14))
-const counts = computed(() => store.cardCounts)
+const counts = computed(() => store.libraryCounts)
 const dueCount = computed(() => store.dueFlashcards.length)
 const unseenCount = computed(() => store.unseenFlashcards.length)
 const reviewCount = computed(() => store.progress.reduce((sum, entry) => sum + entry.totalReviews, 0))
@@ -37,7 +37,7 @@ const reviewCount = computed(() => store.progress.reduce((sum, entry) => sum + e
           {{ counts.total }}
         </div>
         <div class="stat-desc">
-          {{ counts.flashcard }} flashcards · {{ counts.task }} tasks · {{ counts.content }} content
+          {{ counts.flashcards }} flashcards · {{ counts.taskcards }} task cards · {{ counts.learningGoals }} goals
         </div>
       </div>
       <div class="stat">

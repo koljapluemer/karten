@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { CardDoc } from '@/entities/cards/Card'
+import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
 import MarkdownContent from '@/dumb/MarkdownContent.vue'
 
 const props = defineProps<{
-  card: CardDoc
+  card: FlashCardDoc
   position: number
   total: number
   isBusy: boolean

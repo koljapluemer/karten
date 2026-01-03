@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { CardDoc } from '@/entities/cards/Card'
-import { useCardsStore } from '@/entities/cards/cardsStore'
+import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
+import { useLibraryStore } from '@/entities/library/libraryStore'
 import FlashcardPracticeCard from './FlashcardPracticeCard.vue'
 
 const props = defineProps<{
-  cards: CardDoc[]
+  cards: FlashCardDoc[]
   index: number
 }>()
 
@@ -14,7 +14,7 @@ const emit = defineEmits<{
   (event: 'advance'): void
 }>()
 
-const store = useCardsStore()
+const store = useLibraryStore()
 const isBusy = ref(false)
 
 const currentCard = computed(() => props.cards[props.index])

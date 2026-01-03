@@ -1,13 +1,13 @@
 import { ref } from 'vue'
-import type { CardDoc } from '@/entities/cards/Card'
-import { useCardsStore } from '@/entities/cards/cardsStore'
+import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
+import { useLibraryStore } from '@/entities/library/libraryStore'
 import { takeRandom } from '@/dumb/random'
 
 type PracticeScreen =
   | { name: 'loading' }
   | { name: 'choose' }
   | { name: 'adding'; step: number; total: number }
-  | { name: 'lesson'; cards: CardDoc[]; index: number }
+  | { name: 'lesson'; cards: FlashCardDoc[]; index: number }
 
 const MIN_LESSON = 3
 const MAX_LESSON = 15
@@ -18,7 +18,7 @@ const randomLessonTarget = (): number => {
 }
 
 export const usePracticeFlow = () => {
-  const store = useCardsStore()
+  const store = useLibraryStore()
   const screen = ref<PracticeScreen>({ name: 'loading' })
 
   const decideInitialScreen = () => {

@@ -3,11 +3,18 @@ import { computed, ref } from 'vue'
 import { format, subDays } from 'date-fns'
 import * as ebisu from '@/entities/ebisu'
 import { db } from '@/entities/storage/db'
-import type { CardDoc, CardType } from './Card'
+import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
+import type { TaskCardDoc } from '@/entities/taskcards/TaskCard'
+import type { LearningGoalDoc } from '@/entities/learning-goals/LearningGoal'
 import type { LearningProgressDoc } from '@/entities/progress/LearningProgress'
 import type { PracticeLogDoc } from '@/entities/practice/PracticeLog'
 
-type CardCounts = Record<CardType | 'total', number>
+type LibraryCounts = {
+  flashcards: number
+  taskcards: number
+  learningGoals: number
+  total: number
+}
 
 const HOURS_IN_MS = 1000 * 60 * 60
 
@@ -16,7 +23,7 @@ const hoursSince = (isoTime: string): number => {
   return Math.max(delta / HOURS_IN_MS, 0)
 }
 
-const buildCardId = (): string => `card:${crypto.randomUUID()}`
+const buildFlashcardId = (): string => `flashcard:${crypto.randomUUID()}`
 const buildProgressId = (cardId: string): string => `progress:${cardId}`
 const buildLogId = (day: string): string => `practice-log:${day}:${crypto.randomUUID()}`
 
@@ -38,8 +45,10 @@ const loadDocsByPrefix = async <T extends { _id: string }>(prefix: string): Prom
   return rows.flatMap((row) => (row.doc ? [row.doc] : []))
 }
 
-export const useCardsStore = defineStore('cards', () => {
-  const cards = ref<CardDoc[]>([])
+export const useLibraryStore = defineStore('library', () => {
+  const flashcards = ref<FlashCardDoc[]>([])
+  const taskcards = ref<TaskCardDoc[]>([])
+  const learningGoals = ref<LearningGoalDoc[]>([])
   const progress = ref<LearningProgressDoc[]>([])
   const practiceLogs = ref<PracticeLogDoc[]>([])
   const isLoaded = ref(false)
@@ -51,8 +60,6 @@ export const useCardsStore = defineStore('cards', () => {
     })
     return map
   })
-
-  const flashcards = computed(() => cards.value.filter((card) => card.cardType === 'flashcard'))
 
   const dueFlashcards = computed(() => {
     return flashcards.value.filter((card) => {
@@ -72,48 +79,44 @@ export const useCardsStore = defineStore('cards', () => {
     ...dueFlashcards.value
   ])
 
-  const cardCounts = computed<CardCounts>(() => {
-    const counts: CardCounts = {
-      total: cards.value.length,
-      flashcard: 0,
-      task: 0,
-      content: 0
-    }
-    cards.value.forEach((card) => {
-      counts[card.cardType] += 1
-    })
-    return counts
-  })
+  const libraryCounts = computed<LibraryCounts>(() => ({
+    flashcards: flashcards.value.length,
+    taskcards: taskcards.value.length,
+    learningGoals: learningGoals.value.length,
+    total: flashcards.value.length + taskcards.value.length + learningGoals.value.length
+  }))
 
   const loadAll = async (): Promise<void> => {
     if (isLoaded.value) return
-    const [cardDocs, progressDocs, logDocs] = await Promise.all([
-      loadDocsByPrefix<CardDoc>('card:'),
+    const [flashcardDocs, taskcardDocs, goalDocs, progressDocs, logDocs] = await Promise.all([
+      loadDocsByPrefix<FlashCardDoc>('flashcard:'),
+      loadDocsByPrefix<TaskCardDoc>('taskcard:'),
+      loadDocsByPrefix<LearningGoalDoc>('learning-goal:'),
       loadDocsByPrefix<LearningProgressDoc>('progress:'),
       loadDocsByPrefix<PracticeLogDoc>('practice-log:')
     ])
-    cards.value = cardDocs
+    flashcards.value = flashcardDocs
+    taskcards.value = taskcardDocs
+    learningGoals.value = goalDocs
     progress.value = progressDocs
     practiceLogs.value = logDocs
     isLoaded.value = true
   }
 
-  const createFlashcard = async (front: string, back: string): Promise<CardDoc> => {
+  const createFlashcard = async (front: string, back: string): Promise<FlashCardDoc> => {
     const now = new Date().toISOString()
-    const card: CardDoc = {
-      _id: buildCardId(),
-      type: 'card',
-      cardType: 'flashcard',
+    const card: FlashCardDoc = {
+      _id: buildFlashcardId(),
+      type: 'flashcard',
       front,
       back,
-      parents: [],
       createdAt: now,
       updatedAt: now
     }
 
     const result = await db.put(card)
     const stored = { ...card, _rev: result.rev }
-    cards.value = [stored, ...cards.value]
+    flashcards.value = [stored, ...flashcards.value]
     return stored
   }
 
@@ -189,14 +192,15 @@ export const useCardsStore = defineStore('cards', () => {
   }
 
   return {
-    cards,
+    flashcards,
+    taskcards,
+    learningGoals,
     progress,
     isLoaded,
-    flashcards,
     dueFlashcards,
     unseenFlashcards,
     dueOrUnseenFlashcards,
-    cardCounts,
+    libraryCounts,
     loadAll,
     createFlashcard,
     recordFlashcardReview,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { MilkdownProvider } from '@milkdown/vue'
-import { useCardsStore } from '@/entities/cards/cardsStore'
+import { useLibraryStore } from '@/entities/library/libraryStore'
 import MarkdownEditor from './MarkdownEditor.vue'
 
 defineProps<{
@@ -13,7 +13,7 @@ const emit = defineEmits<{
   (event: 'added'): void
 }>()
 
-const store = useCardsStore()
+const store = useLibraryStore()
 const front = ref('')
 const back = ref('')
 const isSaving = ref(false)
