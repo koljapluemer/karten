@@ -33,15 +33,17 @@ const goalContent = computed(() => props.goal?.content ?? '')
 const buildDefaultPrompt = () => {
   const childLines = props.directChildren.length
     ? props.directChildren.map((child) => `- ${child.title}`).join('\n')
-    : '- (none)'
+    : ''
   const contentBlock = goalContent.value ? `\nContent:\n${goalContent.value}\n` : ''
   return [
     'You are helping break down a learning goal into concrete child goals.',
     'Create child learning goals that are specific and minimal.',
+    'Limit to goals that consist of declarative knowledge and can be taught with text-based flashcards',
+    'Formulate them with an actionable, meaningful verb in the beginning such as "Understand..." or "Know how..."',
     '',
     `Parent Goal: ${goalTitle.value}`,
     contentBlock,
-    'Child Goals already added:',
+    props.directChildren.length ? 'Child Goals already added:' : '',
     childLines,
     '',
     `Generate 3-5 new child goals.`
