@@ -1,30 +1,27 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Link2, Link2Off, Pencil, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
+import { Link2Off, Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
-import type { LearningGoalDoc } from '@/entities/learning-goals/LearningGoal'
 
 const props = defineProps<{
   open: boolean
-  goal: LearningGoalDoc | null
+  card: FlashCardDoc | null
   flashcards: FlashCardDoc[]
 }>()
 
 const emit = defineEmits<{
   (event: 'close'): void
   (event: 'add'): void
-  (event: 'generate'): void
   (event: 'edit', cardId: string): void
-  (event: 'overlaps', cardId: string): void
   (event: 'detach', cardId: string): void
   (event: 'delete', cardId: string): void
 }>()
 
-const attachedFlashcards = computed(() => {
-  if (!props.goal) return []
-  const ids = new Set(props.goal.flashcards)
-  return props.flashcards.filter((card) => ids.has(card._id))
+const overlappingCards = computed(() => {
+  if (!props.card) return []
+  const ids = new Set(props.card.overlapping ?? [])
+  return props.flashcards.filter((item) => ids.has(item._id))
 })
 </script>
 
@@ -38,35 +35,26 @@ const attachedFlashcards = computed(() => {
       <div class="flex items-center justify-between gap-3">
         <div>
           <h3 class="text-lg font-semibold">
-            Flashcards
+            Overlapping Flashcards
           </h3>
           <p class="text-sm opacity-70">
-            {{ goal?.title || 'Learning Goal' }}
+            {{ card?.front || 'Flashcard' }}
           </p>
         </div>
-        <div class="flex items-center gap-2">
-          <button
-            class="btn btn-outline btn-sm"
-            @click="emit('generate')"
-          >
-            <Sparkles :size="16" />
-            Generate
-          </button>
-          <button
-            class="btn btn-outline btn-sm"
-            @click="emit('add')"
-          >
-            <Plus :size="16" />
-            Add Flashcard
-          </button>
-        </div>
+        <button
+          class="btn btn-outline btn-sm"
+          @click="emit('add')"
+        >
+          <Plus :size="16" />
+          Add Overlap
+        </button>
       </div>
 
       <div
-        v-if="!attachedFlashcards.length"
+        v-if="!overlappingCards.length"
         class="text-sm opacity-70"
       >
-        No flashcards attached yet.
+        No overlapping flashcards yet.
       </div>
 
       <div
@@ -74,32 +62,26 @@ const attachedFlashcards = computed(() => {
         class="grid gap-4 sm:grid-cols-2"
       >
         <div
-          v-for="card in attachedFlashcards"
-          :key="card._id"
+          v-for="item in overlappingCards"
+          :key="item._id"
           class="space-y-2"
         >
           <div class="flex items-center gap-2">
             <button
               class="btn btn-ghost btn-xs"
-              @click="emit('edit', card._id)"
+              @click="emit('edit', item._id)"
             >
               <Pencil :size="16" />
             </button>
             <button
               class="btn btn-ghost btn-xs"
-              @click="emit('overlaps', card._id)"
-            >
-              <Link2 :size="16" />
-            </button>
-            <button
-              class="btn btn-ghost btn-xs"
-              @click="emit('detach', card._id)"
+              @click="emit('detach', item._id)"
             >
               <Link2Off :size="16" />
             </button>
             <button
               class="btn btn-ghost btn-xs text-error"
-              @click="emit('delete', card._id)"
+              @click="emit('delete', item._id)"
             >
               <Trash2 :size="16" />
             </button>
@@ -109,8 +91,8 @@ const attachedFlashcards = computed(() => {
             style="zoom: 0.5;"
           >
             <FlashcardRenderer
-              :front="card.front"
-              :back="card.back"
+              :front="item.front"
+              :back="item.back"
               show-back
             />
           </div>

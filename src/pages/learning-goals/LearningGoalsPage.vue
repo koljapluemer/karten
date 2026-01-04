@@ -12,9 +12,9 @@ import LearningGoalNode from './LearningGoalNode.vue'
 import LearningGoalModal from '@/features/learning-goal-add/LearningGoalModal.vue'
 import ChildGoalsModal from '@/features/learning-goal-ai/ChildGoalsModal.vue'
 import GoalFlashcardsModal from './GoalFlashcardsModal.vue'
-import FlashcardPreviewModal from './FlashcardPreviewModal.vue'
 import FlashcardModal from '@/features/flashcard-add/FlashcardModal.vue'
 import FlashcardAIModal from '@/features/flashcard-ai/FlashcardAIModal.vue'
+import OverlappingFlashcardsModal from './OverlappingFlashcardsModal.vue'
 
 const store = useLearningGoalsStore()
 const router = useRouter()
@@ -33,14 +33,17 @@ const aiModalOpen = ref(false)
 const aiGoalId = ref<string | null>(null)
 const flashcardsModalOpen = ref(false)
 const flashcardsGoalId = ref<string | null>(null)
-const flashcardPreviewOpen = ref(false)
-const flashcardPreviewId = ref<string | null>(null)
 const flashcardEditOpen = ref(false)
 const flashcardEditId = ref<string | null>(null)
 const flashcardAddOpen = ref(false)
 const isFlashcardSaving = ref(false)
 const aiFlashcardsOpen = ref(false)
 const aiFlashcardsGoalId = ref<string | null>(null)
+const overlapModalOpen = ref(false)
+const overlapParentId = ref<string | null>(null)
+const overlapAddOpen = ref(false)
+const overlapEditOpen = ref(false)
+const overlapEditId = ref<string | null>(null)
 
 onMounted(() => {
   store.loadLearningGoals()
@@ -92,11 +95,6 @@ const flashcardsGoal = computed(() => {
   return store.learningGoals.find((goal) => goal._id === flashcardsGoalId.value) ?? null
 })
 
-const previewCard = computed(() => {
-  if (!flashcardPreviewId.value) return null
-  return flashcardsStore.flashcards.find((card) => card._id === flashcardPreviewId.value) ?? null
-})
-
 const editCard = computed<FlashCardDoc | null>(() => {
   if (!flashcardEditId.value) return null
   return flashcardsStore.flashcards.find((card) => card._id === flashcardEditId.value) ?? null
@@ -111,6 +109,16 @@ const aiFlashcards = computed(() => {
   if (!aiFlashcardsGoal.value) return []
   const ids = new Set(aiFlashcardsGoal.value.flashcards)
   return flashcardsStore.flashcards.filter((card) => ids.has(card._id))
+})
+
+const overlapParentCard = computed(() => {
+  if (!overlapParentId.value) return null
+  return flashcardsStore.flashcards.find((card) => card._id === overlapParentId.value) ?? null
+})
+
+const overlapEditCard = computed<FlashCardDoc | null>(() => {
+  if (!overlapEditId.value) return null
+  return flashcardsStore.flashcards.find((card) => card._id === overlapEditId.value) ?? null
 })
 
 const openAddGoal = (parentId?: string) => {
@@ -204,16 +212,6 @@ const closeFlashcardsModal = () => {
   flashcardsModalOpen.value = false
 }
 
-const openFlashcardPreview = (cardId: string) => {
-  flashcardPreviewId.value = cardId
-  flashcardPreviewOpen.value = true
-}
-
-const closeFlashcardPreview = () => {
-  flashcardPreviewOpen.value = false
-  flashcardPreviewId.value = null
-}
-
 const openFlashcardEdit = (cardId: string) => {
   flashcardEditId.value = cardId
   flashcardEditOpen.value = true
@@ -230,6 +228,33 @@ const openFlashcardAdd = () => {
 
 const closeFlashcardAdd = () => {
   flashcardAddOpen.value = false
+}
+
+const openOverlapsModal = (cardId: string) => {
+  overlapParentId.value = cardId
+  overlapModalOpen.value = true
+}
+
+const closeOverlapsModal = () => {
+  overlapModalOpen.value = false
+}
+
+const openOverlapAdd = () => {
+  overlapAddOpen.value = true
+}
+
+const closeOverlapAdd = () => {
+  overlapAddOpen.value = false
+}
+
+const openOverlapEdit = (cardId: string) => {
+  overlapEditId.value = cardId
+  overlapEditOpen.value = true
+}
+
+const closeOverlapEdit = () => {
+  overlapEditOpen.value = false
+  overlapEditId.value = null
 }
 
 const openFlashcardAI = (goalId: string) => {
@@ -280,6 +305,39 @@ const handleFlashcardDetach = async (cardId: string) => {
 }
 
 const handleFlashcardDelete = async (cardId: string) => {
+  await flashcardsStore.deleteFlashcard(cardId)
+  await store.removeFlashcardFromAllGoals(cardId)
+}
+
+const handleOverlapAdd = async (payload: { front: string; back: string }) => {
+  if (!overlapParentId.value || isFlashcardSaving.value) return
+  isFlashcardSaving.value = true
+  try {
+    const card = await flashcardsStore.createFlashcard(payload.front, payload.back)
+    await flashcardsStore.addOverlapping(overlapParentId.value, card._id)
+    overlapAddOpen.value = false
+  } finally {
+    isFlashcardSaving.value = false
+  }
+}
+
+const handleOverlapEdit = async (payload: { front: string; back: string }) => {
+  if (!overlapEditId.value || isFlashcardSaving.value) return
+  isFlashcardSaving.value = true
+  try {
+    await flashcardsStore.updateFlashcard(overlapEditId.value, payload)
+    closeOverlapEdit()
+  } finally {
+    isFlashcardSaving.value = false
+  }
+}
+
+const handleOverlapDetach = async (cardId: string) => {
+  if (!overlapParentId.value) return
+  await flashcardsStore.removeOverlapping(overlapParentId.value, cardId)
+}
+
+const handleOverlapDelete = async (cardId: string) => {
   await flashcardsStore.deleteFlashcard(cardId)
   await store.removeFlashcardFromAllGoals(cardId)
 }
@@ -419,16 +477,10 @@ const handleFlashcardAiAccept = async (
       @close="closeFlashcardsModal"
       @add="openFlashcardAdd"
       @generate="openFlashcardAIFromModal"
-      @view="openFlashcardPreview"
       @edit="openFlashcardEdit"
+      @overlaps="openOverlapsModal"
       @detach="handleFlashcardDetach"
       @delete="handleFlashcardDelete"
-    />
-
-    <FlashcardPreviewModal
-      :open="flashcardPreviewOpen"
-      :card="previewCard"
-      @close="closeFlashcardPreview"
     />
 
     <FlashcardModal
@@ -457,6 +509,37 @@ const handleFlashcardAiAccept = async (
       :attached-flashcards="aiFlashcards"
       @close="closeFlashcardAI"
       @accept="handleFlashcardAiAccept"
+    />
+
+    <OverlappingFlashcardsModal
+      :open="overlapModalOpen"
+      :card="overlapParentCard"
+      :flashcards="flashcardsStore.flashcards"
+      @close="closeOverlapsModal"
+      @add="openOverlapAdd"
+      @edit="openOverlapEdit"
+      @detach="handleOverlapDetach"
+      @delete="handleOverlapDelete"
+    />
+
+    <FlashcardModal
+      :open="overlapAddOpen"
+      title="Add Overlapping Flashcard"
+      submit-label="Add Flashcard"
+      :is-saving="isFlashcardSaving"
+      @close="closeOverlapAdd"
+      @save="handleOverlapAdd"
+    />
+
+    <FlashcardModal
+      :open="overlapEditOpen"
+      title="Edit Overlapping Flashcard"
+      submit-label="Save Changes"
+      :initial-front="overlapEditCard?.front"
+      :initial-back="overlapEditCard?.back"
+      :is-saving="isFlashcardSaving"
+      @close="closeOverlapEdit"
+      @save="handleOverlapEdit"
     />
   </div>
 </template>

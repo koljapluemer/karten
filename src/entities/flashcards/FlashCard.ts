@@ -4,6 +4,7 @@ export type FlashCardDoc = {
   type: 'flashcard'
   front: string
   back: string
+  overlapping: string[]
   createdAt: string
   updatedAt: string
 }
