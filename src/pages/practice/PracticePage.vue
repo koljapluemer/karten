@@ -47,6 +47,7 @@ const activeCardId = computed(() => {
 
 const activeCard = computed(() => (activeCardId.value ? cardsById.value[activeCardId.value] : null))
 const editCard = computed(() => (editCardId.value ? cardsById.value[editCardId.value] : null))
+const screenKey = computed(() => JSON.stringify(screen.value))
 const requiresCardScreens = new Set([
   'followup-flashcards',
   'followup-goals',
@@ -153,6 +154,7 @@ onMounted(() => {
 
       <AddCardScreen
         v-else-if="screen.name === 'add-declarative'"
+        :key="screenKey"
         instruction="Add a Flashcard"
         card-type="declaritive"
         @done="goToScreen()"
@@ -161,6 +163,7 @@ onMounted(() => {
 
       <AddCardScreen
         v-else-if="screen.name === 'add-procedural'"
+        :key="screenKey"
         instruction="Add a Goal"
         card-type="procedural"
         @done="goToScreen()"
@@ -169,6 +172,7 @@ onMounted(() => {
 
       <FollowupCardsScreen
         v-else-if="screen.name === 'followup-flashcards'"
+        :key="screenKey"
         :parent-id="screen.parentId"
         instruction="What knowledge can you memorize now that you know this?"
         child-type="declaritive"
@@ -178,6 +182,7 @@ onMounted(() => {
 
       <FollowupCardsScreen
         v-else-if="screen.name === 'followup-goals'"
+        :key="screenKey"
         :parent-id="screen.parentId"
         :instruction="followupGoalInstruction"
         child-type="procedural"
@@ -187,6 +192,7 @@ onMounted(() => {
 
       <RelationCardsScreen
         v-else-if="screen.name === 'required-goals'"
+        :key="screenKey"
         :parent-id="screen.parentId"
         instruction="What goals do you need to reach before you can attempt this?"
         child-type="procedural"
@@ -197,6 +203,7 @@ onMounted(() => {
 
       <RelationCardsScreen
         v-else-if="screen.name === 'required-flashcards-for-goal'"
+        :key="screenKey"
         :parent-id="screen.parentId"
         instruction="What declarative knowledge do you need to internalize before attempting this?"
         child-type="declaritive"
@@ -207,6 +214,7 @@ onMounted(() => {
 
       <RelationCardsScreen
         v-else-if="screen.name === 'required-flashcards-for-card'"
+        :key="screenKey"
         :parent-id="screen.parentId"
         instruction="Which declarative knowledge would help you memorize this card?"
         child-type="declaritive"
@@ -217,6 +225,7 @@ onMounted(() => {
 
       <RelationCardsScreen
         v-else-if="screen.name === 'overlapping-flashcards'"
+        :key="screenKey"
         :parent-id="screen.parentId"
         instruction="Add flashcards that give additional context to this"
         child-type="declaritive"
@@ -227,6 +236,7 @@ onMounted(() => {
 
       <RelationCardsScreen
         v-else-if="screen.name === 'overlapping-goals'"
+        :key="screenKey"
         :parent-id="screen.parentId"
         instruction="Add an alternative goal to practice that will help achieving this goal"
         child-type="procedural"
@@ -237,6 +247,7 @@ onMounted(() => {
 
       <PracticeFlashcardScreen
         v-else-if="screen.name === 'practice-flashcard'"
+        :key="screenKey"
         :card-id="screen.cardId"
         @next="goToScreen()"
         @followup="goToScreen({ name: 'followup-flashcards', parentId: screen.cardId })"
@@ -246,6 +257,7 @@ onMounted(() => {
 
       <PracticeGoalScreen
         v-else-if="screen.name === 'practice-goal'"
+        :key="screenKey"
         :card-id="screen.cardId"
         @next="goToScreen()"
         @followup-goals="goToScreen({ name: 'followup-goals', parentId: screen.cardId })"

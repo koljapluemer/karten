@@ -7,6 +7,7 @@ import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
 import ActionButtonRow from '@/dumb/ActionButtonRow.vue'
 import FlashcardForm from '@/features/flashcard-add/FlashcardForm.vue'
 import AttachedCardsTable from '../AttachedCardsTable.vue'
+import GenerateCardsModal from '../GenerateCardsModal.vue'
 
 const props = defineProps<{
   parentId: string
@@ -23,8 +24,16 @@ const store = useFlashcardsStore()
 const isSaving = ref(false)
 const formKey = ref(0)
 const addedIds = ref<string[]>([])
+const isAiOpen = ref(false)
 
 const parentCard = computed(() => store.flashcards.find((card) => card._id === props.parentId))
+
+const existingChildren = computed(() =>
+  store.flashcards.filter(
+    (card) =>
+      card.cardType === props.childType && card.requiresLearning.includes(props.parentId)
+  )
+)
 
 const addedCards = computed(() =>
   addedIds.value
@@ -59,11 +68,64 @@ const handleDelete = async (card: FlashCardDoc) => {
   await store.deleteFlashcard(card._id)
   addedIds.value = addedIds.value.filter((id) => id !== card._id)
 }
+
+const aiTitle = computed(() =>
+  props.childType === 'procedural' ? 'Generate Follow-Up Goals' : 'Generate Follow-Up Flashcards'
+)
+const aiDescription = computed(() =>
+  props.childType === 'procedural'
+    ? 'Use AI to suggest follow-up goals for this goal.'
+    : 'Use AI to suggest follow-up flashcards for this flashcard.'
+)
+const defaultPrompt = computed(() => {
+  const parent = parentCard.value
+  const header =
+    props.childType === 'procedural'
+      ? 'Generate follow-up procedural goals for this parent goal.'
+      : 'Generate follow-up declarative flashcards based on this parent flashcard.'
+  const parentLabel = parent?.cardType === 'procedural' ? 'Parent Goal' : 'Parent Flashcard'
+  const parentLines = parent
+    ? [`${parentLabel}:`, `Front: ${parent.front}`, parent.back ? `Back: ${parent.back}` : '']
+    : []
+  const existingLabel =
+    props.childType === 'procedural' ? 'Existing Follow-Up Goals:' : 'Existing Follow-Up Flashcards:'
+  const existingLines = existingChildren.value.length
+    ? [existingLabel, ...existingChildren.value.map((card) => `- ${card.front}`)]
+    : []
+  return [
+    header,
+    ...parentLines,
+    ...existingLines,
+    '',
+    'Generate 3-5 new items.',
+    'Return JSON only.'
+  ]
+    .filter((line) => line !== '')
+    .join('\n')
+})
+
+const handleAcceptAi = async (cards: { front: string; back?: string }[], generateAgain: boolean) => {
+  if (!cards.length) return
+  for (const card of cards) {
+    const front = card.front?.trim() ?? ''
+    const back = props.childType === 'procedural' ? '' : card.back?.trim() ?? ''
+    if (!front || (props.childType === 'declaritive' && !back)) continue
+    const created = await store.createFlashcard(front, back, props.childType, [props.parentId])
+    addedIds.value = [created._id, ...addedIds.value]
+  }
+  if (!generateAgain) isAiOpen.value = false
+}
 </script>
 
 <template>
   <div class="w-full max-w-4xl space-y-6">
     <PracticeInstruction :text="instruction" />
+    <button
+      class="btn btn-outline w-full sm:w-auto"
+      @click="isAiOpen = true"
+    >
+      Generate with AI
+    </button>
 
     <div
       v-if="parentCard"
@@ -98,4 +160,14 @@ const handleDelete = async (card: FlashCardDoc) => {
       @select="emit('done')"
     />
   </div>
+
+  <GenerateCardsModal
+    :open="isAiOpen"
+    :title="aiTitle"
+    :description="aiDescription"
+    :default-prompt="defaultPrompt"
+    :card-type="childType"
+    @close="isAiOpen = false"
+    @accept="handleAcceptAi"
+  />
 </template>
