@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
-import { useTaskcardsStore } from '@/entities/taskcards/taskcardsStore'
 import { useLearningGoalsStore } from '@/entities/learning-goals/learningGoalsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
 import { usePracticeLogStore } from '@/entities/practice/practiceLogStore'
@@ -10,7 +9,6 @@ import DailyCountsChart from './DailyCountsChart.vue'
 import StreakVisualization from './StreakVisualization.vue'
 
 const flashcardsStore = useFlashcardsStore()
-const taskcardsStore = useTaskcardsStore()
 const learningGoalsStore = useLearningGoalsStore()
 const progressStore = useProgressStore()
 const practiceLogStore = usePracticeLogStore()
@@ -18,7 +16,6 @@ const practiceLogStore = usePracticeLogStore()
 onMounted(() => {
   void Promise.all([
     flashcardsStore.loadFlashcards(),
-    taskcardsStore.loadTaskcards(),
     learningGoalsStore.loadLearningGoals(),
     progressStore.loadProgress(),
     practiceLogStore.loadPracticeLogs()
@@ -35,11 +32,9 @@ const hoursSince = (isoTime: string): number => {
 const dailyCounts = computed(() => practiceLogStore.getDailyPracticeCounts(14))
 const counts = computed(() => ({
   flashcards: flashcardsStore.flashcards.length,
-  taskcards: taskcardsStore.taskcards.length,
   learningGoals: learningGoalsStore.learningGoals.length,
   total:
     flashcardsStore.flashcards.length +
-    taskcardsStore.taskcards.length +
     learningGoalsStore.learningGoals.length
 }))
 
@@ -82,7 +77,7 @@ const reviewCount = computed(() =>
           {{ counts.total }}
         </div>
         <div class="stat-desc">
-          {{ counts.flashcards }} flashcards · {{ counts.taskcards }} task cards · {{ counts.learningGoals }} goals
+          {{ counts.flashcards }} flashcards · {{ counts.learningGoals }} goals
         </div>
       </div>
       <div class="stat">
