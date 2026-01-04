@@ -7,7 +7,10 @@ const props = defineProps<{
   back: string
   showBack?: boolean
   flipped?: boolean
+  cardType?: 'declaritive' | 'procedural'
 }>()
+
+const shouldShowBack = computed(() => props.showBack && props.cardType !== 'procedural')
 
 const cardClasses = computed(() => [
   'card',
@@ -26,7 +29,7 @@ const cardClasses = computed(() => [
         <MarkdownContent :value="front" />
       </div>
       <div
-        v-if="showBack"
+        v-if="shouldShowBack"
         class="w-full border-t-2 border-dotted border-base-300 pt-4"
       >
         <MarkdownContent :value="back" />

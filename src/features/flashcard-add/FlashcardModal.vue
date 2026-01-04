@@ -5,6 +5,7 @@ defineProps<{
   open: boolean
   title: string
   submitLabel: string
+  cardType?: 'declaritive' | 'procedural'
   initialFront?: string
   initialBack?: string
   isSaving?: boolean
@@ -28,6 +29,7 @@ const emit = defineEmits<{
       </h3>
       <FlashcardForm
         :submit-label="submitLabel"
+        :card-type="cardType"
         :initial-front="initialFront"
         :initial-back="initialBack"
         :is-saving="isSaving"

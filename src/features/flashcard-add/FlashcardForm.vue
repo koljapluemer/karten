@@ -7,13 +7,16 @@ const props = defineProps<{
   initialFront?: string
   initialBack?: string
   submitLabel: string
+  cardType?: 'declaritive' | 'procedural'
   showCancel?: boolean
   isSaving?: boolean
+  actions?: { id: string; label: string; variant?: 'primary' | 'outline' | 'ghost' }[]
 }>()
 
 const emit = defineEmits<{
   (event: 'save', value: { front: string; back: string }): void
   (event: 'cancel'): void
+  (event: 'action', value: { id: string; payload: { front: string; back: string } }): void
 }>()
 
 const front = ref(props.initialFront ?? '')
@@ -31,11 +34,29 @@ watch(
   }
 )
 
-const canSave = computed(() => front.value.trim().length > 0 && back.value.trim().length > 0)
+const canSave = computed(() => {
+  if (props.cardType === 'procedural') return front.value.trim().length > 0
+  return front.value.trim().length > 0 && back.value.trim().length > 0
+})
 
 const handleSave = () => {
   if (!canSave.value || props.isSaving) return
-  emit('save', { front: front.value.trim(), back: back.value.trim() })
+  const trimmedFront = front.value.trim()
+  const trimmedBack = props.cardType === 'procedural' ? '' : back.value.trim()
+  emit('save', { front: trimmedFront, back: trimmedBack })
+}
+
+const handleAction = (id: string) => {
+  if (!canSave.value || props.isSaving) return
+  const trimmedFront = front.value.trim()
+  const trimmedBack = props.cardType === 'procedural' ? '' : back.value.trim()
+  emit('action', { id, payload: { front: trimmedFront, back: trimmedBack } })
+}
+
+const buttonClass = (variant?: 'primary' | 'outline' | 'ghost') => {
+  if (variant === 'primary') return 'btn '
+  if (variant === 'ghost') return 'btn '
+  return 'btn '
 }
 </script>
 
@@ -55,7 +76,10 @@ const handleSave = () => {
       </div>
     </div>
 
-    <div class="form-control">
+    <div
+      v-if="cardType !== 'procedural'"
+      class="form-control"
+    >
       <label class="label">
         <span class="label-text">Back</span>
       </label>
@@ -70,20 +94,33 @@ const handleSave = () => {
     </div>
 
     <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-      <button
-        v-if="showCancel"
-        class="btn btn-ghost"
-        @click="emit('cancel')"
-      >
-        Cancel
-      </button>
-      <button
-        class="btn btn-primary"
-        :disabled="!canSave || isSaving"
-        @click="handleSave"
-      >
-        {{ isSaving ? 'Saving...' : submitLabel }}
-      </button>
+      <template v-if="actions?.length">
+        <button
+          v-for="action in actions"
+          :key="action.id"
+          :class="buttonClass(action.variant)"
+          :disabled="!canSave || isSaving"
+          @click="handleAction(action.id)"
+        >
+          {{ action.label }}
+        </button>
+      </template>
+      <template v-else>
+        <button
+          v-if="showCancel"
+          class="btn "
+          @click="emit('cancel')"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn "
+          :disabled="!canSave || isSaving"
+          @click="handleSave"
+        >
+          {{ isSaving ? 'Saving...' : submitLabel }}
+        </button>
+      </template>
     </div>
   </div>
 </template>

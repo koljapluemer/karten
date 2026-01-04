@@ -4,6 +4,10 @@ import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
 import FlashcardForm from './FlashcardForm.vue'
 
+const props = defineProps<{
+  cardType?: 'declaritive' | 'procedural'
+}>()
+
 const emit = defineEmits<{
   (event: 'added', value: FlashCardDoc): void
 }>()
@@ -16,7 +20,11 @@ const handleSave = async (payload: { front: string; back: string }) => {
   if (isSaving.value) return
   isSaving.value = true
   try {
-    const card = await store.createFlashcard(payload.front, payload.back)
+    const card = await store.createFlashcard(
+      payload.front,
+      payload.back,
+      props.cardType ?? 'declaritive'
+    )
     formKey.value += 1
     emit('added', card)
   } finally {
@@ -34,6 +42,7 @@ const handleSave = async (payload: { front: string; back: string }) => {
     <FlashcardForm
       :key="formKey"
       submit-label="Save & Next"
+      :card-type="cardType"
       :is-saving="isSaving"
       @save="handleSave"
     />

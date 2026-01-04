@@ -15,19 +15,29 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
     const docs = await loadDocsByPrefix<FlashCardDoc>('flashcard:')
     flashcards.value = docs.map((doc) => ({
       ...doc,
+      cardType: doc.cardType ?? 'declaritive',
+      requiresLearning: doc.requiresLearning ?? [],
       overlapping: doc.overlapping ?? []
     }))
     isLoaded.value = true
   }
 
-  const createFlashcard = async (front: string, back: string): Promise<FlashCardDoc> => {
+  const createFlashcard = async (
+    front: string,
+    back: string,
+    cardType: FlashCardDoc['cardType'] = 'declaritive',
+    requiresLearning: string[] = [],
+    overlapping: string[] = []
+  ): Promise<FlashCardDoc> => {
     const now = new Date().toISOString()
     const card: FlashCardDoc = {
       _id: buildFlashcardId(),
       type: 'flashcard',
+      cardType,
       front,
       back,
-      overlapping: [],
+      requiresLearning,
+      overlapping,
       createdAt: now,
       updatedAt: now
     }
@@ -40,7 +50,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
 
   const updateFlashcard = async (
     cardId: string,
-    updates: Partial<Pick<FlashCardDoc, 'front' | 'back' | 'overlapping'>>
+    updates: Partial<Pick<FlashCardDoc, 'front' | 'back' | 'overlapping' | 'requiresLearning' | 'cardType'>>
   ): Promise<void> => {
     const current = flashcards.value.find((entry) => entry._id === cardId)
     if (!current) return
@@ -48,6 +58,8 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
       ...current,
       front: updates.front ?? current.front,
       back: updates.back ?? current.back,
+      cardType: updates.cardType ?? current.cardType,
+      requiresLearning: updates.requiresLearning ?? current.requiresLearning,
       overlapping: updates.overlapping ?? current.overlapping,
       updatedAt: new Date().toISOString()
     }
@@ -60,11 +72,23 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
   const deleteFlashcard = async (cardId: string): Promise<void> => {
     const current = flashcards.value.find((entry) => entry._id === cardId)
     if (!current || !current._rev) return
-    const others = flashcards.value.filter((entry) => entry.overlapping.includes(cardId))
-    for (const other of others) {
+    const overlappingCards = flashcards.value.filter((entry) => entry.overlapping.includes(cardId))
+    for (const other of overlappingCards) {
       const updated: FlashCardDoc = {
         ...other,
         overlapping: other.overlapping.filter((id) => id !== cardId),
+        updatedAt: new Date().toISOString()
+      }
+      const result = await db.put(updated)
+      flashcards.value = flashcards.value.map((entry) =>
+        entry._id === other._id ? { ...updated, _rev: result.rev } : entry
+      )
+    }
+    const requiredCards = flashcards.value.filter((entry) => entry.requiresLearning.includes(cardId))
+    for (const other of requiredCards) {
+      const updated: FlashCardDoc = {
+        ...other,
+        requiresLearning: other.requiresLearning.filter((id) => id !== cardId),
         updatedAt: new Date().toISOString()
       }
       const result = await db.put(updated)
