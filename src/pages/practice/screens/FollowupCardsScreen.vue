@@ -69,6 +69,15 @@ const handleDelete = async (card: FlashCardDoc) => {
   addedIds.value = addedIds.value.filter((id) => id !== card._id)
 }
 
+const logEvent = computed(() =>
+  props.childType === 'procedural' ? 'ADDED_FOLLOWUP_GOALS' : 'ADDED_FOLLOWUP_FLASHCARDS'
+)
+
+const handleDone = async () => {
+  await store.addLog(props.parentId, logEvent.value)
+  emit('done')
+}
+
 const aiTitle = computed(() =>
   props.childType === 'procedural' ? 'Generate Follow-Up Goals' : 'Generate Follow-Up Flashcards'
 )
@@ -157,7 +166,7 @@ const handleAcceptAi = async (cards: { front: string; back?: string }[], generat
 
     <ActionButtonRow
       :actions="[{ id: 'done', label: 'Done', variant: 'primary' }]"
-      @select="emit('done')"
+      @select="handleDone"
     />
   </div>
 

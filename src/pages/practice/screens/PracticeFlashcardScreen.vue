@@ -49,6 +49,7 @@ const handleAnswer = async (score: number, label: 'no' | 'kindof' | 'yes' | 'eas
   try {
     const now = new Date().toISOString()
     await progressStore.updateDeclarativeProgress(card.value._id, score, now)
+    await flashcardsStore.addLog(card.value._id, 'PRACTICED_FLASHCARD', now)
     lastAnswer.value = label
   } finally {
     isSaving.value = false

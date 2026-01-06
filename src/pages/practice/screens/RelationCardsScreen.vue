@@ -94,6 +94,23 @@ const handleDelete = async (card: FlashCardDoc) => {
   await store.deleteFlashcard(card._id)
 }
 
+const logEvent = computed(() => {
+  const parent = parentCard.value
+  if (props.relation === 'overlapping') {
+    return props.childType === 'procedural'
+      ? 'ADDED_OVERLAPPING_GOALS'
+      : 'ADDED_OVERLAPPING_FLASHCARDS'
+  }
+  if (props.childType === 'procedural') return 'ADDED_REQUIRED_GOALS'
+  if (parent?.cardType === 'procedural') return 'ADDED_REQUIRED_FLASHCARDS_FOR_GOAL'
+  return 'ADDED_REQUIRED_FLASHCARDS_FOR_CARD'
+})
+
+const handleDone = async () => {
+  await store.addLog(props.parentId, logEvent.value)
+  emit('done')
+}
+
 const aiTitle = computed(() => {
   if (props.relation === 'overlapping') {
     return props.childType === 'procedural' ? 'Generate Overlapping Goals' : 'Generate Overlapping Flashcards'
@@ -202,7 +219,7 @@ const handleAcceptAi = async (cards: { front: string; back?: string }[], generat
 
     <ActionButtonRow
       :actions="[{ id: 'done', label: 'Done', variant: 'primary' }]"
-      @select="emit('done')"
+      @select="handleDone"
     />
   </div>
 

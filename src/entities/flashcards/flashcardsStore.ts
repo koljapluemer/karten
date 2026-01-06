@@ -17,7 +17,8 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
       ...doc,
       cardType: doc.cardType ?? 'declaritive',
       requiresLearning: doc.requiresLearning ?? [],
-      overlapping: doc.overlapping ?? []
+      overlapping: doc.overlapping ?? [],
+      logs: doc.logs ?? {}
     }))
     isLoaded.value = true
   }
@@ -38,6 +39,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
       back,
       requiresLearning,
       overlapping,
+      logs: {},
       createdAt: now,
       updatedAt: now
     }
@@ -50,7 +52,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
 
   const updateFlashcard = async (
     cardId: string,
-    updates: Partial<Pick<FlashCardDoc, 'front' | 'back' | 'overlapping' | 'requiresLearning' | 'cardType'>>
+    updates: Partial<Pick<FlashCardDoc, 'front' | 'back' | 'overlapping' | 'requiresLearning' | 'cardType' | 'logs'>>
   ): Promise<void> => {
     const current = flashcards.value.find((entry) => entry._id === cardId)
     if (!current) return
@@ -61,6 +63,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
       cardType: updates.cardType ?? current.cardType,
       requiresLearning: updates.requiresLearning ?? current.requiresLearning,
       overlapping: updates.overlapping ?? current.overlapping,
+      logs: updates.logs ?? current.logs,
       updatedAt: new Date().toISOString()
     }
     const result = await db.put(updated)
@@ -158,6 +161,21 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
     })
   }
 
+  const addLog = async (cardId: string, event: string, occurredAt = new Date().toISOString()): Promise<void> => {
+    const current = flashcards.value.find((entry) => entry._id === cardId)
+    if (!current) return
+    const logs = { ...(current.logs ?? {}), [occurredAt]: event }
+    const updated: FlashCardDoc = {
+      ...current,
+      logs,
+      updatedAt: new Date().toISOString()
+    }
+    const result = await db.put(updated)
+    flashcards.value = flashcards.value.map((entry) =>
+      entry._id === cardId ? { ...updated, _rev: result.rev } : entry
+    )
+  }
+
   return {
     flashcards,
     isLoaded,
@@ -166,6 +184,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
     updateFlashcard,
     deleteFlashcard,
     addOverlapping,
-    removeOverlapping
+    removeOverlapping,
+    addLog
   }
 })

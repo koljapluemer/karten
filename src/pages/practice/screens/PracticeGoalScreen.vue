@@ -57,6 +57,7 @@ const handleSchedule = async (id: string) => {
       isAchieved: wasSuccessful.value,
       practiceNextAt: nextAt
     })
+    await flashcardsStore.addLog(card.value._id, 'PRACTICED_GOAL')
     stage.value = 'next'
   } finally {
     isSaving.value = false

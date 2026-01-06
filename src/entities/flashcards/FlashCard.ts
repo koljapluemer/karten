@@ -7,6 +7,7 @@ export type FlashCardDoc = {
   back: string
   requiresLearning: string[]
   overlapping: string[]
+  logs?: Record<string, string>
   createdAt: string
   updatedAt: string
 }

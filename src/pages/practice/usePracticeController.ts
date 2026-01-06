@@ -24,6 +24,7 @@ export type PracticeScreen =
   | { name: 'practice-goal'; cardId: string }
 
 const HOURS_IN_MS = 1000 * 60 * 60
+const RECENT_TASK_MS = 1000 * 60 * 60
 
 const hoursSince = (isoTime: string): number => {
   const delta = Date.now() - Date.parse(isoTime)
@@ -32,6 +33,17 @@ const hoursSince = (isoTime: string): number => {
 
 const getRecall = (entry: DeclarativeLearningProgressDoc): number => {
   return ebisu.predictRecall(entry.model, hoursSince(entry.lastReviewedAt), true)
+}
+
+const hasRecentTask = (card: FlashCardDoc, event: string): boolean => {
+  const logs = card.logs ?? {}
+  const now = Date.now()
+  return Object.entries(logs).some(([timestamp, value]) => {
+    if (value !== event) return false
+    const loggedAt = Date.parse(timestamp)
+    if (Number.isNaN(loggedAt)) return false
+    return now - loggedAt < RECENT_TASK_MS
+  })
 }
 
 export const usePracticeController = () => {
@@ -75,19 +87,29 @@ export const usePracticeController = () => {
       const progress = progressStore.progressByCardId[card._id]
       if (progress?.type === 'learning-progress-declarative') {
         if (getRecall(progress) >= 0.8) {
-          options.push({ name: 'followup-flashcards', parentId: card._id })
+          if (!hasRecentTask(card, 'ADDED_FOLLOWUP_FLASHCARDS')) {
+            options.push({ name: 'followup-flashcards', parentId: card._id })
+          }
         }
       }
 
-      options.push({ name: 'required-flashcards-for-card', parentId: card._id })
-      options.push({ name: 'overlapping-flashcards', parentId: card._id })
+      if (!hasRecentTask(card, 'ADDED_REQUIRED_FLASHCARDS_FOR_CARD')) {
+        options.push({ name: 'required-flashcards-for-card', parentId: card._id })
+      }
+      if (!hasRecentTask(card, 'ADDED_OVERLAPPING_FLASHCARDS')) {
+        options.push({ name: 'overlapping-flashcards', parentId: card._id })
+      }
 
       const isPracticeReady = requirementsMet(card)
       if (isPracticeReady) {
         if (!progress || progress.type !== 'learning-progress-declarative') {
-          options.push({ name: 'practice-flashcard', cardId: card._id })
+          if (!hasRecentTask(card, 'PRACTICED_FLASHCARD')) {
+            options.push({ name: 'practice-flashcard', cardId: card._id })
+          }
         } else if (getRecall(progress) < 0.9) {
-          options.push({ name: 'practice-flashcard', cardId: card._id })
+          if (!hasRecentTask(card, 'PRACTICED_FLASHCARD')) {
+            options.push({ name: 'practice-flashcard', cardId: card._id })
+          }
         }
       }
     })
@@ -97,19 +119,29 @@ export const usePracticeController = () => {
         | ProceduralLearningProgressDoc
         | undefined
 
-      options.push({ name: 'followup-goals', parentId: card._id })
-      options.push({ name: 'required-flashcards-for-goal', parentId: card._id })
-      options.push({ name: 'overlapping-goals', parentId: card._id })
+      if (!hasRecentTask(card, 'ADDED_FOLLOWUP_GOALS')) {
+        options.push({ name: 'followup-goals', parentId: card._id })
+      }
+      if (!hasRecentTask(card, 'ADDED_REQUIRED_FLASHCARDS_FOR_GOAL')) {
+        options.push({ name: 'required-flashcards-for-goal', parentId: card._id })
+      }
+      if (!hasRecentTask(card, 'ADDED_OVERLAPPING_GOALS')) {
+        options.push({ name: 'overlapping-goals', parentId: card._id })
+      }
 
       if (!progress || progress.type !== 'learning-progress-procedural') {
-        options.push({ name: 'required-goals', parentId: card._id })
+        if (!hasRecentTask(card, 'ADDED_REQUIRED_GOALS')) {
+          options.push({ name: 'required-goals', parentId: card._id })
+        }
       }
 
       const isPracticeReady = requirementsMet(card)
       if (isPracticeReady) {
         const nextAt = progress?.practiceNextAt ? Date.parse(progress.practiceNextAt) : undefined
         if (!nextAt || nextAt <= Date.now()) {
-          options.push({ name: 'practice-goal', cardId: card._id })
+          if (!hasRecentTask(card, 'PRACTICED_GOAL')) {
+            options.push({ name: 'practice-goal', cardId: card._id })
+          }
         }
       }
     })
