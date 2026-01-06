@@ -1,9 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { ArrowDown, ArrowUp, Pencil, Plus, PlusCircle, Trash2, Unlink } from 'lucide-vue-next'
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  Circle,
+  Pencil,
+  Plus,
+  PlusCircle,
+  Trash2,
+  Unlink,
+  XCircle
+} from 'lucide-vue-next'
 import { useTopicsStore } from '@/entities/topics/topicsStore'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
+import { useProgressStore } from '@/entities/progress/progressStore'
+import { buildProgressIndex, getRecallPercent } from '@/entities/progress/progressHelpers'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
 import FlashcardModal from '@/features/flashcard-add/FlashcardModal.vue'
 import MarkdownContent from '@/dumb/MarkdownContent.vue'
@@ -13,6 +26,7 @@ import AddExistingCardModal from './AddExistingCardModal.vue'
 const route = useRoute()
 const topicsStore = useTopicsStore()
 const flashcardsStore = useFlashcardsStore()
+const progressStore = useProgressStore()
 
 const topicId = computed(() => String(route.params.id || ''))
 
@@ -133,9 +147,20 @@ const levelCards = (level: string[]) =>
     .map((id) => cardsById.value[id])
     .filter((card): card is typeof flashcardsStore.flashcards[number] => Boolean(card))
 
+const progressIndex = computed(() => buildProgressIndex(progressStore.progress))
+
+const recallForCard = (cardId: string): number | null => {
+  return getRecallPercent(progressIndex.value[cardId]?.declarative ?? null)
+}
+
+const goalAchieved = (cardId: string): boolean | null => {
+  return progressIndex.value[cardId]?.procedural?.isAchieved ?? null
+}
+
 onMounted(() => {
   topicsStore.loadTopics()
   flashcardsStore.loadFlashcards()
+  progressStore.loadProgress()
 })
 </script>
 
@@ -240,6 +265,29 @@ onMounted(() => {
               :key="card._id"
               class="rounded-xl border border-base-300 bg-base-100 w-fit"
             >
+              <div class="flex items-center gap-1 h-3">
+                <Circle
+                  v-if="!progressIndex[card._id]?.declarative && !progressIndex[card._id]?.procedural"
+                  class="text-base-300"
+                  :size="10"
+                />
+                <progress
+                  v-else-if="card.cardType === 'declaritive'"
+                  class="progress progress-primary w-12"
+                  :value="recallForCard(card._id) ?? 0"
+                  max="100"
+                />
+                <CheckCircle2
+                  v-else-if="goalAchieved(card._id) === true"
+                  class="text-success"
+                  :size="12"
+                />
+                <XCircle
+                  v-else-if="goalAchieved(card._id) === false"
+                  class="text-error"
+                  :size="12"
+                />
+              </div>
               <FlashcardRenderer
                 :front="card.front"
                 :back="card.back"

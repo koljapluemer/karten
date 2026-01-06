@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import * as ebisu from '@/entities/ebisu'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
 import type { TopicDoc } from '@/entities/topics/Topic'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
 import { useTopicsStore } from '@/entities/topics/topicsStore'
-import type { DeclarativeLearningProgressDoc } from '@/entities/progress/LearningProgress'
+import {
+  buildProgressIndex,
+  isDeclarativeDue,
+  isDeclarativeMastered,
+  isProceduralDue,
+  isProceduralMastered
+} from '@/entities/progress/progressHelpers'
 import { pickRandom, shuffleArray, takeRandom } from '@/dumb/random'
 import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
 import ActionButtonRow from '@/dumb/ActionButtonRow.vue'
-import PracticeGoalTask from './tasks/PracticeGoalTask.vue'
 import PracticeMemorizeTask from './tasks/PracticeMemorizeTask.vue'
 import FlashcardPracticePanel from './tasks/FlashcardPracticePanel.vue'
+import GoalYesNoTask from './tasks/GoalYesNoTask.vue'
 
 const flashcardsStore = useFlashcardsStore()
 const progressStore = useProgressStore()
@@ -59,33 +64,20 @@ const currentTopic = computed(() =>
 
 const currentItem = computed(() => queue.value[index.value] ?? null)
 
-const hoursSince = (isoTime: string): number => {
-  const delta = Date.now() - Date.parse(isoTime)
-  return Math.max(delta / (1000 * 60 * 60), 0)
-}
-
-const getRecall = (entry: DeclarativeLearningProgressDoc): number => {
-  return ebisu.predictRecall(entry.model, hoursSince(entry.lastReviewedAt), true)
-}
+const progressIndex = computed(() => buildProgressIndex(progressStore.progress))
 
 const isMastered = (card: FlashCardDoc): boolean => {
-  const progress = progressStore.progressByCardId[card._id]
   if (card.cardType === 'procedural') {
-    return progress?.type === 'learning-progress-procedural' && progress.isAchieved
+    return isProceduralMastered(progressIndex.value[card._id]?.procedural ?? null)
   }
-  if (progress?.type !== 'learning-progress-declarative') return false
-  return getRecall(progress) >= 0.9
+  return isDeclarativeMastered(progressIndex.value[card._id]?.declarative ?? null)
 }
 
 const isDue = (card: FlashCardDoc): boolean => {
-  const progress = progressStore.progressByCardId[card._id]
   if (card.cardType === 'procedural') {
-    if (progress?.type !== 'learning-progress-procedural') return false
-    const nextAt = progress.practiceNextAt ? Date.parse(progress.practiceNextAt) : undefined
-    return !nextAt || nextAt <= Date.now()
+    return isProceduralDue(progressIndex.value[card._id]?.procedural ?? null)
   }
-  if (progress?.type !== 'learning-progress-declarative') return false
-  return getRecall(progress) < 0.9
+  return isDeclarativeDue(progressIndex.value[card._id]?.declarative ?? null)
 }
 
 const buildQueueForTopic = (topic: TopicDoc): PracticeItem[] => {
@@ -98,27 +90,26 @@ const buildQueueForTopic = (topic: TopicDoc): PracticeItem[] => {
   const dueCards = cards.filter((card) => isDue(card))
   const duePicked = dueCards.length > 15 ? takeRandom(dueCards, 15) : dueCards
 
-  let unlockedLevelIndex = 0
+  let selectedLevelIndex = Math.max(topic.levels.length - 1, 0)
   for (let i = 0; i < topic.levels.length; i += 1) {
     const levelCards = (topic.levels[i] ?? [])
       .map((id) => cardsById.value[id])
       .filter((card): card is FlashCardDoc => Boolean(card))
-    if (!levelCards.length) {
-      unlockedLevelIndex = i + 1
-      continue
+    if (!levelCards.length) continue
+    if (!levelCards.every((card) => isMastered(card))) {
+      selectedLevelIndex = i
+      break
     }
-    if (levelCards.every((card) => isMastered(card))) {
-      unlockedLevelIndex = i + 1
-      continue
-    }
-    break
   }
-
-  const selectedLevelIndex = Math.min(unlockedLevelIndex, Math.max(topic.levels.length - 1, 0))
   const unseenCandidates = (topic.levels[selectedLevelIndex] ?? [])
     .map((id) => cardsById.value[id])
     .filter((card): card is FlashCardDoc => Boolean(card))
-    .filter((card) => !progressStore.progressByCardId[card._id])
+    .filter((card) => {
+      const entry = progressIndex.value[card._id]
+      return card.cardType === 'procedural'
+        ? !entry?.procedural
+        : !entry?.declarative
+    })
 
   const remainingSlots = Math.max(17 - duePicked.length, 0)
   let unseenTarget = Math.min(remainingSlots, unseenCandidates.length)
@@ -133,11 +124,12 @@ const buildQueueForTopic = (topic: TopicDoc): PracticeItem[] => {
     ...unseenPicked.map((card) => ({ card, isNew: true }))
   ]
 
-  return shuffleArray(combined).map(({ card, isNew }) => ({
+  const queueItems = shuffleArray(combined).map(({ card, isNew }) => ({
     cardId: card._id,
     cardType: card.cardType,
     isNew
   }))
+  return queueItems
 }
 
 const ensureNoAdjacentDuplicates = (items: PracticeItem[]): PracticeItem[] => {
@@ -280,16 +272,19 @@ onMounted(async () => {
       >
         <PracticeMemorizeTask
           v-if="currentItem.cardType === 'declaritive' && currentItem.isNew"
+          :key="currentItem.cardId"
           :card-id="currentItem.cardId"
           @done="handleMemorizeDone"
         />
         <FlashcardPracticePanel
           v-else-if="currentItem.cardType === 'declaritive'"
+          :key="currentItem.cardId"
           :card-id="currentItem.cardId"
           @answered="handleFlashcardDone"
         />
-        <PracticeGoalTask
+        <GoalYesNoTask
           v-else
+          :key="currentItem.cardId"
           :card-id="currentItem.cardId"
           @done="handleGoalDone"
         />
