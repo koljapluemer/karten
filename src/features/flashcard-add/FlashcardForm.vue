@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MilkdownProvider } from '@milkdown/vue'
-import MarkdownEditor from '@/dumb/MarkdownEditor.vue'
 
 const props = defineProps<{
   initialFront?: string
@@ -66,14 +64,11 @@ const buttonClass = (variant?: 'primary' | 'outline' | 'ghost') => {
       <label class="label">
         <span class="label-text">Front</span>
       </label>
-      <div class="rounded-lg border border-base-300 bg-base-100 p-2">
-        <MilkdownProvider>
-          <MarkdownEditor
-            :key="frontKey"
-            v-model="front"
-          />
-        </MilkdownProvider>
-      </div>
+      <textarea
+        :key="frontKey"
+        v-model="front"
+        class="textarea textarea-bordered w-full min-h-[160px]"
+      />
     </div>
 
     <div
@@ -83,14 +78,11 @@ const buttonClass = (variant?: 'primary' | 'outline' | 'ghost') => {
       <label class="label">
         <span class="label-text">Back</span>
       </label>
-      <div class="rounded-lg border border-base-300 bg-base-100 p-2">
-        <MilkdownProvider>
-          <MarkdownEditor
-            :key="backKey"
-            v-model="back"
-          />
-        </MilkdownProvider>
-      </div>
+      <textarea
+        :key="backKey"
+        v-model="back"
+        class="textarea textarea-bordered w-full min-h-[160px]"
+      />
     </div>
 
     <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">

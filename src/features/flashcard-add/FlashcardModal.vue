@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import FlashcardForm from './FlashcardForm.vue'
 
-defineProps<{
+const props = defineProps<{
   open: boolean
   title: string
   submitLabel: string
@@ -15,6 +16,15 @@ const emit = defineEmits<{
   (event: 'close'): void
   (event: 'save', value: { front: string; back: string }): void
 }>()
+
+const formKey = ref(0)
+
+watch(
+  () => props.open,
+  (open) => {
+    if (open) formKey.value += 1
+  }
+)
 </script>
 
 <template>
@@ -28,6 +38,7 @@ const emit = defineEmits<{
         {{ title }}
       </h3>
       <FlashcardForm
+        :key="formKey"
         :submit-label="submitLabel"
         :card-type="cardType"
         :initial-front="initialFront"

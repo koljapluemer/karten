@@ -42,10 +42,12 @@ Use an appropriate library if needed, and make sure this works on mobile too.
 
 Similar to the current `practice`, but way simpler:
 Simply pick a random topic.
-Then, decide which level we're practicing: 
-For a new topic, always practice the first level.
-If all declarative cards in the first level are >.9 recall % and all goals are `isAchieved`, practice the second level instead (and so on).
-Pick random due/unseen cards, max 15.
-Run through tasks; we're only using `src/pages/practice/screens/PracticeGoalScreen.vue` `src/pages/practice/screens/PracticeFlashcardScreen.vue` (these must be moved and refactored to conform to architecture guidelines!).
+Then:
+1) see if any goals or declarative cards are due (*not* unseen; cards that have been practiced before and are due again now (for declarative that means recall % below 0.9)). If more than 15 cards are due, randomly select 15.
+2) add unseen cards. Per default, add them from first level. If all cards are > 0.9 or `isAchieved` in the first level (the attached `src/entities/progress/LearningProgress.ts`), you may pick from the second level, and so on. As for the number of unseen cards to add:
+    - if there *are* legal unseen cards, add at least two
+    - at most add so many unseen cards that we have 17 cards picked overall for the topic
+Run through tasks; we're only using `src/pages/practice/screens/PracticeGoalScreen.vue` `src/pages/practice/screens/PracticeFlashcardScreen.vue` (these must be moved and refactored to conform to architecture guidelines!). 
+If a declarative card is new, use a "try to memorize this"-task inspired by [this](doc/MEMORIZATION_TASK.md).
 After done, show a short evaluation (for now, just a stub like "practiced x cards, n declarative (of that % correct) m goals" or whatever).
 Then, next.
