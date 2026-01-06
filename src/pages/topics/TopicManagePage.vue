@@ -234,11 +234,11 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap gap-3 items-start">
             <div
               v-for="card in levelCards(level)"
               :key="card._id"
-              class="rounded-xl border border-base-300 bg-base-100 space-y-2 w-fit"
+              class="rounded-xl border border-base-300 bg-base-100 w-fit"
             >
               <FlashcardRenderer
                 :front="card.front"
@@ -246,7 +246,7 @@ onMounted(() => {
                 :card-type="card.cardType"
                 :show-back="card.cardType === 'declaritive'"
               />
-              <div class="flex flex-wrap items-center gap-1 border-t border-base-200 pt-2">
+              <div class="flex justify-center items-center gap-1 border-t border-base-200 pt-1 w-full">
                 <button
                   class="btn btn-ghost btn-square btn-xs"
                   :disabled="levelIndex === 0"
