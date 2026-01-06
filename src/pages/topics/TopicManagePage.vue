@@ -240,12 +240,12 @@ onMounted(() => {
               :key="card._id"
               class="rounded-xl border border-base-300 bg-base-100 space-y-2 w-fit"
             >
-                <FlashcardRenderer
-                  :front="card.front"
-                  :back="card.back"
-                  :card-type="card.cardType"
-                  :show-back="card.cardType === 'declaritive'"
-                />
+              <FlashcardRenderer
+                :front="card.front"
+                :back="card.back"
+                :card-type="card.cardType"
+                :show-back="card.cardType === 'declaritive'"
+              />
               <div class="flex flex-wrap items-center gap-1 border-t border-base-200 pt-2">
                 <button
                   class="btn btn-ghost btn-square btn-xs"

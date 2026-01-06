@@ -11,9 +11,9 @@ import type { DeclarativeLearningProgressDoc } from '@/entities/progress/Learnin
 import { pickRandom, shuffleArray, takeRandom } from '@/dumb/random'
 import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
 import ActionButtonRow from '@/dumb/ActionButtonRow.vue'
-import PracticeFlashcardTask from './tasks/PracticeFlashcardTask.vue'
 import PracticeGoalTask from './tasks/PracticeGoalTask.vue'
 import PracticeMemorizeTask from './tasks/PracticeMemorizeTask.vue'
+import FlashcardPracticePanel from './tasks/FlashcardPracticePanel.vue'
 
 const flashcardsStore = useFlashcardsStore()
 const progressStore = useProgressStore()
@@ -140,6 +140,27 @@ const buildQueueForTopic = (topic: TopicDoc): PracticeItem[] => {
   }))
 }
 
+const ensureNoAdjacentDuplicates = (items: PracticeItem[]): PracticeItem[] => {
+  if (items.length < 2) return items
+  const result = [...items]
+  for (let i = 1; i < result.length; i += 1) {
+    const current = result[i]
+    const previous = result[i - 1]
+    if (!current || !previous) continue
+    if (current.cardId === previous.cardId) {
+      const swapIndex = result.findIndex(
+        (item, idx) => idx > i && item.cardId !== previous.cardId
+      )
+      if (swapIndex > -1) {
+        const temp = result[i] as PracticeItem
+        result[i] = result[swapIndex] as PracticeItem
+        result[swapIndex] = temp
+      }
+    }
+  }
+  return result
+}
+
 const startSession = () => {
   if (!topicsStore.topics.length) {
     phase.value = 'empty'
@@ -151,7 +172,7 @@ const startSession = () => {
     return
   }
   currentTopicId.value = topic._id
-  queue.value = buildQueueForTopic(topic)
+  queue.value = ensureNoAdjacentDuplicates(buildQueueForTopic(topic))
   index.value = 0
   summary.value = {
     total: queue.value.length,
@@ -262,10 +283,10 @@ onMounted(async () => {
           :card-id="currentItem.cardId"
           @done="handleMemorizeDone"
         />
-        <PracticeFlashcardTask
+        <FlashcardPracticePanel
           v-else-if="currentItem.cardType === 'declaritive'"
           :card-id="currentItem.cardId"
-          @done="handleFlashcardDone"
+          @answered="handleFlashcardDone"
         />
         <PracticeGoalTask
           v-else

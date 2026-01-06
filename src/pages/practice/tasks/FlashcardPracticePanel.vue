@@ -4,14 +4,13 @@ import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
 import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
-import ActionButtonRow from '@/dumb/ActionButtonRow.vue'
 
 const props = defineProps<{
   cardId: string
 }>()
 
 const emit = defineEmits<{
-  (event: 'done', payload: { score: number }): void
+  (event: 'answered', payload: { score: number; label: 'no' | 'kindof' | 'yes' | 'easily' }): void
 }>()
 
 const flashcardsStore = useFlashcardsStore()
@@ -25,7 +24,6 @@ const isRevealed = ref(false)
 const isFlipping = ref(false)
 const isSaving = ref(false)
 const hasAnswered = ref(false)
-const answeredScore = ref(0)
 const flipTimer = ref<number | null>(null)
 
 const showBack = computed(() => isRevealed.value)
@@ -39,22 +37,18 @@ const handleReveal = () => {
   }, 400)
 }
 
-const handleAnswer = async (score: number) => {
+const handleAnswer = async (score: number, label: 'no' | 'kindof' | 'yes' | 'easily') => {
   if (!card.value || isSaving.value) return
   isSaving.value = true
   try {
     const now = new Date().toISOString()
     await progressStore.updateDeclarativeProgress(card.value._id, score, now)
     await flashcardsStore.addLog(card.value._id, 'PRACTICED_FLASHCARD', now)
-    answeredScore.value = score
     hasAnswered.value = true
+    emit('answered', { score, label })
   } finally {
     isSaving.value = false
   }
-}
-
-const handleDone = () => {
-  emit('done', { score: answeredScore.value })
 }
 
 onBeforeUnmount(() => {
@@ -102,38 +96,32 @@ onBeforeUnmount(() => {
         <button
           class="btn btn-outline"
           :disabled="isSaving"
-          @click="handleAnswer(0)"
+          @click="handleAnswer(0, 'no')"
         >
           No
         </button>
         <button
           class="btn btn-outline"
           :disabled="isSaving"
-          @click="handleAnswer(0.6)"
+          @click="handleAnswer(0.6, 'kindof')"
         >
           Kind Of
         </button>
         <button
           class="btn btn-outline"
           :disabled="isSaving"
-          @click="handleAnswer(0.8)"
+          @click="handleAnswer(0.8, 'yes')"
         >
           Yes
         </button>
         <button
           class="btn btn-outline"
           :disabled="isSaving"
-          @click="handleAnswer(1)"
+          @click="handleAnswer(1, 'easily')"
         >
           Easily
         </button>
       </div>
     </div>
-
-    <ActionButtonRow
-      v-if="hasAnswered"
-      :actions="[{ id: 'next', label: 'Next', variant: 'primary' }]"
-      @select="handleDone"
-    />
   </div>
 </template>

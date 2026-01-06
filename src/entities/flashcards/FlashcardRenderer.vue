@@ -23,7 +23,10 @@ const cardClasses = computed(() => [
 </script>
 
 <template>
-  <div :class="cardClasses" data-theme="light">
+  <div
+    :class="cardClasses"
+    data-theme="light"
+  >
     <div class="card-body gap-4 grid place-items-center text-center">
       <div class="w-full">
         <MarkdownContent :value="front" />
