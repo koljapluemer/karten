@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Plus, PlusCircle, Trash2 } from 'lucide-vue-next'
+import { ArrowDown, ArrowUp, Pencil, Plus, PlusCircle, Trash2, Unlink } from 'lucide-vue-next'
 import { useTopicsStore } from '@/entities/topics/topicsStore'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
@@ -35,8 +35,7 @@ const existingModalOpen = ref(false)
 const targetLevelIndex = ref<number | null>(null)
 const newCardType = ref<'declaritive' | 'procedural'>('declaritive')
 const newCardModalOpen = ref(false)
-
-const dragging = ref<{ cardId: string; fromLevel: number } | null>(null)
+const editCardId = ref<string | null>(null)
 
 const availableCards = computed(() => flashcardsStore.flashcards)
 
@@ -99,23 +98,34 @@ const handleAddNew = async (payload: { front: string; back: string }) => {
   newCardModalOpen.value = false
 }
 
-const handlePointerDown = (cardId: string, fromLevel: number) => {
-  dragging.value = { cardId, fromLevel }
+const moveCard = async (cardId: string, toLevel: number) => {
+  if (!topic.value) return
+  if (toLevel < 0 || toLevel >= topic.value.levels.length) return
+  await topicsStore.moveCardToLevel(topic.value._id, cardId, toLevel)
 }
 
-const handlePointerUp = (event: PointerEvent) => {
-  if (!dragging.value || !topic.value) return
-  const target = document.elementFromPoint(event.clientX, event.clientY)
-  const levelEl = target?.closest('[data-level-index]') as HTMLElement | null
-  if (levelEl) {
-    const index = Number(levelEl.dataset.levelIndex)
-    if (!Number.isNaN(index)) {
-      topicsStore.moveCardToLevel(topic.value._id, dragging.value.cardId, index)
-    }
-  } else {
-    topicsStore.removeCardFromLevels(topic.value._id, dragging.value.cardId)
-  }
-  dragging.value = null
+const detachCard = async (cardId: string) => {
+  if (!topic.value) return
+  await topicsStore.removeCardFromLevels(topic.value._id, cardId)
+}
+
+const deleteCard = async (cardId: string) => {
+  if (!topic.value) return
+  await topicsStore.removeCardFromLevels(topic.value._id, cardId)
+  await flashcardsStore.deleteFlashcard(cardId)
+}
+
+const handleEditCard = (cardId: string) => {
+  editCardId.value = cardId
+}
+
+const handleSaveEdit = async (payload: { front: string; back: string }) => {
+  if (!editCardId.value) return
+  await flashcardsStore.updateFlashcard(editCardId.value, {
+    front: payload.front,
+    back: payload.back
+  })
+  editCardId.value = null
 }
 
 const levelCards = (level: string[]) =>
@@ -126,11 +136,6 @@ const levelCards = (level: string[]) =>
 onMounted(() => {
   topicsStore.loadTopics()
   flashcardsStore.loadFlashcards()
-  window.addEventListener('pointerup', handlePointerUp)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('pointerup', handlePointerUp)
 })
 </script>
 
@@ -154,11 +159,8 @@ onBeforeUnmount(() => {
         <div
           v-for="(material, index) in topic?.materials || []"
           :key="`${material}-${index}`"
-          class="min-w-[220px] max-w-xs rounded-xl border border-base-300 bg-base-200 p-4 space-y-3"
+          class="min-w-[220px] max-w-xs rounded-xl border border-base-300 bg-purple-900 p-4 space-y-3"
         >
-          <div class="text-sm opacity-70">
-            Material {{ index + 1 }}
-          </div>
           <MarkdownContent :value="material" />
           <div class="flex justify-end gap-2">
             <button
@@ -232,27 +234,63 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="flex flex-wrap gap-3">
             <div
               v-for="card in levelCards(level)"
               :key="card._id"
-              class="cursor-grab"
-              @pointerdown="handlePointerDown(card._id, levelIndex)"
+              class="rounded-xl border border-base-300 bg-base-100 space-y-2 w-fit"
             >
-              <div class="scale-90 origin-top-left">
                 <FlashcardRenderer
                   :front="card.front"
                   :back="card.back"
                   :card-type="card.cardType"
                   :show-back="card.cardType === 'declaritive'"
                 />
+              <div class="flex flex-wrap items-center gap-1 border-t border-base-200 pt-2">
+                <button
+                  class="btn btn-ghost btn-square btn-xs"
+                  :disabled="levelIndex === 0"
+                  aria-label="Move up"
+                  @click="moveCard(card._id, levelIndex - 1)"
+                >
+                  <ArrowUp :size="16" />
+                </button>
+                <button
+                  class="btn btn-ghost btn-square btn-xs"
+                  :disabled="levelIndex >= (topic?.levels.length || 0) - 1"
+                  aria-label="Move down"
+                  @click="moveCard(card._id, levelIndex + 1)"
+                >
+                  <ArrowDown :size="16" />
+                </button>
+                <button
+                  class="btn btn-ghost btn-square btn-xs"
+                  aria-label="Edit"
+                  @click="handleEditCard(card._id)"
+                >
+                  <Pencil :size="16" />
+                </button>
+                <button
+                  class="btn btn-ghost btn-square btn-xs"
+                  aria-label="Detach"
+                  @click="detachCard(card._id)"
+                >
+                  <Unlink :size="16" />
+                </button>
+                <button
+                  class="btn btn-ghost btn-square btn-xs text-error"
+                  aria-label="Delete"
+                  @click="deleteCard(card._id)"
+                >
+                  <Trash2 :size="16" />
+                </button>
               </div>
             </div>
             <div
               v-if="!levelCards(level).length"
               class="text-sm opacity-70"
             >
-              Drop cards here.
+              No cards in this level.
             </div>
           </div>
 
@@ -311,5 +349,17 @@ onBeforeUnmount(() => {
     :card-type="newCardType"
     @close="newCardModalOpen = false"
     @save="handleAddNew"
+  />
+
+  <FlashcardModal
+    v-if="editCardId"
+    :open="Boolean(editCardId)"
+    title="Edit Card"
+    submit-label="Save"
+    :card-type="cardsById[editCardId]?.cardType"
+    :initial-front="cardsById[editCardId]?.front"
+    :initial-back="cardsById[editCardId]?.back"
+    @close="editCardId = null"
+    @save="handleSaveEdit"
   />
 </template>
