@@ -105,9 +105,14 @@ const openAddNew = (levelIndex: number, type: 'declaritive' | 'procedural') => {
   newCardModalOpen.value = true
 }
 
-const handleAddNew = async (payload: { front: string; back: string }) => {
+const handleAddNew = async (payload: { front: string; back: string; instruction: string }) => {
   if (!topic.value || targetLevelIndex.value === null) return
-  const created = await flashcardsStore.createFlashcard(payload.front, payload.back, newCardType.value)
+  const created = await flashcardsStore.createFlashcard(
+    payload.front,
+    payload.back,
+    newCardType.value,
+    payload.instruction
+  )
   await topicsStore.addCardToLevel(topic.value._id, targetLevelIndex.value, created._id)
   newCardModalOpen.value = false
 }
@@ -133,11 +138,12 @@ const handleEditCard = (cardId: string) => {
   editCardId.value = cardId
 }
 
-const handleSaveEdit = async (payload: { front: string; back: string }) => {
+const handleSaveEdit = async (payload: { front: string; back: string; instruction: string }) => {
   if (!editCardId.value) return
   await flashcardsStore.updateFlashcard(editCardId.value, {
     front: payload.front,
-    back: payload.back
+    back: payload.back,
+    instruction: payload.instruction
   })
   editCardId.value = null
 }
@@ -296,6 +302,7 @@ onMounted(() => {
                 :front="card.front"
                 :back="card.back"
                 :card-type="card.cardType"
+                :instruction="card.instruction"
                 :show-back="card.cardType === 'declaritive'"
               />
               <div class="flex justify-center items-center gap-1 border-t border-base-200 pt-1 w-full">
@@ -411,6 +418,7 @@ onMounted(() => {
     :card-type="cardsById[editCardId]?.cardType"
     :initial-front="cardsById[editCardId]?.front"
     :initial-back="cardsById[editCardId]?.back"
+    :initial-instruction="cardsById[editCardId]?.instruction"
     @close="editCardId = null"
     @save="handleSaveEdit"
   />

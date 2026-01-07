@@ -8,9 +8,11 @@ const props = defineProps<{
   showBack?: boolean
   flipped?: boolean
   cardType?: 'declaritive' | 'procedural'
+  instruction?: string
 }>()
 
 const shouldShowBack = computed(() => props.showBack && props.cardType !== 'procedural')
+const instructionText = computed(() => props.instruction?.trim() ?? '')
 
 const cardClasses = computed(() => [
   'card',
@@ -23,18 +25,13 @@ const cardClasses = computed(() => [
 </script>
 
 <template>
-  <div
-    :class="cardClasses"
-    data-theme="light"
-  >
+  <div v-if="instructionText" class="text-center font-mono py-1">
+    {{ instructionText }}
+  </div>
+  <div :class="cardClasses" data-theme="light">
     <div class="card-body gap-4 grid place-items-center text-center">
-      <div class="w-full">
-        <MarkdownContent :value="front" />
-      </div>
-      <div
-        v-if="shouldShowBack"
-        class="w-full border-t-2 border-dotted border-base-300 pt-4"
-      >
+      <MarkdownContent :value="front" />
+      <div v-if="shouldShowBack" class="w-full border-t-2 border-dotted border-base-300 pt-4">
         <MarkdownContent :value="back" />
       </div>
     </div>
@@ -55,9 +52,11 @@ const cardClasses = computed(() => [
   0% {
     transform: rotateY(0deg);
   }
+
   50% {
     transform: rotateY(90deg);
   }
+
   100% {
     transform: rotateY(0deg);
   }

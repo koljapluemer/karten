@@ -10,12 +10,6 @@ import { RouterLink, RouterView } from 'vue-router'
     <footer class="border-t border-base-300 bg-base-100">
       <nav class="container mx-auto p-4 flex items-center justify-center gap-4">
         <RouterLink
-          to="/practice"
-          class="btn btn-ghost btn-sm"
-        >
-          Practice
-        </RouterLink>
-        <RouterLink
           to="/topic-practice"
           class="btn btn-ghost btn-sm"
         >

@@ -27,6 +27,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
     front: string,
     back: string,
     cardType: FlashCardDoc['cardType'] = 'declaritive',
+    instruction = '',
     requiresLearning: string[] = [],
     overlapping: string[] = []
   ): Promise<FlashCardDoc> => {
@@ -37,6 +38,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
       cardType,
       front,
       back,
+      instruction,
       requiresLearning,
       overlapping,
       logs: {},
@@ -52,7 +54,12 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
 
   const updateFlashcard = async (
     cardId: string,
-    updates: Partial<Pick<FlashCardDoc, 'front' | 'back' | 'overlapping' | 'requiresLearning' | 'cardType' | 'logs'>>
+    updates: Partial<
+      Pick<
+        FlashCardDoc,
+        'front' | 'back' | 'instruction' | 'overlapping' | 'requiresLearning' | 'cardType' | 'logs'
+      >
+    >
   ): Promise<void> => {
     const current = flashcards.value.find((entry) => entry._id === cardId)
     if (!current) return
@@ -60,6 +67,7 @@ export const useFlashcardsStore = defineStore('flashcards', () => {
       ...current,
       front: updates.front ?? current.front,
       back: updates.back ?? current.back,
+      instruction: updates.instruction ?? current.instruction,
       cardType: updates.cardType ?? current.cardType,
       requiresLearning: updates.requiresLearning ?? current.requiresLearning,
       overlapping: updates.overlapping ?? current.overlapping,

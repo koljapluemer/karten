@@ -9,12 +9,13 @@ const props = defineProps<{
   cardType?: 'declaritive' | 'procedural'
   initialFront?: string
   initialBack?: string
+  initialInstruction?: string
   isSaving?: boolean
 }>()
 
 const emit = defineEmits<{
   (event: 'close'): void
-  (event: 'save', value: { front: string; back: string }): void
+  (event: 'save', value: { front: string; back: string; instruction: string }): void
 }>()
 
 const formKey = ref(0)
@@ -43,6 +44,7 @@ watch(
         :card-type="cardType"
         :initial-front="initialFront"
         :initial-back="initialBack"
+        :initial-instruction="initialInstruction"
         :is-saving="isSaving"
         show-cancel
         @save="emit('save', $event)"

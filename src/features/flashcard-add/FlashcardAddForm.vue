@@ -16,14 +16,15 @@ const store = useFlashcardsStore()
 const isSaving = ref(false)
 const formKey = ref(0)
 
-const handleSave = async (payload: { front: string; back: string }) => {
+const handleSave = async (payload: { front: string; back: string; instruction: string }) => {
   if (isSaving.value) return
   isSaving.value = true
   try {
     const card = await store.createFlashcard(
       payload.front,
       payload.back,
-      props.cardType ?? 'declaritive'
+      props.cardType ?? 'declaritive',
+      payload.instruction
     )
     formKey.value += 1
     emit('added', card)

@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 const props = defineProps<{
   initialFront?: string
   initialBack?: string
+  initialInstruction?: string
   submitLabel: string
   cardType?: 'declaritive' | 'procedural'
   showCancel?: boolean
@@ -12,23 +13,27 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'save', value: { front: string; back: string }): void
+  (event: 'save', value: { front: string; back: string; instruction: string }): void
   (event: 'cancel'): void
-  (event: 'action', value: { id: string; payload: { front: string; back: string } }): void
+  (event: 'action', value: { id: string; payload: { front: string; back: string; instruction: string } }): void
 }>()
 
 const front = ref(props.initialFront ?? '')
 const back = ref(props.initialBack ?? '')
+const instruction = ref(props.initialInstruction ?? '')
 const frontKey = ref(0)
 const backKey = ref(0)
+const instructionKey = ref(0)
 
 watch(
-  () => [props.initialFront, props.initialBack],
+  () => [props.initialFront, props.initialBack, props.initialInstruction],
   () => {
     front.value = props.initialFront ?? ''
     back.value = props.initialBack ?? ''
+    instruction.value = props.initialInstruction ?? ''
     frontKey.value += 1
     backKey.value += 1
+    instructionKey.value += 1
   }
 )
 
@@ -41,14 +46,17 @@ const handleSave = () => {
   if (!canSave.value || props.isSaving) return
   const trimmedFront = front.value.trim()
   const trimmedBack = props.cardType === 'procedural' ? '' : back.value.trim()
-  emit('save', { front: trimmedFront, back: trimmedBack })
+  emit('save', { front: trimmedFront, back: trimmedBack, instruction: instruction.value.trim() })
 }
 
 const handleAction = (id: string) => {
   if (!canSave.value || props.isSaving) return
   const trimmedFront = front.value.trim()
   const trimmedBack = props.cardType === 'procedural' ? '' : back.value.trim()
-  emit('action', { id, payload: { front: trimmedFront, back: trimmedBack } })
+  emit('action', {
+    id,
+    payload: { front: trimmedFront, back: trimmedBack, instruction: instruction.value.trim() }
+  })
 }
 
 const buttonClass = (variant?: 'primary' | 'outline' | 'ghost') => {
@@ -82,6 +90,17 @@ const buttonClass = (variant?: 'primary' | 'outline' | 'ghost') => {
         :key="backKey"
         v-model="back"
         class="textarea textarea-bordered w-full min-h-[160px]"
+      />
+    </div>
+
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text">Instruction (optional)</span>
+      </label>
+      <textarea
+        :key="instructionKey"
+        v-model="instruction"
+        class="textarea textarea-bordered w-full min-h-[120px]"
       />
     </div>
 

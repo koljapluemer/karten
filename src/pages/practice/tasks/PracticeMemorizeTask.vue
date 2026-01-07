@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
-import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
 import ActionButtonRow from '@/dumb/ActionButtonRow.vue'
 
 const props = defineProps<{
@@ -70,19 +69,6 @@ onBeforeUnmount(stopTimer)
 
 <template>
   <div class="w-full max-w-4xl space-y-6">
-    <PracticeInstruction
-      v-if="phase === 'memorize'"
-      text="Try to memorize this"
-    />
-    <PracticeInstruction
-      v-else-if="phase === 'recall'"
-      text="Do you remember this?"
-    />
-    <PracticeInstruction
-      v-else
-      text="Reveal"
-    />
-
     <div
       v-if="card"
       class="w-full"
@@ -91,6 +77,7 @@ onBeforeUnmount(stopTimer)
         :front="card.front"
         :back="card.back"
         :card-type="card.cardType"
+        :instruction="card.instruction"
         :show-back="phase !== 'recall'"
       />
     </div>

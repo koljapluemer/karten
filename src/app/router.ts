@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import PracticePage from '@/pages/practice/PracticePage.vue'
 import TopicPracticePage from '@/pages/practice/TopicPracticePage.vue'
 import TopicsPage from '@/pages/topics/TopicsPage.vue'
 import TopicManagePage from '@/pages/topics/TopicManagePage.vue'
@@ -9,12 +8,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/practice'
-    },
-    {
-      path: '/practice',
-      name: 'practice',
-      component: PracticePage
+      redirect: '/topic-practice'
     },
     {
       path: '/topic-practice',

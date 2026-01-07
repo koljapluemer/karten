@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
-import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
 import ActionButtonRow from '@/dumb/ActionButtonRow.vue'
 
 const props = defineProps<{
@@ -42,8 +41,6 @@ const handleAnswer = async (success: boolean) => {
 
 <template>
   <div class="w-full max-w-4xl space-y-6">
-    <PracticeInstruction text="Done?" />
-
     <div
       v-if="card"
       class="w-full"
@@ -52,6 +49,7 @@ const handleAnswer = async (success: boolean) => {
         :front="card.front"
         :back="card.back"
         :card-type="card.cardType"
+        :instruction="card.instruction"
         :show-back="false"
       />
     </div>

@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
-import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
 
 const props = defineProps<{
   cardId: string
@@ -58,8 +57,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="w-full max-w-4xl space-y-6">
-    <PracticeInstruction text="Remember & Reveal" />
-
     <div
       v-if="card"
       class="w-full"
@@ -68,6 +65,7 @@ onBeforeUnmount(() => {
         :front="card.front"
         :back="card.back"
         :card-type="card.cardType"
+        :instruction="card.instruction"
         :show-back="showBack"
         :flipped="isFlipping"
       />
@@ -89,9 +87,6 @@ onBeforeUnmount(() => {
       v-else-if="card && !hasAnswered"
       class="space-y-3"
     >
-      <div class="text-sm opacity-70">
-        Did you remember correctly?
-      </div>
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <button
           class="btn btn-outline"
