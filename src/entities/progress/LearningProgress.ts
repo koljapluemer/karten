@@ -1,10 +1,11 @@
+import type { CardInput } from 'ts-fsrs'
+
 export type DeclarativeLearningProgressDoc = {
   _id: string
   _rev?: string
   type: 'learning-progress-declarative'
   cardId: string
-  model: [number, number, number]
-  lastReviewedAt: string
+  card?: CardInput
   totalReviews: number
 }
 

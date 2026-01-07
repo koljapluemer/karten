@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import * as ebisu from '@/entities/ebisu'
 import { db } from '@/app/storage/db'
 import { loadDocsByPrefix } from '@/app/storage/dbHelpers'
 import type {
@@ -8,20 +7,35 @@ import type {
   LearningProgressDoc,
   ProceduralLearningProgressDoc
 } from './LearningProgress'
+import { createEmptyCard, fsrs, Rating, type Card, type CardInput, type Grade } from 'ts-fsrs'
 
-const HOURS_IN_MS = 1000 * 60 * 60
-
-const hoursSince = (isoTime: string): number => {
-  const delta = Date.now() - Date.parse(isoTime)
-  return Math.max(delta / HOURS_IN_MS, 0)
-}
+const fsrsEngine = fsrs()
 
 const buildProgressId = (cardId: string, type: 'declarative' | 'procedural'): string =>
   `progress:${type}:${cardId}`
 
-const defaultModel = (): [number, number, number] => {
-  const model = ebisu.defaultModel(24)
-  return [model[0], model[1], model[2]]
+const toStoredCard = (card: Card): CardInput => ({
+  ...card,
+  due: card.due.toISOString(),
+  last_review: card.last_review ? card.last_review.toISOString() : null
+})
+
+const createStoredCard = (now: Date): CardInput =>
+  createEmptyCard(now, (card) => toStoredCard(card))
+
+const normalizeCard = (card: CardInput | undefined, now: Date): CardInput => {
+  if (!card) return createStoredCard(now)
+  return {
+    ...card,
+    last_review: card.last_review ?? null
+  }
+}
+
+const scoreToRating = (score: number): Grade => {
+  if (score <= 0.1) return Rating.Again
+  if (score <= 0.6) return Rating.Hard
+  if (score <= 0.8) return Rating.Good
+  return Rating.Easy
 }
 
 export const useProgressStore = defineStore('learningProgress', () => {
@@ -48,24 +62,24 @@ export const useProgressStore = defineStore('learningProgress', () => {
     occurredAt: string
   ): Promise<void> => {
     const existing = progressByCardId.value[cardId] as DeclarativeLearningProgressDoc | undefined
-    const baseModel = existing?.model ?? defaultModel()
-    const elapsedHours = existing ? hoursSince(existing.lastReviewedAt) : 1
-    const updatedModel = ebisu.updateRecall(baseModel, score, 1, Math.max(elapsedHours, 0.01))
+    const now = new Date(occurredAt)
+    const baseCard = normalizeCard(existing?.card, now)
+    const rating = scoreToRating(score)
+    const { card: updatedCard } = fsrsEngine.next(baseCard, now, rating)
+    const storedCard = toStoredCard(updatedCard)
 
     const progressDoc: DeclarativeLearningProgressDoc = existing
       ? {
           ...existing,
-          model: updatedModel,
-          lastReviewedAt: occurredAt,
-          totalReviews: existing.totalReviews + 1
+          card: storedCard,
+          totalReviews: updatedCard.reps
         }
       : {
           _id: buildProgressId(cardId, 'declarative'),
           type: 'learning-progress-declarative',
           cardId,
-          model: updatedModel,
-          lastReviewedAt: occurredAt,
-          totalReviews: 1
+          card: storedCard,
+          totalReviews: updatedCard.reps
         }
 
     const result = await db.put(progressDoc)

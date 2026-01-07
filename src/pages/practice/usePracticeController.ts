@@ -1,12 +1,9 @@
 import { computed, ref } from 'vue'
-import * as ebisu from '@/entities/ebisu'
 import type { FlashCardDoc } from '@/entities/flashcards/FlashCard'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
-import type {
-  DeclarativeLearningProgressDoc,
-  ProceduralLearningProgressDoc
-} from '@/entities/progress/LearningProgress'
+import type { ProceduralLearningProgressDoc } from '@/entities/progress/LearningProgress'
+import { getRecall } from '@/entities/progress/progressHelpers'
 import { pickRandom } from '@/dumb/random'
 
 export type PracticeScreen =
@@ -23,17 +20,7 @@ export type PracticeScreen =
   | { name: 'practice-flashcard'; cardId: string }
   | { name: 'practice-goal'; cardId: string }
 
-const HOURS_IN_MS = 1000 * 60 * 60
 const RECENT_TASK_MS = 1000 * 60 * 60
-
-const hoursSince = (isoTime: string): number => {
-  const delta = Date.now() - Date.parse(isoTime)
-  return Math.max(delta / HOURS_IN_MS, 0)
-}
-
-const getRecall = (entry: DeclarativeLearningProgressDoc): number => {
-  return ebisu.predictRecall(entry.model, hoursSince(entry.lastReviewedAt), true)
-}
 
 const hasRecentTask = (card: FlashCardDoc, event: string): boolean => {
   const logs = card.logs ?? {}

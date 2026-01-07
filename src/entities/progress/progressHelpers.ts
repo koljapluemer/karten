@@ -1,9 +1,11 @@
-import * as ebisu from '@/entities/ebisu'
 import type {
   DeclarativeLearningProgressDoc,
   LearningProgressDoc,
   ProceduralLearningProgressDoc
 } from './LearningProgress'
+import { fsrs } from 'ts-fsrs'
+
+const fsrsEngine = fsrs()
 
 type ProgressIndexEntry = {
   declarative: DeclarativeLearningProgressDoc | null
@@ -25,13 +27,17 @@ export const buildProgressIndex = (
   return map
 }
 
-const hoursSince = (isoTime: string, nowMs: number): number => {
-  const delta = nowMs - Date.parse(isoTime)
-  return Math.max(delta / (1000 * 60 * 60), 0)
+const hasDeclarativeReview = (entry: DeclarativeLearningProgressDoc | null): boolean => {
+  if (!entry?.card) return false
+  return (entry.card.reps ?? 0) > 0
 }
 
-export const getRecall = (entry: DeclarativeLearningProgressDoc, nowMs = Date.now()): number => {
-  const recall = ebisu.predictRecall(entry.model, hoursSince(entry.lastReviewedAt, nowMs), true)
+export const getRecall = (
+  entry: DeclarativeLearningProgressDoc | null,
+  nowMs = Date.now()
+): number => {
+  if (!entry?.card) return 0
+  const recall = fsrsEngine.get_retrievability(entry.card, nowMs, false)
   return Number.isFinite(recall) ? recall : 0
 }
 
@@ -39,7 +45,7 @@ export const getRecallPercent = (
   entry: DeclarativeLearningProgressDoc | null,
   nowMs = Date.now()
 ): number | null => {
-  if (!entry) return null
+  if (!hasDeclarativeReview(entry)) return null
   return Math.round(getRecall(entry, nowMs) * 100)
 }
 
@@ -47,7 +53,7 @@ export const isDeclarativeDue = (
   entry: DeclarativeLearningProgressDoc | null,
   nowMs = Date.now()
 ): boolean => {
-  if (!entry) return false
+  if (!hasDeclarativeReview(entry)) return false
   return getRecall(entry, nowMs) < 0.9
 }
 
@@ -64,7 +70,7 @@ export const isDeclarativeMastered = (
   entry: DeclarativeLearningProgressDoc | null,
   nowMs = Date.now()
 ): boolean => {
-  if (!entry) return false
+  if (!hasDeclarativeReview(entry)) return false
   return getRecall(entry, nowMs) >= 0.9
 }
 

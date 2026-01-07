@@ -157,6 +157,10 @@ const goalAchieved = (cardId: string): boolean | null => {
   return progressIndex.value[cardId]?.procedural?.isAchieved ?? null
 }
 
+const isUnseen = (cardId: string): boolean => {
+  return recallForCard(cardId) === null && goalAchieved(cardId) === null
+}
+
 onMounted(() => {
   topicsStore.loadTopics()
   flashcardsStore.loadFlashcards()
@@ -267,12 +271,12 @@ onMounted(() => {
             >
               <div class="flex items-center gap-1 h-3">
                 <Circle
-                  v-if="!progressIndex[card._id]?.declarative && !progressIndex[card._id]?.procedural"
+                  v-if="isUnseen(card._id)"
                   class="text-base-300"
                   :size="10"
                 />
                 <progress
-                  v-else-if="card.cardType === 'declaritive'"
+                  v-else-if="recallForCard(card._id) !== null"
                   class="progress progress-primary w-12"
                   :value="recallForCard(card._id) ?? 0"
                   max="100"

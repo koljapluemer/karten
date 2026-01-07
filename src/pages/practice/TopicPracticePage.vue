@@ -8,6 +8,7 @@ import { useProgressStore } from '@/entities/progress/progressStore'
 import { useTopicsStore } from '@/entities/topics/topicsStore'
 import {
   buildProgressIndex,
+  getRecallPercent,
   isDeclarativeDue,
   isDeclarativeMastered,
   isProceduralDue,
@@ -106,9 +107,10 @@ const buildQueueForTopic = (topic: TopicDoc): PracticeItem[] => {
     .filter((card): card is FlashCardDoc => Boolean(card))
     .filter((card) => {
       const entry = progressIndex.value[card._id]
+      const declarativeSeen = getRecallPercent(entry?.declarative ?? null) !== null
       return card.cardType === 'procedural'
         ? !entry?.procedural
-        : !entry?.declarative
+        : !declarativeSeen
     })
 
   const remainingSlots = Math.max(17 - duePicked.length, 0)
