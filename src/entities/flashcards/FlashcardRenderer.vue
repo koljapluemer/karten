@@ -25,13 +25,22 @@ const cardClasses = computed(() => [
 </script>
 
 <template>
-  <div v-if="instructionText" class="text-center font-mono py-1">
+  <div
+    v-if="instructionText"
+    class="text-center font-mono py-1"
+  >
     {{ instructionText }}
   </div>
-  <div :class="cardClasses" data-theme="light">
+  <div
+    :class="cardClasses"
+    data-theme="light"
+  >
     <div class="card-body gap-4 grid place-items-center text-center">
       <MarkdownContent :value="front" />
-      <div v-if="shouldShowBack" class="w-full border-t-2 border-dotted border-base-300 pt-4">
+      <div
+        v-if="shouldShowBack"
+        class="w-full border-t-2 border-dotted border-base-300 pt-4"
+      >
         <MarkdownContent :value="back" />
       </div>
     </div>

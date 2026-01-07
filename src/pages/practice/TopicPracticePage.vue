@@ -8,14 +8,13 @@ import { useProgressStore } from '@/entities/progress/progressStore'
 import { useTopicsStore } from '@/entities/topics/topicsStore'
 import {
   buildProgressIndex,
-  getRecallPercent,
+  hasDeclarativeReview,
   isDeclarativeDue,
-  isDeclarativeMastered,
+  isDeclarativeReady,
   isProceduralDue,
   isProceduralMastered
 } from '@/entities/progress/progressHelpers'
 import { pickRandom, shuffleArray, takeRandom } from '@/dumb/random'
-import PracticeInstruction from '@/dumb/PracticeInstruction.vue'
 import ActionButtonRow from '@/dumb/ActionButtonRow.vue'
 import PracticeMemorizeTask from './tasks/PracticeMemorizeTask.vue'
 import FlashcardPracticePanel from './tasks/FlashcardPracticePanel.vue'
@@ -71,7 +70,7 @@ const isMastered = (card: FlashCardDoc): boolean => {
   if (card.cardType === 'procedural') {
     return isProceduralMastered(progressIndex.value[card._id]?.procedural ?? null)
   }
-  return isDeclarativeMastered(progressIndex.value[card._id]?.declarative ?? null)
+  return isDeclarativeReady(progressIndex.value[card._id]?.declarative ?? null)
 }
 
 const isDue = (card: FlashCardDoc): boolean => {
@@ -107,10 +106,9 @@ const buildQueueForTopic = (topic: TopicDoc): PracticeItem[] => {
     .filter((card): card is FlashCardDoc => Boolean(card))
     .filter((card) => {
       const entry = progressIndex.value[card._id]
-      const declarativeSeen = getRecallPercent(entry?.declarative ?? null) !== null
       return card.cardType === 'procedural'
         ? !entry?.procedural
-        : !declarativeSeen
+        : !hasDeclarativeReview(entry?.declarative ?? null)
     })
 
   const remainingSlots = Math.max(17 - duePicked.length, 0)
@@ -245,7 +243,9 @@ onMounted(async () => {
         v-else-if="phase === 'empty'"
         class="space-y-4"
       >
-        <PracticeInstruction text="Create a topic to start practicing." />
+        <div class="text-sm opacity-70">
+          Create a topic to start practicing.
+        </div>
         <RouterLink
           to="/topics"
           class="btn btn-primary w-full sm:w-auto"
@@ -258,7 +258,9 @@ onMounted(async () => {
         v-else-if="phase === 'summary'"
         class="space-y-4"
       >
-        <PracticeInstruction text="Session Summary" />
+        <div class="text-sm opacity-70">
+          Session Summary
+        </div>
         <div class="rounded-xl bg-base-200 p-4 text-sm">
           {{ summaryText }}
         </div>

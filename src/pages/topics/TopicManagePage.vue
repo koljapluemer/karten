@@ -16,7 +16,7 @@ import {
 import { useTopicsStore } from '@/entities/topics/topicsStore'
 import { useFlashcardsStore } from '@/entities/flashcards/flashcardsStore'
 import { useProgressStore } from '@/entities/progress/progressStore'
-import { buildProgressIndex, getRecallPercent } from '@/entities/progress/progressHelpers'
+import { buildProgressIndex, getDeclarativeDueLabel } from '@/entities/progress/progressHelpers'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
 import FlashcardModal from '@/features/flashcard-add/FlashcardModal.vue'
 import MarkdownContent from '@/dumb/MarkdownContent.vue'
@@ -155,17 +155,12 @@ const levelCards = (level: string[]) =>
 
 const progressIndex = computed(() => buildProgressIndex(progressStore.progress))
 
-const recallForCard = (cardId: string): number | null => {
-  return getRecallPercent(progressIndex.value[cardId]?.declarative ?? null)
-}
-
 const goalAchieved = (cardId: string): boolean | null => {
   return progressIndex.value[cardId]?.procedural?.isAchieved ?? null
 }
 
-const isUnseen = (cardId: string): boolean => {
-  return recallForCard(cardId) === null && goalAchieved(cardId) === null
-}
+const declarativeDueLabel = (cardId: string): string =>
+  getDeclarativeDueLabel(progressIndex.value[cardId]?.declarative ?? null)
 
 onMounted(() => {
   topicsStore.loadTopics()
@@ -275,17 +270,17 @@ onMounted(() => {
               :key="card._id"
               class="rounded-xl border border-base-300 bg-base-100 w-fit"
             >
-              <div class="flex items-center gap-1 h-3">
+              <div class="flex items-center gap-1 h-4 m-1">
+                <div
+                  v-if="card.cardType === 'declaritive'"
+                  class="text-[11px] uppercase tracking-wide opacity-60"
+                >
+                  {{ declarativeDueLabel(card._id) }}
+                </div>
                 <Circle
-                  v-if="isUnseen(card._id)"
+                  v-else-if="goalAchieved(card._id) === null"
                   class="text-base-300"
                   :size="10"
-                />
-                <progress
-                  v-else-if="recallForCard(card._id) !== null"
-                  class="progress progress-primary w-12"
-                  :value="recallForCard(card._id) ?? 0"
-                  max="100"
                 />
                 <CheckCircle2
                   v-else-if="goalAchieved(card._id) === true"
