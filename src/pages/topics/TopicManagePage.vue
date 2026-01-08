@@ -6,6 +6,9 @@ import {
   ArrowUp,
   CheckCircle2,
   Circle,
+  Eye,
+  LayoutGrid,
+  LayoutList,
   Pencil,
   Plus,
   PlusCircle,
@@ -19,7 +22,6 @@ import { useProgressStore } from '@/entities/progress/progressStore'
 import { buildProgressIndex, getDeclarativeDueLabel } from '@/entities/progress/progressHelpers'
 import FlashcardRenderer from '@/entities/flashcards/FlashcardRenderer.vue'
 import FlashcardModal from '@/features/flashcard-add/FlashcardModal.vue'
-import MarkdownContent from '@/dumb/MarkdownContent.vue'
 import TopicMaterialModal from './TopicMaterialModal.vue'
 import AddExistingCardModal from './AddExistingCardModal.vue'
 
@@ -50,6 +52,8 @@ const targetLevelIndex = ref<number | null>(null)
 const newCardType = ref<'declaritive' | 'procedural'>('declaritive')
 const newCardModalOpen = ref(false)
 const editCardId = ref<string | null>(null)
+const viewMode = ref<'card' | 'table'>('card')
+const previewCardId = ref<string | null>(null)
 
 const availableCards = computed(() => flashcardsStore.flashcards)
 
@@ -162,6 +166,11 @@ const goalAchieved = (cardId: string): boolean | null => {
 const declarativeDueLabel = (cardId: string): string =>
   getDeclarativeDueLabel(progressIndex.value[cardId]?.declarative ?? null)
 
+const previewCard = computed(() => {
+  if (!previewCardId.value) return null
+  return cardsById.value[previewCardId.value] ?? null
+})
+
 onMounted(() => {
   topicsStore.loadTopics()
   flashcardsStore.loadFlashcards()
@@ -171,11 +180,33 @@ onMounted(() => {
 
 <template>
   <div class="w-full max-w-5xl space-y-10">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold">
+        {{ topic?.name.join(' / ') || 'Topic' }}
+      </h1>
+      <div class="join">
+        <button
+          class="btn btn-sm join-item"
+          :class="{ 'btn-active': viewMode === 'card' }"
+          @click="viewMode = 'card'"
+        >
+          <LayoutGrid :size="16" />
+        </button>
+        <button
+          class="btn btn-sm join-item"
+          :class="{ 'btn-active': viewMode === 'table' }"
+          @click="viewMode = 'table'"
+        >
+          <LayoutList :size="16" />
+        </button>
+      </div>
+    </div>
+
     <div class="space-y-4">
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold">
-          {{ topic?.name.join(' / ') || 'Topic' }}
-        </h1>
+        <h2 class="text-xl font-semibold">
+          Materials
+        </h2>
         <button
           class="btn btn-outline"
           @click="openAddMaterial"
@@ -185,30 +216,94 @@ onMounted(() => {
         </button>
       </div>
 
-      <div class="flex gap-4 overflow-x-auto pb-2">
+      <!-- Card View for Materials -->
+      <div
+        v-if="viewMode === 'card'"
+        class="flex gap-4 overflow-x-auto pb-2"
+      >
         <div
           v-for="(material, index) in topic?.materials || []"
           :key="`${material}-${index}`"
-          class="min-w-[220px] max-w-xs rounded-xl border border-base-300 bg-purple-900 p-4 space-y-3"
+          class="min-w-[220px] max-w-xs rounded-xl border border-base-300 bg-purple-900 p-4"
         >
-          <MarkdownContent :value="material" />
-          <div class="flex justify-end gap-2">
+          <div class="text-sm whitespace-pre-wrap mb-3">
+            {{ material }}
+          </div>
+          <div class="flex justify-center items-center gap-1 border-t border-purple-700 pt-2">
             <button
-              class="btn btn-ghost btn-sm"
+              class="btn btn-ghost btn-square btn-xs"
+              aria-label="Edit"
               @click="openEditMaterial(index)"
             >
-              Edit
+              <Pencil :size="16" />
             </button>
             <button
-              class="btn btn-ghost btn-sm text-error"
+              class="btn btn-ghost btn-square btn-xs text-error"
+              aria-label="Delete"
               @click="removeMaterial(index)"
             >
-              Delete
+              <Trash2 :size="16" />
             </button>
           </div>
         </div>
         <div
           v-if="!topic?.materials.length"
+          class="text-sm opacity-70"
+        >
+          No materials yet.
+        </div>
+      </div>
+
+      <!-- Table View for Materials -->
+      <div
+        v-else-if="viewMode === 'table'"
+        class="overflow-x-auto"
+      >
+        <table
+          v-if="topic?.materials.length"
+          class="table table-sm"
+        >
+          <thead>
+            <tr>
+              <th>Content</th>
+              <th class="w-32">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(material, index) in topic?.materials || []"
+              :key="`${material}-${index}`"
+            >
+              <td class="max-w-2xl">
+                <div class="line-clamp-2">
+                  {{ material }}
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center gap-1">
+                  <button
+                    class="btn btn-ghost btn-square btn-xs"
+                    aria-label="Edit"
+                    @click="openEditMaterial(index)"
+                  >
+                    <Pencil :size="16" />
+                  </button>
+                  <button
+                    class="btn btn-ghost btn-square btn-xs text-error"
+                    aria-label="Delete"
+                    @click="removeMaterial(index)"
+                  >
+                    <Trash2 :size="16" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          v-else
           class="text-sm opacity-70"
         >
           No materials yet.
@@ -264,7 +359,11 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-3 items-start">
+          <!-- Card View -->
+          <div
+            v-if="viewMode === 'card'"
+            class="flex flex-wrap gap-3 items-start"
+          >
             <div
               v-for="card in levelCards(level)"
               :key="card._id"
@@ -348,6 +447,116 @@ onMounted(() => {
             </div>
           </div>
 
+          <!-- Table View -->
+          <div
+            v-else-if="viewMode === 'table'"
+            class="overflow-x-auto"
+          >
+            <table
+              v-if="levelCards(level).length"
+              class="table table-sm"
+            >
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Front</th>
+                  <th>Back</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="card in levelCards(level)"
+                  :key="card._id"
+                >
+                  <td class="w-20">
+                    <div
+                      v-if="card.cardType === 'declaritive'"
+                      class="text-[11px] uppercase tracking-wide opacity-60"
+                    >
+                      {{ declarativeDueLabel(card._id) }}
+                    </div>
+                    <Circle
+                      v-else-if="goalAchieved(card._id) === null"
+                      class="text-base-300"
+                      :size="10"
+                    />
+                    <CheckCircle2
+                      v-else-if="goalAchieved(card._id) === true"
+                      class="text-success"
+                      :size="12"
+                    />
+                    <XCircle
+                      v-else-if="goalAchieved(card._id) === false"
+                      class="text-error"
+                      :size="12"
+                    />
+                  </td>
+                  <td class="max-w-xs truncate">
+                    {{ card.front }}
+                  </td>
+                  <td class="max-w-xs truncate">
+                    {{ card.back }}
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-1">
+                      <button
+                        class="btn btn-ghost btn-square btn-xs"
+                        aria-label="Preview"
+                        @click="previewCardId = card._id"
+                      >
+                        <Eye :size="16" />
+                      </button>
+                      <button
+                        class="btn btn-ghost btn-square btn-xs"
+                        :disabled="levelIndex === 0"
+                        aria-label="Move up"
+                        @click="moveCard(card._id, levelIndex - 1)"
+                      >
+                        <ArrowUp :size="16" />
+                      </button>
+                      <button
+                        class="btn btn-ghost btn-square btn-xs"
+                        :disabled="levelIndex >= (topic?.levels.length || 0) - 1"
+                        aria-label="Move down"
+                        @click="moveCard(card._id, levelIndex + 1)"
+                      >
+                        <ArrowDown :size="16" />
+                      </button>
+                      <button
+                        class="btn btn-ghost btn-square btn-xs"
+                        aria-label="Edit"
+                        @click="handleEditCard(card._id)"
+                      >
+                        <Pencil :size="16" />
+                      </button>
+                      <button
+                        class="btn btn-ghost btn-square btn-xs"
+                        aria-label="Detach"
+                        @click="detachCard(card._id)"
+                      >
+                        <Unlink :size="16" />
+                      </button>
+                      <button
+                        class="btn btn-ghost btn-square btn-xs text-error"
+                        aria-label="Delete"
+                        @click="deleteCard(card._id)"
+                      >
+                        <Trash2 :size="16" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div
+              v-else
+              class="text-sm opacity-70"
+            >
+              No cards in this level.
+            </div>
+          </div>
+
           <div class="flex flex-wrap gap-2">
             <button
               class="btn btn-outline btn-sm"
@@ -417,4 +626,37 @@ onMounted(() => {
     @close="editCardId = null"
     @save="handleSaveEdit"
   />
+
+  <!-- Preview Modal -->
+  <dialog
+    :open="Boolean(previewCardId)"
+    class="modal"
+    @click.self="previewCardId = null"
+  >
+    <div
+      v-if="previewCard"
+      class="modal-box max-w-2xl"
+    >
+      <h3 class="font-bold text-lg mb-4">
+        Card Preview
+      </h3>
+      <div class="rounded-xl border border-base-300 bg-base-100 w-fit">
+        <FlashcardRenderer
+          :front="previewCard.front"
+          :back="previewCard.back"
+          :card-type="previewCard.cardType"
+          :instruction="previewCard.instruction"
+          :show-back="previewCard.cardType === 'declaritive'"
+        />
+      </div>
+      <div class="modal-action">
+        <button
+          class="btn"
+          @click="previewCardId = null"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </dialog>
 </template>
