@@ -59,24 +59,17 @@ export const useTopicsStore = defineStore('topics', () => {
     topics.value = topics.value.filter((entry) => entry._id !== topicId)
   }
 
-  const addMaterial = async (topicId: string, content: string): Promise<void> => {
+  const addMaterialId = async (topicId: string, materialId: string): Promise<void> => {
     const current = topics.value.find((entry) => entry._id === topicId)
     if (!current) return
-    const materials = [...current.materials, content]
+    const materials = [...current.materials, materialId]
     await updateTopic(topicId, { materials })
   }
 
-  const updateMaterial = async (topicId: string, index: number, content: string): Promise<void> => {
+  const removeMaterialId = async (topicId: string, materialId: string): Promise<void> => {
     const current = topics.value.find((entry) => entry._id === topicId)
     if (!current) return
-    const materials = current.materials.map((item, i) => (i === index ? content : item))
-    await updateTopic(topicId, { materials })
-  }
-
-  const removeMaterial = async (topicId: string, index: number): Promise<void> => {
-    const current = topics.value.find((entry) => entry._id === topicId)
-    if (!current) return
-    const materials = current.materials.filter((_item, i) => i !== index)
+    const materials = current.materials.filter((id) => id !== materialId)
     await updateTopic(topicId, { materials })
   }
 
@@ -122,9 +115,8 @@ export const useTopicsStore = defineStore('topics', () => {
     createTopic,
     updateTopic,
     deleteTopic,
-    addMaterial,
-    updateMaterial,
-    removeMaterial,
+    addMaterialId,
+    removeMaterialId,
     insertLevel,
     removeLevel,
     addCardToLevel,
