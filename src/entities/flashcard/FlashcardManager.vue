@@ -14,6 +14,7 @@ const emit = defineEmits<{
   'update:back': [value: string]
   'update:instruction': [value: string]
   'update:blocked-by': [value: string[]]
+  blur: []
 }>()
 
 const frontValue = computed({
@@ -50,6 +51,7 @@ const blockedByValue = computed({
         type="text"
         name="instruction"
         class="input"
+        @blur="emit('blur')"
       >
     </fieldset>
 
@@ -64,6 +66,7 @@ const blockedByValue = computed({
         name="front"
         class="textarea"
         rows="6"
+        @blur="emit('blur')"
       />
     </fieldset>
 
@@ -78,6 +81,7 @@ const blockedByValue = computed({
         name="back"
         class="textarea"
         rows="6"
+        @blur="emit('blur')"
       />
     </fieldset>
 

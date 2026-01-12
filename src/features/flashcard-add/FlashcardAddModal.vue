@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { createFlashcard } from '@/entities/flashcard/flashcardStore'
-import { showToast } from '@/app/toast/toastStore'
+import { createFlashcard, updateFlashcard, getFlashcardById } from '@/entities/flashcard/flashcardStore'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 import FlashcardManager from '@/entities/flashcard/FlashcardManager.vue';
 
@@ -18,20 +17,28 @@ const front = ref('')
 const back = ref('')
 const instruction = ref('')
 const blockedBy = ref<string[]>([])
+const createdId = ref<string | null>(null)
 
-const handleSave = async () => {
-  const flashcard = await createFlashcard(front.value, back.value, instruction.value, blockedBy.value)
-  showToast('Flashcard created', 'success')
-  emit('created', flashcard)
+const handleBlur = async () => {
+  if (!createdId.value) {
+    const flashcard = await createFlashcard(front.value, back.value, instruction.value, blockedBy.value)
+    createdId.value = flashcard._id
+  } else {
+    await updateFlashcard(createdId.value, front.value, back.value, instruction.value, blockedBy.value)
+  }
+}
+
+const handleClose = async () => {
+  if (createdId.value) {
+    const flashcard = await getFlashcardById(createdId.value)
+    emit('created', flashcard)
+  }
   emit('close')
   front.value = ''
   back.value = ''
   instruction.value = ''
   blockedBy.value = []
-}
-
-const handleCancel = () => {
-  emit('close')
+  createdId.value = null
 }
 </script>
 
@@ -51,20 +58,15 @@ const handleCancel = () => {
         v-model:back="back"
         v-model:instruction="instruction"
         v-model:blocked-by="blockedBy"
+        @blur="handleBlur"
       />
 
       <div class="modal-action">
         <button
-          class="btn btn-primary"
-          @click="handleSave"
-        >
-          Save
-        </button>
-        <button
           class="btn"
-          @click="handleCancel"
+          @click="handleClose"
         >
-          Cancel
+          Close
         </button>
       </div>
     </div>

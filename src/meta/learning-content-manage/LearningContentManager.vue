@@ -10,6 +10,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:content': [value: string]
   'update:related-flashcards': [value: string[]]
+  blur: []
 }>()
 
 const contentValue = computed({
@@ -36,6 +37,7 @@ const relatedFlashcardsValue = computed({
         name="learning-content"
         class="textarea"
         rows="10"
+        @blur="emit('blur')"
       />
     </fieldset>
 

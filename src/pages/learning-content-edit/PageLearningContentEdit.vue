@@ -21,13 +21,12 @@ onMounted(async () => {
   }
 })
 
-const handleSave = async () => {
+const handleBlur = async () => {
   const id = route.params.id as string
   await updateLearningContent(id, content.value, relatedFlashcards.value)
-  router.push('/learning-content')
 }
 
-const handleCancel = () => {
+const handleClose = () => {
   router.push('/learning-content')
 }
 </script>
@@ -42,7 +41,7 @@ const handleCancel = () => {
       <p>Learning content not found.</p>
       <button
         class="btn mt-4"
-        @click="handleCancel"
+        @click="handleClose"
       >
         Back to List
       </button>
@@ -52,20 +51,15 @@ const handleCancel = () => {
       <LearningContentManager
         v-model:content="content"
         v-model:related-flashcards="relatedFlashcards"
+        @blur="handleBlur"
       />
 
       <div class="flex gap-2 mt-4">
         <button
-          class="btn btn-primary"
-          @click="handleSave"
-        >
-          Save
-        </button>
-        <button
           class="btn"
-          @click="handleCancel"
+          @click="handleClose"
         >
-          Cancel
+          Close
         </button>
       </div>
     </div>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
-import { showToast } from '@/app/toast/toastStore'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 import FlashcardManager from '@/entities/flashcard/FlashcardManager.vue';
 
@@ -39,16 +38,14 @@ watch(
   { immediate: true }
 )
 
-const handleSave = async () => {
+const handleBlur = async () => {
   if (!props.flashcardId) return
   await updateFlashcard(props.flashcardId, front.value, back.value, instruction.value, blockedBy.value)
-  showToast('Flashcard updated', 'success')
   const updated = await getFlashcardById(props.flashcardId)
   emit('updated', updated)
-  emit('close')
 }
 
-const handleCancel = () => {
+const handleClose = () => {
   emit('close')
 }
 </script>
@@ -73,20 +70,15 @@ const handleCancel = () => {
           v-model:back="back"
           v-model:instruction="instruction"
           v-model:blocked-by="blockedBy"
+          @blur="handleBlur"
         />
 
         <div class="modal-action">
           <button
-            class="btn btn-primary"
-            @click="handleSave"
-          >
-            Save
-          </button>
-          <button
             class="btn"
-            @click="handleCancel"
+            @click="handleClose"
           >
-            Cancel
+            Close
           </button>
         </div>
       </div>

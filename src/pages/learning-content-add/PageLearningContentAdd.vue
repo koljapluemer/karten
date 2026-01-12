@@ -2,18 +2,23 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LearningContentManager from '@/meta/learning-content-manage/LearningContentManager.vue'
-import { createLearningContent } from '@/entities/learning-content/learningContentStore'
+import { createLearningContent, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 
 const router = useRouter()
 const content = ref('')
 const relatedFlashcards = ref<string[]>([])
+const createdId = ref<string | null>(null)
 
-const handleSave = async () => {
-  await createLearningContent(content.value, relatedFlashcards.value)
-  router.push('/learning-content')
+const handleBlur = async () => {
+  if (!createdId.value) {
+    const item = await createLearningContent(content.value, relatedFlashcards.value)
+    createdId.value = item._id
+  } else {
+    await updateLearningContent(createdId.value, content.value, relatedFlashcards.value)
+  }
 }
 
-const handleCancel = () => {
+const handleClose = () => {
   router.push('/learning-content')
 }
 </script>
@@ -27,20 +32,15 @@ const handleCancel = () => {
     <LearningContentManager
       v-model:content="content"
       v-model:related-flashcards="relatedFlashcards"
+      @blur="handleBlur"
     />
 
     <div class="flex gap-2 mt-4">
       <button
-        class="btn btn-primary"
-        @click="handleSave"
-      >
-        Save
-      </button>
-      <button
         class="btn"
-        @click="handleCancel"
+        @click="handleClose"
       >
-        Cancel
+        Close
       </button>
     </div>
   </div>
