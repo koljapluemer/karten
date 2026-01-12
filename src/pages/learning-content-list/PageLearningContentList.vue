@@ -2,14 +2,17 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
-import { loadLearningContent, deleteLearningContent } from '@/entities/learning-content/learningContentStore'
+import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
 import LearningContentRenderer from '@/entities/learning-content/LearningContentRenderer.vue'
+import ZipUploadButton from './ZipUploadButton.vue'
+import { parseLearningContentFromZip } from './importHelpers'
 import type { MaterialDoc } from '@/entities/learning-content/LearningContent'
 
 const router = useRouter()
 const items = ref<MaterialDoc[]>([])
 const viewModalContent = ref<string>('')
 const showViewModal = ref(false)
+const uploading = ref(false)
 
 onMounted(async () => {
   items.value = await loadLearningContent()
@@ -37,6 +40,19 @@ const handleDelete = async (id: string) => {
 const closeModal = () => {
   showViewModal.value = false
 }
+
+const handleZipUpload = async (file: File) => {
+  uploading.value = true
+  try {
+    const parsed = await parseLearningContentFromZip(file)
+    for (const { content } of parsed) {
+      await createLearningContent(content)
+    }
+    items.value = await loadLearningContent()
+  } finally {
+    uploading.value = false
+  }
+}
 </script>
 
 <template>
@@ -45,13 +61,19 @@ const closeModal = () => {
       Learning Content
     </h1>
 
-    <button
-      class="btn btn-primary mb-4"
-      @click="handleAdd"
-    >
-      <Plus :size="20" />
-      Add Learning Content
-    </button>
+    <div class="flex gap-2 mb-4">
+      <button
+        class="btn btn-primary"
+        @click="handleAdd"
+      >
+        <Plus :size="20" />
+        Add Learning Content
+      </button>
+      <ZipUploadButton
+        :loading="uploading"
+        @file="handleZipUpload"
+      />
+    </div>
 
     <div class="overflow-x-auto">
       <table class="table">
