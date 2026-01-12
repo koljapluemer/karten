@@ -15,6 +15,7 @@ import PracticeRevealFlow from './PracticeRevealFlow.vue'
 const flashcards = ref<FlashCardDoc[]>([])
 const progressMap = ref<Map<string, LearningProgressDoc>>(new Map())
 const currentCard = ref<FlashCardDoc | null>(null)
+const previousCardId = ref<string | null>(null)
 const isLoading = ref(true)
 
 const isCurrentCardNew = computed(() =>
@@ -55,8 +56,14 @@ function selectNextCard(): FlashCardDoc | null {
 
   if (eligible.length === 0) return null
 
-  const unseen = eligible.filter((c) => !progressMap.value.has(c._id))
-  const due = eligible.filter((c) => {
+  // Exclude previous card to prevent repeats
+  const eligibleExcludingPrevious = eligible.filter((c) => c._id !== previousCardId.value)
+
+  // If all eligible cards were filtered out (only 1 eligible card which is previous), use eligible
+  const pool = eligibleExcludingPrevious.length > 0 ? eligibleExcludingPrevious : eligible
+
+  const unseen = pool.filter((c) => !progressMap.value.has(c._id))
+  const due = pool.filter((c) => {
     const progress = progressMap.value.get(c._id)
     return progress && new Date(progress.due) <= new Date()
   })
@@ -78,16 +85,20 @@ function selectNextCard(): FlashCardDoc | null {
 async function handleNewCardComplete() {
   if (!currentCard.value) return
 
-  await initializeNewCard(currentCard.value._id)
+  const completedCardId = currentCard.value._id
+  await initializeNewCard(completedCardId)
   await loadData()
+  previousCardId.value = completedCardId
   currentCard.value = selectNextCard()
 }
 
 async function handleKnownCardComplete(rating: Rating) {
   if (!currentCard.value) return
 
-  await updateCardProgress(currentCard.value._id, rating)
+  const completedCardId = currentCard.value._id
+  await updateCardProgress(completedCardId, rating)
   await loadData()
+  previousCardId.value = completedCardId
   currentCard.value = selectNextCard()
 }
 
