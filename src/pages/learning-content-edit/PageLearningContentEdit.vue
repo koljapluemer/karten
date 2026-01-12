@@ -1,0 +1,68 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import LearningContentManager from '@/features/learning-content-manage/LearningContentManager.vue'
+import { getLearningContentById, updateLearningContent } from '@/entities/learning-content/learningContentStore'
+
+const router = useRouter()
+const route = useRoute()
+const content = ref('')
+const notFound = ref(false)
+
+onMounted(async () => {
+  const id = route.params.id as string
+  try {
+    const item = await getLearningContentById(id)
+    content.value = item.content
+  } catch {
+    notFound.value = true
+  }
+})
+
+const handleSave = async () => {
+  const id = route.params.id as string
+  await updateLearningContent(id, content.value)
+  router.push('/learning-content')
+}
+
+const handleCancel = () => {
+  router.push('/learning-content')
+}
+</script>
+
+<template>
+  <div>
+    <h1 class="text-2xl font-bold mb-4">
+      Edit Learning Content
+    </h1>
+
+    <div v-if="notFound">
+      <p>Learning content not found.</p>
+      <button
+        class="btn mt-4"
+        @click="handleCancel"
+      >
+        Back to List
+      </button>
+    </div>
+
+    <div v-else>
+      <LearningContentManager v-model="content" />
+
+      <div class="flex gap-2 mt-4">
+        <button
+          class="btn btn-primary"
+          @click="handleSave"
+        >
+          Save
+        </button>
+        <button
+          class="btn"
+          @click="handleCancel"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

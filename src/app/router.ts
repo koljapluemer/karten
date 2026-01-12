@@ -1,29 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TopicPracticePage from '@/pages/practice/TopicPracticePage.vue'
-import TopicsPage from '@/pages/topics/TopicsPage.vue'
-import TopicManagePage from '@/pages/topics/TopicManagePage.vue'
+import PageLearningContentList from '@/pages/learning-content-list/PageLearningContentList.vue'
+import PageLearningContentAdd from '@/pages/learning-content-add/PageLearningContentAdd.vue'
+import PageLearningContentEdit from '@/pages/learning-content-edit/PageLearningContentEdit.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      redirect: '/topic-practice'
+      redirect: '/learning-content'
     },
     {
-      path: '/topic-practice',
-      name: 'topic-practice',
-      component: TopicPracticePage
+      path: '/learning-content',
+      name: 'learning-content-list',
+      component: PageLearningContentList
     },
     {
-      path: '/topics',
-      name: 'topics',
-      component: TopicsPage
+      path: '/learning-content/add',
+      name: 'learning-content-add',
+      component: PageLearningContentAdd
     },
     {
-      path: '/topics/:id',
-      name: 'topic-manage',
-      component: TopicManagePage
+      path: '/learning-content/:id/edit',
+      name: 'learning-content-edit',
+      component: PageLearningContentEdit
     }
   ]
 })

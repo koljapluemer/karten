@@ -19,8 +19,6 @@
     "events": "^3.3.0",
     "jszip": "^3.10.1",
     "markdown-it": "^14.1.0",
-    "pinia": "^3.0.4",
-    "pinia-plugin-persistedstate": "^4.7.1",
     "pouchdb-browser": "^9.0.0",
     "tailwindcss": "^4.1.17",
     "ts-fsrs": "^5.2.3",
