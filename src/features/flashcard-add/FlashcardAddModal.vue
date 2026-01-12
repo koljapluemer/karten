@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import FlashcardManager from '@/features/flashcard-manage/FlashcardManager.vue'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
 import { showToast } from '@/app/toast/toastStore'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
+import FlashcardManager from '@/entities/flashcard/FlashcardManager.vue';
 
 defineProps<{
   open: boolean

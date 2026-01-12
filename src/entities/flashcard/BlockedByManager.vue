@@ -6,7 +6,7 @@ import { showToast } from '@/app/toast/toastStore'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 
 const FlashcardAddModal = defineAsyncComponent(() =>
-  import('@/meta/flashcard-add/FlashcardAddModal.vue')
+  import('@/features/flashcard-add/FlashcardAddModal.vue')
 )
 
 const props = defineProps<{

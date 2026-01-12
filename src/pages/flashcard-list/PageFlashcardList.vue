@@ -3,8 +3,8 @@ import { ref, onMounted } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
-import FlashcardAddModal from '@/meta/flashcard-add/FlashcardAddModal.vue'
-import FlashcardEditModal from '@/meta/flashcard-edit/FlashcardEditModal.vue'
+import FlashcardAddModal from '@/features/flashcard-add/FlashcardAddModal.vue'
+import FlashcardEditModal from '@/features/flashcard-edit/FlashcardEditModal.vue'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 
 const items = ref<FlashCardDoc[]>([])
