@@ -1,26 +1,30 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import FlashcardAddModal from '@/meta/flashcard-add/FlashcardAddModal.vue'
+import FlashcardEditModal from '@/meta/flashcard-edit/FlashcardEditModal.vue'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 
-const router = useRouter()
 const items = ref<FlashCardDoc[]>([])
 const viewModalCard = ref<FlashCardDoc | null>(null)
 const showViewModal = ref(false)
+const showAddModal = ref(false)
+const showEditModal = ref(false)
+const editFlashcardId = ref<string | null>(null)
 
 onMounted(async () => {
   items.value = await loadFlashcards()
 })
 
 const handleAdd = () => {
-  router.push('/flashcards/add')
+  showAddModal.value = true
 }
 
 const handleEdit = (id: string) => {
-  router.push(`/flashcards/${id}/edit`)
+  editFlashcardId.value = id
+  showEditModal.value = true
 }
 
 const handleView = (card: FlashCardDoc) => {
@@ -34,8 +38,16 @@ const handleDelete = async (id: string) => {
   items.value = await loadFlashcards()
 }
 
-const closeModal = () => {
+const closeViewModal = () => {
   showViewModal.value = false
+}
+
+const handleFlashcardCreated = async () => {
+  items.value = await loadFlashcards()
+}
+
+const handleFlashcardUpdated = async () => {
+  items.value = await loadFlashcards()
 }
 </script>
 
@@ -115,12 +127,25 @@ const closeModal = () => {
         <div class="modal-action">
           <button
             class="btn"
-            @click="closeModal"
+            @click="closeViewModal"
           >
             Close
           </button>
         </div>
       </div>
     </dialog>
+
+    <FlashcardAddModal
+      :open="showAddModal"
+      @close="showAddModal = false"
+      @created="handleFlashcardCreated"
+    />
+
+    <FlashcardEditModal
+      :open="showEditModal"
+      :flashcard-id="editFlashcardId"
+      @close="showEditModal = false"
+      @updated="handleFlashcardUpdated"
+    />
   </div>
 </template>

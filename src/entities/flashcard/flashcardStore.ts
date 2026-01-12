@@ -11,7 +11,8 @@ export const loadFlashcards = async (): Promise<FlashCardDoc[]> => {
 export const createFlashcard = async (
   front: string,
   back: string,
-  instruction: string
+  instruction: string,
+  blockedBy: string[] = []
 ): Promise<FlashCardDoc> => {
   const doc: FlashCardDoc = {
     _id: buildFlashcardId(),
@@ -19,7 +20,7 @@ export const createFlashcard = async (
     front,
     back,
     instruction,
-    blockedBy: []
+    blockedBy
   }
 
   const result = await db.put(doc)
@@ -30,7 +31,8 @@ export const updateFlashcard = async (
   id: string,
   front: string,
   back: string,
-  instruction: string
+  instruction: string,
+  blockedBy: string[] = []
 ): Promise<void> => {
   const current = await db.get<FlashCardDoc>(id)
   const updated: FlashCardDoc = {
@@ -38,7 +40,7 @@ export const updateFlashcard = async (
     front,
     back,
     instruction,
-    blockedBy: []
+    blockedBy
   }
   await db.put(updated)
 }

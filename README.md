@@ -8,7 +8,6 @@
 - Vite
 - Tailwind CSS + DaisyUI
 - Vue Router
-- Pinia (state management)
 - ESLint 9 (flat config)
 
 ## Development

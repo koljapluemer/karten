@@ -3,8 +3,6 @@ import PageLearningContentList from '@/pages/learning-content-list/PageLearningC
 import PageLearningContentAdd from '@/pages/learning-content-add/PageLearningContentAdd.vue'
 import PageLearningContentEdit from '@/pages/learning-content-edit/PageLearningContentEdit.vue'
 import PageFlashcardList from '@/pages/flashcard-list/PageFlashcardList.vue'
-import PageFlashcardAdd from '@/pages/flashcard-add/PageFlashcardAdd.vue'
-import PageFlashcardEdit from '@/pages/flashcard-edit/PageFlashcardEdit.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -32,16 +30,6 @@ const router = createRouter({
       path: '/flashcards',
       name: 'flashcard-list',
       component: PageFlashcardList
-    },
-    {
-      path: '/flashcards/add',
-      name: 'flashcard-add',
-      component: PageFlashcardAdd
-    },
-    {
-      path: '/flashcards/:id/edit',
-      name: 'flashcard-edit',
-      component: PageFlashcardEdit
     }
   ]
 })
