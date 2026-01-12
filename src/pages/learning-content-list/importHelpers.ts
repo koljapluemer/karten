@@ -14,7 +14,10 @@ export const parseLearningContentFromZip = async (file: File): Promise<ParsedLea
 
     const lowerName = filename.toLowerCase()
     if (lowerName.endsWith('.txt') || lowerName.endsWith('.md')) {
-      const content = await zipEntry.async('text')
+      const rawContent = await zipEntry.async('text')
+      const basename = filename.split('/').pop() || filename
+      const nameWithoutExt = basename.replace(/\.(md|txt)$/i, '')
+      const content = `# ${nameWithoutExt}\n\n${rawContent}`
       items.push({ content, filename })
     }
   }
