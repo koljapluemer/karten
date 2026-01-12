@@ -3,6 +3,7 @@ import PageLearningContentList from '@/pages/learning-content-list/PageLearningC
 import PageLearningContentAdd from '@/pages/learning-content-add/PageLearningContentAdd.vue'
 import PageLearningContentEdit from '@/pages/learning-content-edit/PageLearningContentEdit.vue'
 import PageFlashcardList from '@/pages/flashcard-list/PageFlashcardList.vue'
+import PagePractice from '@/pages/practice/PagePractice.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -30,6 +31,11 @@ const router = createRouter({
       path: '/flashcards',
       name: 'flashcard-list',
       component: PageFlashcardList
+    },
+    {
+      path: '/practice',
+      name: 'practice',
+      component: PagePractice
     }
   ]
 })

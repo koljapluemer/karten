@@ -19,6 +19,12 @@ import ToastContainer from './toast/ToastContainer.vue'
         >
           Flashcards
         </RouterLink>
+        <RouterLink
+          to="/practice"
+          class="btn btn-ghost"
+        >
+          Practice
+        </RouterLink>
       </div>
     </nav>
     <main class="flex-1 container mx-auto p-4 flex flex-col">

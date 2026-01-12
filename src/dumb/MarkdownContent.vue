@@ -16,7 +16,7 @@ const html = computed(() => md.render(props.value))
 
 <template>
   <div
-    v-sanitize-html="html"
+    v-html="html"
     class="prose-lg max-w-none"
   />
 </template>
