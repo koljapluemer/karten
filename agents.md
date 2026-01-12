@@ -31,3 +31,4 @@ Do not use `index.ts` file reexporting components, simply export directly.
 - make sure UI looks neat. Always put a form input BELOW the label in a new line. Responsive design.
 - KEEP. IT. SIMPLE.
 - always run `npm run build` and `npm run lint:fix` to ensure everything is well done. Fix problems by writing clean code, not by disabling the linter.
+- save inputs on blur, avoid using "Save" buttons
