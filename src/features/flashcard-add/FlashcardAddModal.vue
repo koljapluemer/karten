@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 import { createFlashcard, updateFlashcard, getFlashcardById } from '@/entities/flashcard/flashcardStore'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
-import FlashcardManager from '@/entities/flashcard/FlashcardManager.vue';
+import FlashcardManager from '@/entities/flashcard/FlashcardManager.vue'
+import { addInstructionToHistory } from './instructionHistory'
 
 defineProps<{
   open: boolean
@@ -31,6 +32,9 @@ const handleBlur = async () => {
 const handleClose = async () => {
   if (createdId.value) {
     const flashcard = await getFlashcardById(createdId.value)
+    if (instruction.value.trim()) {
+      addInstructionToHistory(instruction.value)
+    }
     emit('created', flashcard)
   }
   emit('close')

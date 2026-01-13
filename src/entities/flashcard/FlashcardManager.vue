@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BlockedByManager from './BlockedByManager.vue'
+import { getInstructionHistory } from '@/features/flashcard-add/instructionHistory'
 
 const props = defineProps<{
   front: string
@@ -36,6 +37,20 @@ const blockedByValue = computed({
   get: () => props.blockedBy ?? [],
   set: (value: string[]) => emit('update:blocked-by', value)
 })
+
+const filteredHistory = computed(() => {
+  const history = getInstructionHistory()
+  if (!props.instruction) {
+    return history.slice(0, 3)
+  }
+  return history
+    .filter(item => item.toLowerCase().includes(props.instruction.toLowerCase()))
+    .slice(0, 3)
+})
+
+const selectInstruction = (instruction: string) => {
+  instructionValue.value = instruction
+}
 </script>
 
 <template>
@@ -45,6 +60,20 @@ const blockedByValue = computed({
         for="instruction"
         class="label"
       >Instruction</label>
+      <div
+        v-if="filteredHistory.length > 0"
+        class="flex gap-2 mb-2 flex-wrap"
+      >
+        <button
+          v-for="item in filteredHistory"
+          :key="item"
+          type="button"
+          class="badge badge-outline cursor-pointer hover:badge-primary"
+          @click="selectInstruction(item)"
+        >
+          {{ item }}
+        </button>
+      </div>
       <input
         id="instruction"
         v-model="instructionValue"
