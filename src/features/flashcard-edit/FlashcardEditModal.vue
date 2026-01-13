@@ -21,9 +21,9 @@ const blockedBy = ref<string[]>([])
 const notFound = ref(false)
 
 watch(
-  () => props.flashcardId,
-  async (id) => {
-    if (!id || !props.open) return
+  () => [props.flashcardId, props.open] as const,
+  async ([id, isOpen]) => {
+    if (!id || !isOpen) return
     try {
       const flashcard = await getFlashcardById(id)
       front.value = flashcard.front

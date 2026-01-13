@@ -72,10 +72,10 @@ onBeforeUnmount(stopTimer)
 
     <div
       v-if="phase === 'recall'"
-      class="flex justify-end"
+      class="flex justify-center"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-outline"
         @click="handleReveal"
       >
         Reveal
@@ -84,10 +84,10 @@ onBeforeUnmount(stopTimer)
 
     <div
       v-else-if="phase === 'reveal'"
-      class="flex justify-end"
+      class="flex justify-center"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-outline"
         @click="handleDone"
       >
         Done

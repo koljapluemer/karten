@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 import { Rating } from 'ts-fsrs'
 
-defineProps<{
+const props = defineProps<{
   card: FlashCardDoc
 }>()
 
@@ -13,6 +13,10 @@ const emit = defineEmits<{
 }>()
 
 const isRevealed = ref(false)
+
+watch(() => props.card, () => {
+  isRevealed.value = false
+})
 
 const handleReveal = () => {
   isRevealed.value = true
@@ -34,10 +38,10 @@ const handleRating = (rating: Rating) => {
 
     <div
       v-if="!isRevealed"
-      class="flex justify-end"
+      class="flex justify-center"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-outline"
         @click="handleReveal"
       >
         Reveal
@@ -46,32 +50,34 @@ const handleRating = (rating: Rating) => {
 
     <div
       v-else
-      class="grid grid-cols-2 gap-2 sm:grid-cols-4"
+      class="flex justify-center"
     >
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Again)"
-      >
-        Again
-      </button>
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Hard)"
-      >
-        Hard
-      </button>
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Good)"
-      >
-        Good
-      </button>
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Easy)"
-      >
-        Easy
-      </button>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <button
+          class="btn btn-outline"
+          @click="handleRating(Rating.Again)"
+        >
+          Again
+        </button>
+        <button
+          class="btn btn-outline"
+          @click="handleRating(Rating.Hard)"
+        >
+          Hard
+        </button>
+        <button
+          class="btn btn-outline"
+          @click="handleRating(Rating.Good)"
+        >
+          Good
+        </button>
+        <button
+          class="btn btn-outline"
+          @click="handleRating(Rating.Easy)"
+        >
+          Easy
+        </button>
+      </div>
     </div>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { Pencil } from 'lucide-vue-next'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import {
   loadLearningProgress,
@@ -11,12 +12,14 @@ import type { LearningProgressDoc } from '@/entities/learning-progress/LearningP
 import type { Rating } from 'ts-fsrs'
 import PracticeMemorizeFlow from './PracticeMemorizeFlow.vue'
 import PracticeRevealFlow from './PracticeRevealFlow.vue'
+import FlashcardEditModal from '@/features/flashcard-edit/FlashcardEditModal.vue'
 
 const flashcards = ref<FlashCardDoc[]>([])
 const progressMap = ref<Map<string, LearningProgressDoc>>(new Map())
 const currentCard = ref<FlashCardDoc | null>(null)
 const previousCardId = ref<string | null>(null)
 const isLoading = ref(true)
+const showEditModal = ref(false)
 
 const isCurrentCardNew = computed(() =>
   currentCard.value ? !progressMap.value.has(currentCard.value.id) : false
@@ -102,6 +105,14 @@ async function handleKnownCardComplete(rating: Rating) {
   currentCard.value = selectNextCard()
 }
 
+function handleEdit() {
+  showEditModal.value = true
+}
+
+async function handleFlashcardUpdated() {
+  await loadData()
+}
+
 onMounted(async () => {
   await loadData()
   currentCard.value = selectNextCard()
@@ -111,9 +122,17 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-4">
-      Practice
-    </h1>
+    <div
+      v-if="currentCard"
+      class="flex justify-end mb-4"
+    >
+      <button
+        class="btn btn-ghost btn-sm"
+        @click="handleEdit"
+      >
+        <Pencil :size="16" />
+      </button>
+    </div>
 
     <div v-if="isLoading">
       Loading...
@@ -133,6 +152,13 @@ onMounted(async () => {
       v-else
       :card="currentCard"
       @complete="handleKnownCardComplete"
+    />
+
+    <FlashcardEditModal
+      :open="showEditModal"
+      :flashcard-id="currentCard?.id ?? null"
+      @close="showEditModal = false"
+      @updated="handleFlashcardUpdated"
     />
   </div>
 </template>
