@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
@@ -13,9 +13,32 @@ const items = ref<LearningContentDoc[]>([])
 const viewModalContent = ref<string>('')
 const showViewModal = ref(false)
 const uploading = ref(false)
+const flashcardFilter = ref<'all' | 'with' | 'without'>('all')
+const searchQuery = ref('')
 
 onMounted(async () => {
   items.value = await loadLearningContent()
+})
+
+const filteredItems = computed(() => {
+  let result = items.value
+
+  // Filter by flashcard status
+  if (flashcardFilter.value === 'with') {
+    result = result.filter(item => item.relatedFlashcards && item.relatedFlashcards.length > 0)
+  } else if (flashcardFilter.value === 'without') {
+    result = result.filter(item => !item.relatedFlashcards || item.relatedFlashcards.length === 0)
+  }
+
+  // Fuzzy search
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(item =>
+      item.content.toLowerCase().includes(query)
+    )
+  }
+
+  return result
 })
 
 const handleAdd = () => {
@@ -61,6 +84,39 @@ const handleZipUpload = async (file: File) => {
       Learning Content
     </h1>
 
+    <div class="flex gap-4 mb-4">
+      <div class="flex gap-1">
+        <button
+          class="btn btn-sm"
+          :class="{ 'btn-active': flashcardFilter === 'all' }"
+          @click="flashcardFilter = 'all'"
+        >
+          All
+        </button>
+        <button
+          class="btn btn-sm"
+          :class="{ 'btn-active': flashcardFilter === 'with' }"
+          @click="flashcardFilter = 'with'"
+        >
+          With Flashcards
+        </button>
+        <button
+          class="btn btn-sm"
+          :class="{ 'btn-active': flashcardFilter === 'without' }"
+          @click="flashcardFilter = 'without'"
+        >
+          Without Flashcards
+        </button>
+      </div>
+
+      <input
+        v-model="searchQuery"
+        type="text"
+        class="input input-sm flex-1"
+        placeholder="Search learning content..."
+      >
+    </div>
+
     <div class="flex gap-2 mb-4">
       <button
         class="btn btn-primary"
@@ -85,7 +141,7 @@ const handleZipUpload = async (file: File) => {
         </thead>
         <tbody>
           <tr
-            v-for="item in items"
+            v-for="item in filteredItems"
             :key="item.id"
           >
             <td class="truncate max-w-md">

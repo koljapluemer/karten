@@ -34,7 +34,10 @@ const handleLogin = async () => {
       </p>
 
       <fieldset class="fieldset">
-        <label for="email" class="label">Email</label>
+        <label
+          for="email"
+          class="label"
+        >Email</label>
         <input
           id="email"
           v-model="email"
