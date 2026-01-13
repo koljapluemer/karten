@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FlashcardFormEdit from '@/entities/flashcard/FlashcardFormEdit.vue'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
+import { db } from '@/app/storage/db'
+import type { LearningProgress } from '@/app/storage/db'
 
 const router = useRouter()
 const route = useRoute()
@@ -12,6 +14,27 @@ const back = ref('')
 const instruction = ref('')
 const blockedBy = ref<string[]>([])
 const notFound = ref(false)
+const learningProgress = ref<LearningProgress | null>(null)
+
+const stateLabel = computed(() => {
+  if (!learningProgress.value) return ''
+  const state = learningProgress.value.state
+  if (state === 0) return 'New'
+  if (state === 1) return 'Learning'
+  if (state === 2) return 'Review'
+  if (state === 3) return 'Relearning'
+  return 'Unknown'
+})
+
+const dueDate = computed(() => {
+  if (!learningProgress.value) return ''
+  return new Date(learningProgress.value.due).toLocaleDateString()
+})
+
+const lastReviewDate = computed(() => {
+  if (!learningProgress.value?.last_review) return 'Never'
+  return new Date(learningProgress.value.last_review).toLocaleDateString()
+})
 
 onMounted(async () => {
   const id = route.params.id as string
@@ -22,6 +45,9 @@ onMounted(async () => {
     instruction.value = flashcard.instruction
     blockedBy.value = flashcard.blockedBy
     notFound.value = false
+
+    const progressId = id.replace('flashcard:', 'learning-progress:')
+    learningProgress.value = await db.learningProgress.get(progressId) || null
   } catch {
     notFound.value = true
   }
@@ -63,6 +89,40 @@ const handleClose = () => {
         v-model:blocked-by="blockedBy"
         @blur="handleBlur"
       />
+
+      <div
+        v-if="learningProgress"
+        class="card shadow mt-4"
+      >
+        <div class="card-body">
+          <h3 class="card-title text-sm">
+            Learning Stats
+          </h3>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span class="text-light">State:</span> {{ stateLabel }}
+            </div>
+            <div>
+              <span class="text-light">Difficulty:</span> {{ learningProgress.difficulty.toFixed(2) }}
+            </div>
+            <div>
+              <span class="text-light">Stability:</span> {{ learningProgress.stability.toFixed(1) }} days
+            </div>
+            <div>
+              <span class="text-light">Reviews:</span> {{ learningProgress.reps }}
+            </div>
+            <div>
+              <span class="text-light">Lapses:</span> {{ learningProgress.lapses }}
+            </div>
+            <div>
+              <span class="text-light">Due:</span> {{ dueDate }}
+            </div>
+            <div>
+              <span class="text-light">Last review:</span> {{ lastReviewDate }}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="flex gap-2 mt-4">
         <button
