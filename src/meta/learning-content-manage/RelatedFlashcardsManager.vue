@@ -34,7 +34,7 @@ onMounted(async () => {
 })
 
 const getCardById = (id: string): FlashCardDoc | undefined =>
-  allFlashcards.value.find((card) => card._id === id)
+  allFlashcards.value.find((card) => card.id === id)
 
 const buildTree = (
   id: string,
@@ -49,7 +49,7 @@ const buildTree = (
   }
   seen.add(id)
   const children = card.blockedBy
-    .map((childId) => buildTree(childId, seen, card._id))
+    .map((childId) => buildTree(childId, seen, card.id))
     .filter((child): child is FlashcardNode => child !== null)
   return { card, children, parentId, repeated: false }
 }
@@ -84,7 +84,7 @@ const searchResults = computed(() => {
   }
 
   return allFlashcards.value
-    .filter((card) => !excluded.has(card._id))
+    .filter((card) => !excluded.has(card.id))
     .filter(
       (card) =>
         card.front.toLowerCase().includes(query) || card.back.toLowerCase().includes(query)
@@ -106,7 +106,7 @@ const closeAttachPanel = () => {
 
 const updateLocalFlashcard = (updated: FlashCardDoc) => {
   allFlashcards.value = allFlashcards.value.map((card) =>
-    card._id === updated._id ? updated : card
+    card.id === updated.id ? updated : card
   )
 }
 
@@ -120,7 +120,7 @@ const attachBlockedBy = async (parentId: string, childId: string) => {
   const parent = getCardById(parentId)
   if (!parent || parent.blockedBy.includes(childId)) return
   const blockedBy = [...parent.blockedBy, childId]
-  await updateFlashcard(parent._id, parent.front, parent.back, parent.instruction, blockedBy)
+  await updateFlashcard(parent.id, parent.front, parent.back, parent.instruction, blockedBy)
   updateLocalFlashcard({ ...parent, blockedBy })
   showToast('Flashcard attached', 'success')
 }
@@ -143,7 +143,7 @@ const handleDetach = async (payload: { cardId: string; parentId: string | null }
   const parent = getCardById(payload.parentId)
   if (!parent) return
   const blockedBy = parent.blockedBy.filter((id) => id !== payload.cardId)
-  await updateFlashcard(parent._id, parent.front, parent.back, parent.instruction, blockedBy)
+  await updateFlashcard(parent.id, parent.front, parent.back, parent.instruction, blockedBy)
   updateLocalFlashcard({ ...parent, blockedBy })
   showToast('Flashcard detached', 'info')
 }
@@ -157,9 +157,9 @@ const handleOpenCreate = (parentId: string | null) => {
 const handleFlashcardCreated = async (flashcard: FlashCardDoc) => {
   allFlashcards.value = [...allFlashcards.value, flashcard]
   if (createParentId.value) {
-    await attachBlockedBy(createParentId.value, flashcard._id)
+    await attachBlockedBy(createParentId.value, flashcard.id)
   } else {
-    attachRelated(flashcard._id)
+    attachRelated(flashcard.id)
   }
   createParentId.value = null
 }
@@ -189,17 +189,17 @@ const handleDelete = async (id: string) => {
 
   emit('update:modelValue', props.modelValue.filter((relatedId) => relatedId !== id))
 
-  const remaining = allFlashcards.value.filter((card) => card._id !== id)
+  const remaining = allFlashcards.value.filter((card) => card.id !== id)
   const parents = remaining.filter((card) => card.blockedBy.includes(id))
 
   for (const parent of parents) {
     const blockedBy = parent.blockedBy.filter((childId) => childId !== id)
-    await updateFlashcard(parent._id, parent.front, parent.back, parent.instruction, blockedBy)
+    await updateFlashcard(parent.id, parent.front, parent.back, parent.instruction, blockedBy)
     updateLocalFlashcard({ ...parent, blockedBy })
   }
 
   allFlashcards.value = remaining
-  if (viewFlashcard.value?._id === id) {
+  if (viewFlashcard.value?.id === id) {
     showViewModal.value = false
     viewFlashcard.value = null
   }
@@ -250,7 +250,7 @@ const handleDelete = async (id: string) => {
     <div class="flex flex-col gap-2">
       <RelatedFlashcardNode
         v-for="node in relatedNodes"
-        :key="node.card._id"
+        :key="node.card.id"
         :node="node"
         :depth="0"
         @view="handleView"
@@ -303,9 +303,9 @@ const handleDelete = async (id: string) => {
       >
         <button
           v-for="card in searchResults"
-          :key="card._id"
+          :key="card.id"
           class="btn btn-sm btn-ghost justify-start"
-          @click="handleAttachExisting(card._id)"
+          @click="handleAttachExisting(card.id)"
         >
           <span class="truncate">{{ card.front }}</span>
           <span class="text-light truncate">{{ card.back }}</span>

@@ -29,7 +29,7 @@ onMounted(async () => {
 
 const blockedFlashcards = computed(() => {
   return props.modelValue
-    .map((id) => allFlashcards.value.find((f) => f._id === id))
+    .map((id) => allFlashcards.value.find((f) => f.id === id))
     .filter((f): f is FlashCardDoc => f !== undefined)
 })
 
@@ -40,7 +40,7 @@ const searchResults = computed(() => {
   const blocked = new Set(props.modelValue)
 
   return allFlashcards.value
-    .filter((f) => !blocked.has(f._id))
+    .filter((f) => !blocked.has(f.id))
     .filter(
       (f) => f.front.toLowerCase().includes(query) || f.back.toLowerCase().includes(query)
     )
@@ -68,7 +68,7 @@ const handleCreateNew = () => {
 
 const handleFlashcardCreated = (flashcard: FlashCardDoc) => {
   allFlashcards.value = [...allFlashcards.value, flashcard]
-  handleAttach(flashcard._id)
+  handleAttach(flashcard.id)
 }
 </script>
 
@@ -97,7 +97,7 @@ const handleFlashcardCreated = (flashcard: FlashCardDoc) => {
           <tbody>
             <tr
               v-for="card in blockedFlashcards"
-              :key="card._id"
+              :key="card.id"
             >
               <td class="truncate max-w-xs">
                 {{ card.front }}
@@ -108,7 +108,7 @@ const handleFlashcardCreated = (flashcard: FlashCardDoc) => {
               <td>
                 <button
                   class="btn btn-sm btn-ghost"
-                  @click="handleDetach(card._id)"
+                  @click="handleDetach(card.id)"
                 >
                   <Trash2 :size="16" />
                 </button>
@@ -140,9 +140,9 @@ const handleFlashcardCreated = (flashcard: FlashCardDoc) => {
       >
         <button
           v-for="card in searchResults"
-          :key="card._id"
+          :key="card.id"
           class="btn btn-sm btn-ghost justify-start"
-          @click="handleAttach(card._id)"
+          @click="handleAttach(card.id)"
         >
           <span class="truncate">{{ card.front }}</span>
           <span class="text-light truncate">{{ card.back }}</span>

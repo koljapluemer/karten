@@ -73,35 +73,35 @@ const toggleOpen = () => {
             <button
               class="btn btn-sm btn-ghost"
               title="Edit"
-              @click.stop="emit('edit', node.card._id)"
+              @click.stop="emit('edit', node.card.id)"
             >
               <Pencil :size="16" />
             </button>
             <button
               class="btn btn-sm btn-ghost"
               title="Delete"
-              @click.stop="emit('delete', node.card._id)"
+              @click.stop="emit('delete', node.card.id)"
             >
               <Trash2 :size="16" />
             </button>
             <button
               class="btn btn-sm btn-ghost"
               title="Detach"
-              @click.stop="emit('detach', { cardId: node.card._id, parentId: node.parentId })"
+              @click.stop="emit('detach', { cardId: node.card.id, parentId: node.parentId })"
             >
               <Link2Off :size="16" />
             </button>
             <button
               class="btn btn-sm btn-ghost"
               title="Attach existing prerequisite"
-              @click.stop="emit('attach-existing', node.card._id)"
+              @click.stop="emit('attach-existing', node.card.id)"
             >
               <Link2 :size="16" />
             </button>
             <button
               class="btn btn-sm btn-ghost"
               title="Create prerequisite"
-              @click.stop="emit('create-child', node.card._id)"
+              @click.stop="emit('create-child', node.card.id)"
             >
               <Plus :size="16" />
             </button>
@@ -139,7 +139,7 @@ const toggleOpen = () => {
         >
           <RelatedFlashcardNode
             v-for="child in node.children"
-            :key="child.card._id"
+            :key="child.card.id"
             :node="child"
             :depth="depth + 1"
             @view="emit('view', $event)"

@@ -1,5 +1,5 @@
 import { db } from '@/app/storage/db'
-import { loadDocsByPrefix } from '@/app/storage/dbHelpers'
+import type { LearningProgress } from '@/app/storage/db'
 import type { LearningProgressDoc } from './LearningProgress'
 import { fsrs, createEmptyCard, Rating, type Card } from 'ts-fsrs'
 
@@ -8,22 +8,30 @@ const flashcardIdToProgressId = (flashcardId: string): string => {
 }
 
 export const loadLearningProgress = async (): Promise<LearningProgressDoc[]> => {
-  return await loadDocsByPrefix<LearningProgressDoc>('learning-progress:')
+  return await db.learningProgress.toArray()
 }
 
 export const initializeNewCard = async (flashcardId: string): Promise<void> => {
   const now = new Date()
   const progressId = flashcardIdToProgressId(flashcardId)
-
   const initialCard = createEmptyCard(now)
 
-  const progressDoc: LearningProgressDoc = {
-    _id: progressId,
-    docType: 'P',
-    ...initialCard
+  // Ensure plain object (not reactive proxy)
+  const progressEntity: LearningProgress = {
+    id: progressId,
+    due: initialCard.due,
+    stability: initialCard.stability,
+    difficulty: initialCard.difficulty,
+    elapsed_days: initialCard.elapsed_days,
+    scheduled_days: initialCard.scheduled_days,
+    learning_steps: initialCard.learning_steps,
+    reps: initialCard.reps,
+    lapses: initialCard.lapses,
+    state: initialCard.state,
+    last_review: initialCard.last_review
   }
 
-  await db.put(progressDoc)
+  await db.learningProgress.add(progressEntity)
 }
 
 export const updateCardProgress = async (
@@ -33,7 +41,8 @@ export const updateCardProgress = async (
   const now = new Date()
   const progressId = flashcardIdToProgressId(flashcardId)
 
-  const existing = await db.get<LearningProgressDoc>(progressId)
+  const existing = await db.learningProgress.get(progressId)
+  if (!existing) throw new Error(`Progress ${progressId} not found`)
 
   const currentCard: Card = {
     due: existing.due,
@@ -51,7 +60,7 @@ export const updateCardProgress = async (
   const fsrsEngine = fsrs()
   const schedulingCards = fsrsEngine.repeat(currentCard, now)
 
-  let updatedCard
+  let updatedCard: Card
   if (rating === Rating.Again) {
     updatedCard = schedulingCards[Rating.Again].card
   } else if (rating === Rating.Hard) {
@@ -62,12 +71,17 @@ export const updateCardProgress = async (
     updatedCard = schedulingCards[Rating.Easy].card
   }
 
-  const progressDoc: LearningProgressDoc = {
-    _id: progressId,
-    _rev: existing._rev,
-    docType: 'P',
-    ...updatedCard
-  }
-
-  await db.put(progressDoc)
+  // Ensure plain object (not reactive proxy)
+  await db.learningProgress.update(progressId, {
+    due: updatedCard.due,
+    stability: updatedCard.stability,
+    difficulty: updatedCard.difficulty,
+    elapsed_days: updatedCard.elapsed_days,
+    scheduled_days: updatedCard.scheduled_days,
+    learning_steps: updatedCard.learning_steps,
+    reps: updatedCard.reps,
+    lapses: updatedCard.lapses,
+    state: updatedCard.state,
+    last_review: updatedCard.last_review
+  })
 }

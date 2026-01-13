@@ -1,11 +1,11 @@
 import { db } from '@/app/storage/db'
-import { loadDocsByPrefix } from '@/app/storage/dbHelpers'
+import type { FlashCard } from '@/app/storage/db'
 import type { FlashCardDoc } from './Flashcard'
 
 const buildFlashcardId = (): string => `flashcard:${crypto.randomUUID()}`
 
 export const loadFlashcards = async (): Promise<FlashCardDoc[]> => {
-  return await loadDocsByPrefix<FlashCardDoc>('flashcard:')
+  return await db.flashcards.toArray()
 }
 
 export const createFlashcard = async (
@@ -14,17 +14,17 @@ export const createFlashcard = async (
   instruction: string,
   blockedBy: string[] = []
 ): Promise<FlashCardDoc> => {
-  const doc: FlashCardDoc = {
-    _id: buildFlashcardId(),
-    docType: 'F',
+  const id = buildFlashcardId()
+  const card: FlashCard = {
+    id,
     front,
     back,
     instruction,
-    blockedBy
+    blockedBy: [...blockedBy] // Convert to plain array
   }
 
-  const result = await db.put(doc)
-  return { ...doc, _rev: result.rev }
+  await db.flashcards.add(card)
+  return card
 }
 
 export const updateFlashcard = async (
@@ -34,22 +34,20 @@ export const updateFlashcard = async (
   instruction: string,
   blockedBy: string[] = []
 ): Promise<void> => {
-  const current = await db.get<FlashCardDoc>(id)
-  const updated: FlashCardDoc = {
-    ...current,
+  await db.flashcards.update(id, {
     front,
     back,
     instruction,
-    blockedBy
-  }
-  await db.put(updated)
+    blockedBy: [...blockedBy] // Convert to plain array
+  })
 }
 
 export const deleteFlashcard = async (id: string): Promise<void> => {
-  const current = await db.get<FlashCardDoc>(id)
-  await db.put({ ...current, _deleted: true } as FlashCardDoc & { _deleted: boolean })
+  await db.flashcards.delete(id)
 }
 
 export const getFlashcardById = async (id: string): Promise<FlashCardDoc> => {
-  return await db.get<FlashCardDoc>(id)
+  const card = await db.flashcards.get(id)
+  if (!card) throw new Error(`Flashcard ${id} not found`)
+  return card
 }

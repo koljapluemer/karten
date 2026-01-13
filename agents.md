@@ -3,7 +3,7 @@
 - tailwind + Daisy UI. Actually use daisy components. Avoid manual CSS when possible.
 - lucide icons (via the vue package)
 - vue router
-- pouchdb as SINGLE source of truth for data
+- dexie as SINGLE source of truth for data (Dexie Cloud ready)
 
 ## Architecture
 

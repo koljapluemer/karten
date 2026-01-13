@@ -77,7 +77,7 @@ const handleFlashcardUpdated = async () => {
         <tbody>
           <tr
             v-for="item in items"
-            :key="item._id"
+            :key="item.id"
           >
             <td class="truncate max-w-md">
               {{ item.front }}
@@ -95,13 +95,13 @@ const handleFlashcardUpdated = async () => {
                 </button>
                 <button
                   class="btn btn-sm btn-ghost"
-                  @click="handleEdit(item._id)"
+                  @click="handleEdit(item.id)"
                 >
                   <Pencil :size="16" />
                 </button>
                 <button
                   class="btn btn-sm btn-ghost"
-                  @click="handleDelete(item._id)"
+                  @click="handleDelete(item.id)"
                 >
                   <Trash2 :size="16" />
                 </button>

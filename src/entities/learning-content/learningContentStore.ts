@@ -1,32 +1,26 @@
 import { db } from '@/app/storage/db'
-import { loadDocsByPrefix } from '@/app/storage/dbHelpers'
+import type { LearningContent } from '@/app/storage/db'
 import type { LearningContentDoc } from './LearningContent'
 
 const buildLearningContentId = (): string => `learning-content:${crypto.randomUUID()}`
 
-const normalizeLearningContent = (doc: LearningContentDoc): LearningContentDoc => ({
-  ...doc,
-  relatedFlashcards: doc.relatedFlashcards ?? []
-})
-
 export const loadLearningContent = async (): Promise<LearningContentDoc[]> => {
-  const docs = await loadDocsByPrefix<LearningContentDoc>('learning-content:')
-  return docs.map(normalizeLearningContent)
+  return await db.learningContent.toArray()
 }
 
 export const createLearningContent = async (
   content: string,
   relatedFlashcards: string[] = []
 ): Promise<LearningContentDoc> => {
-  const doc: LearningContentDoc = {
-    _id: buildLearningContentId(),
-    docType: 'L',
+  const id = buildLearningContentId()
+  const entity: LearningContent = {
+    id,
     content,
-    relatedFlashcards
+    relatedFlashcards: [...relatedFlashcards] // Convert to plain array
   }
 
-  const result = await db.put(doc)
-  return normalizeLearningContent({ ...doc, _rev: result.rev })
+  await db.learningContent.add(entity)
+  return entity
 }
 
 export const updateLearningContent = async (
@@ -34,21 +28,18 @@ export const updateLearningContent = async (
   content: string,
   relatedFlashcards: string[] = []
 ): Promise<void> => {
-  const current = await db.get<LearningContentDoc>(id)
-  const updated: LearningContentDoc = {
-    ...current,
+  await db.learningContent.update(id, {
     content,
-    relatedFlashcards
-  }
-  await db.put(updated)
+    relatedFlashcards: [...relatedFlashcards] // Convert to plain array
+  })
 }
 
 export const deleteLearningContent = async (id: string): Promise<void> => {
-  const current = await db.get<LearningContentDoc>(id)
-  await db.put({ ...current, _deleted: true } as LearningContentDoc & { _deleted: boolean })
+  await db.learningContent.delete(id)
 }
 
 export const getLearningContentById = async (id: string): Promise<LearningContentDoc> => {
-  const doc = await db.get<LearningContentDoc>(id)
-  return normalizeLearningContent(doc)
+  const content = await db.learningContent.get(id)
+  if (!content) throw new Error(`Learning content ${id} not found`)
+  return content
 }

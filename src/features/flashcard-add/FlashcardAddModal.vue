@@ -22,7 +22,7 @@ const createdId = ref<string | null>(null)
 const handleBlur = async () => {
   if (!createdId.value) {
     const flashcard = await createFlashcard(front.value, back.value, instruction.value, blockedBy.value)
-    createdId.value = flashcard._id
+    createdId.value = flashcard.id
   } else {
     await updateFlashcard(createdId.value, front.value, back.value, instruction.value, blockedBy.value)
   }

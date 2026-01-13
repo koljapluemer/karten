@@ -12,7 +12,7 @@ const createdId = ref<string | null>(null)
 const handleBlur = async () => {
   if (!createdId.value) {
     const item = await createLearningContent(content.value, relatedFlashcards.value)
-    createdId.value = item._id
+    createdId.value = item.id
   } else {
     await updateLearningContent(createdId.value, content.value, relatedFlashcards.value)
   }

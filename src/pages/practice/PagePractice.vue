@@ -19,7 +19,7 @@ const previousCardId = ref<string | null>(null)
 const isLoading = ref(true)
 
 const isCurrentCardNew = computed(() =>
-  currentCard.value ? !progressMap.value.has(currentCard.value._id) : false
+  currentCard.value ? !progressMap.value.has(currentCard.value.id) : false
 )
 
 async function loadData() {
@@ -32,7 +32,7 @@ async function loadData() {
 
   const map = new Map<string, LearningProgressDoc>()
   progressDocs.forEach((p) => {
-    const flashcardId = p._id.replace('learning-progress:', 'flashcard:')
+    const flashcardId = p.id.replace('learning-progress:', 'flashcard:')
     map.set(flashcardId, p)
   })
   progressMap.value = map
@@ -57,14 +57,14 @@ function selectNextCard(): FlashCardDoc | null {
   if (eligible.length === 0) return null
 
   // Exclude previous card to prevent repeats
-  const eligibleExcludingPrevious = eligible.filter((c) => c._id !== previousCardId.value)
+  const eligibleExcludingPrevious = eligible.filter((c) => c.id !== previousCardId.value)
 
   // If all eligible cards were filtered out (only 1 eligible card which is previous), use eligible
   const pool = eligibleExcludingPrevious.length > 0 ? eligibleExcludingPrevious : eligible
 
-  const unseen = pool.filter((c) => !progressMap.value.has(c._id))
+  const unseen = pool.filter((c) => !progressMap.value.has(c.id))
   const due = pool.filter((c) => {
-    const progress = progressMap.value.get(c._id)
+    const progress = progressMap.value.get(c.id)
     return progress && new Date(progress.due) <= new Date()
   })
 
@@ -85,7 +85,7 @@ function selectNextCard(): FlashCardDoc | null {
 async function handleNewCardComplete() {
   if (!currentCard.value) return
 
-  const completedCardId = currentCard.value._id
+  const completedCardId = currentCard.value.id
   await initializeNewCard(completedCardId)
   await loadData()
   previousCardId.value = completedCardId
@@ -95,7 +95,7 @@ async function handleNewCardComplete() {
 async function handleKnownCardComplete(rating: Rating) {
   if (!currentCard.value) return
 
-  const completedCardId = currentCard.value._id
+  const completedCardId = currentCard.value.id
   await updateCardProgress(completedCardId, rating)
   await loadData()
   previousCardId.value = completedCardId

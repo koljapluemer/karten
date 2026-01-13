@@ -1,7 +1,1 @@
-export type LearningContentDoc = {
-  _id: string
-  _rev?: string
-  docType: 'L'
-  content: string
-  relatedFlashcards: string[]
-}
+export type { LearningContent as LearningContentDoc } from '@/app/storage/db'
