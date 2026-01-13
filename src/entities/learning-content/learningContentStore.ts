@@ -13,6 +13,7 @@ export const createLearningContent = async (
   relatedFlashcards: string[] = []
 ): Promise<LearningContentDoc> => {
   const id = buildLearningContentId()
+
   const entity: LearningContent = {
     id,
     content,

@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import dexieCloud from 'dexie-cloud-addon'
 import type { Card } from 'ts-fsrs'
 
 export interface FlashCard {
@@ -7,8 +8,8 @@ export interface FlashCard {
   front: string
   back: string
   blockedBy: string[]
-  owner?: string // Cloud-ready
-  realmId?: string // Cloud-ready
+  owner?: string
+  realmId?: string
 }
 
 export interface LearningContent {
@@ -31,7 +32,7 @@ class KartenDatabase extends Dexie {
   learningProgress!: EntityTable<LearningProgress, 'id'>
 
   constructor() {
-    super('karten')
+    super('karten', { addons: [dexieCloud] })
 
     this.version(1).stores({
       flashcards: 'id, *blockedBy, owner, realmId',
@@ -42,3 +43,8 @@ class KartenDatabase extends Dexie {
 }
 
 export const db = new KartenDatabase()
+
+db.cloud.configure({
+  databaseUrl: import.meta.env.VITE_DEXIE_CLOUD_URL || 'https://xxxxx.dexie.cloud',
+  requireAuth: false
+})

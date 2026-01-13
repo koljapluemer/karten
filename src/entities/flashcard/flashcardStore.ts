@@ -15,6 +15,7 @@ export const createFlashcard = async (
   blockedBy: string[] = []
 ): Promise<FlashCardDoc> => {
   const id = buildFlashcardId()
+
   const card: FlashCard = {
     id,
     front,
