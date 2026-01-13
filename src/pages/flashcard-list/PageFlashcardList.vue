@@ -3,29 +3,15 @@ import { ref, onMounted } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
-import FlashcardAddModal from '@/features/flashcard-add/FlashcardAddModal.vue'
-import FlashcardEditModal from '@/features/flashcard-edit/FlashcardEditModal.vue'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 
 const items = ref<FlashCardDoc[]>([])
 const viewModalCard = ref<FlashCardDoc | null>(null)
 const showViewModal = ref(false)
-const showAddModal = ref(false)
-const showEditModal = ref(false)
-const editFlashcardId = ref<string | null>(null)
 
 onMounted(async () => {
   items.value = await loadFlashcards()
 })
-
-const handleAdd = () => {
-  showAddModal.value = true
-}
-
-const handleEdit = (id: string) => {
-  editFlashcardId.value = id
-  showEditModal.value = true
-}
 
 const handleView = (card: FlashCardDoc) => {
   viewModalCard.value = card
@@ -41,14 +27,6 @@ const handleDelete = async (id: string) => {
 const closeViewModal = () => {
   showViewModal.value = false
 }
-
-const handleFlashcardCreated = async () => {
-  items.value = await loadFlashcards()
-}
-
-const handleFlashcardUpdated = async () => {
-  items.value = await loadFlashcards()
-}
 </script>
 
 <template>
@@ -57,13 +35,13 @@ const handleFlashcardUpdated = async () => {
       Flashcards
     </h1>
 
-    <button
+    <router-link
+      to="/flashcards/add"
       class="btn btn-primary mb-4"
-      @click="handleAdd"
     >
       <Plus :size="20" />
       Add Flashcard
-    </button>
+    </router-link>
 
     <div class="overflow-x-auto">
       <table class="table">
@@ -93,12 +71,12 @@ const handleFlashcardUpdated = async () => {
                 >
                   <Eye :size="16" />
                 </button>
-                <button
+                <router-link
+                  :to="`/flashcards/${item.id}/edit`"
                   class="btn btn-sm btn-ghost"
-                  @click="handleEdit(item.id)"
                 >
                   <Pencil :size="16" />
-                </button>
+                </router-link>
                 <button
                   class="btn btn-sm btn-ghost"
                   @click="handleDelete(item.id)"
@@ -134,18 +112,5 @@ const handleFlashcardUpdated = async () => {
         </div>
       </div>
     </dialog>
-
-    <FlashcardAddModal
-      :open="showAddModal"
-      @close="showAddModal = false"
-      @created="handleFlashcardCreated"
-    />
-
-    <FlashcardEditModal
-      :open="showEditModal"
-      :flashcard-id="editFlashcardId"
-      @close="showEditModal = false"
-      @updated="handleFlashcardUpdated"
-    />
   </div>
 </template>

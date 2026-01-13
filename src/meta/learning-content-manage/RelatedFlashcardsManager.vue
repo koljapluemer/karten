@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Link2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import { showToast } from '@/app/toast/toastStore'
-import FlashcardAddModal from '@/features/flashcard-add/FlashcardAddModal.vue'
-import FlashcardEditModal from '@/features/flashcard-edit/FlashcardEditModal.vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import RelatedFlashcardNode from './RelatedFlashcardNode.vue'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 import type { FlashcardNode } from './relatedFlashcardsTypes'
+
+const router = useRouter()
+const route = useRoute()
 
 const props = defineProps<{
   modelValue: string[]
@@ -22,10 +24,6 @@ const allFlashcards = ref<FlashCardDoc[]>([])
 const attachOpen = ref(false)
 const attachParentId = ref<string | null>(null)
 const searchQuery = ref('')
-const showAddModal = ref(false)
-const createParentId = ref<string | null>(null)
-const showEditModal = ref(false)
-const editFlashcardId = ref<string | null>(null)
 const showViewModal = ref(false)
 const viewFlashcard = ref<FlashCardDoc | null>(null)
 
@@ -149,24 +147,14 @@ const handleDetach = async (payload: { cardId: string; parentId: string | null }
 }
 
 const handleOpenCreate = (parentId: string | null) => {
-  createParentId.value = parentId
-  showAddModal.value = true
   closeAttachPanel()
-}
-
-const handleFlashcardCreated = async (flashcard: FlashCardDoc) => {
-  allFlashcards.value = [...allFlashcards.value, flashcard]
-  if (createParentId.value) {
-    await attachBlockedBy(createParentId.value, flashcard.id)
-  } else {
-    attachRelated(flashcard.id)
-  }
-  createParentId.value = null
-}
-
-const handleCloseAddModal = () => {
-  showAddModal.value = false
-  createParentId.value = null
+  router.push({
+    path: '/flashcards/add',
+    query: {
+      returnTo: route.fullPath,
+      context: parentId ? 'prerequisite-creation' : 'related-creation'
+    }
+  })
 }
 
 const handleView = (card: FlashCardDoc) => {
@@ -175,12 +163,12 @@ const handleView = (card: FlashCardDoc) => {
 }
 
 const handleEdit = (id: string) => {
-  editFlashcardId.value = id
-  showEditModal.value = true
-}
-
-const handleFlashcardUpdated = (flashcard: FlashCardDoc) => {
-  updateLocalFlashcard(flashcard)
+  router.push({
+    path: `/flashcards/${id}/edit`,
+    query: {
+      returnTo: route.fullPath
+    }
+  })
 }
 
 const handleDelete = async (id: string) => {
@@ -202,10 +190,6 @@ const handleDelete = async (id: string) => {
   if (viewFlashcard.value?.id === id) {
     showViewModal.value = false
     viewFlashcard.value = null
-  }
-  if (editFlashcardId.value === id) {
-    showEditModal.value = false
-    editFlashcardId.value = null
   }
   showToast('Flashcard deleted', 'info')
 }
@@ -320,20 +304,6 @@ const handleDelete = async (id: string) => {
         Create New Flashcard
       </button>
     </div>
-
-    <FlashcardAddModal
-      v-if="showAddModal"
-      :open="showAddModal"
-      @close="handleCloseAddModal"
-      @created="handleFlashcardCreated"
-    />
-
-    <FlashcardEditModal
-      :open="showEditModal"
-      :flashcard-id="editFlashcardId"
-      @close="showEditModal = false"
-      @updated="handleFlashcardUpdated"
-    />
 
     <dialog
       :open="showViewModal"

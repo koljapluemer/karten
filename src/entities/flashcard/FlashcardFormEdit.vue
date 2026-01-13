@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BlockedByManager from './BlockedByManager.vue'
-import { getInstructionHistory } from '@/features/flashcard-add/instructionHistory'
+import { getInstructionHistory } from './instructionHistory'
 
 const props = defineProps<{
   front: string

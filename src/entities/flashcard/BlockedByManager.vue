@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, defineAsyncComponent } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { showToast } from '@/app/toast/toastStore'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 
-const FlashcardAddModal = defineAsyncComponent(() =>
-  import('@/features/flashcard-add/FlashcardAddModal.vue')
-)
+const router = useRouter()
+const route = useRoute()
 
 const props = defineProps<{
   modelValue: string[]
@@ -19,7 +19,6 @@ const emit = defineEmits<{
 
 const allFlashcards = ref<FlashCardDoc[]>([])
 const searchQuery = ref('')
-const showAddModal = ref(false)
 
 onMounted(async () => {
   console.log('BlockedByManager mounted, loading flashcards')
@@ -63,12 +62,13 @@ const handleAttach = (id: string) => {
 }
 
 const handleCreateNew = () => {
-  showAddModal.value = true
-}
-
-const handleFlashcardCreated = (flashcard: FlashCardDoc) => {
-  allFlashcards.value = [...allFlashcards.value, flashcard]
-  handleAttach(flashcard.id)
+  router.push({
+    path: '/flashcards/add',
+    query: {
+      returnTo: route.fullPath,
+      context: 'prerequisite-creation'
+    }
+  })
 }
 </script>
 
@@ -157,12 +157,5 @@ const handleFlashcardCreated = (flashcard: FlashCardDoc) => {
         Create New Flashcard
       </button>
     </div>
-
-    <FlashcardAddModal
-      v-if="showAddModal"
-      :open="showAddModal"
-      @close="showAddModal = false"
-      @created="handleFlashcardCreated"
-    />
   </div>
 </template>

@@ -12,14 +12,12 @@ import type { LearningProgressDoc } from '@/entities/learning-progress/LearningP
 import type { Rating } from 'ts-fsrs'
 import PracticeMemorizeFlow from './PracticeMemorizeFlow.vue'
 import PracticeRevealFlow from './PracticeRevealFlow.vue'
-import FlashcardEditModal from '@/features/flashcard-edit/FlashcardEditModal.vue'
 
 const flashcards = ref<FlashCardDoc[]>([])
 const progressMap = ref<Map<string, LearningProgressDoc>>(new Map())
 const currentCard = ref<FlashCardDoc | null>(null)
 const previousCardId = ref<string | null>(null)
 const isLoading = ref(true)
-const showEditModal = ref(false)
 
 const isCurrentCardNew = computed(() =>
   currentCard.value ? !progressMap.value.has(currentCard.value.id) : false
@@ -105,14 +103,6 @@ async function handleKnownCardComplete(rating: Rating) {
   currentCard.value = selectNextCard()
 }
 
-function handleEdit() {
-  showEditModal.value = true
-}
-
-async function handleFlashcardUpdated() {
-  await loadData()
-}
-
 onMounted(async () => {
   await loadData()
   currentCard.value = selectNextCard()
@@ -126,12 +116,12 @@ onMounted(async () => {
       v-if="currentCard"
       class="flex justify-end mb-4"
     >
-      <button
+      <router-link
+        :to="`/flashcards/${currentCard.id}/edit?returnTo=/practice`"
         class="btn btn-ghost btn-sm"
-        @click="handleEdit"
       >
         <Pencil :size="16" />
-      </button>
+      </router-link>
     </div>
 
     <div v-if="isLoading">
@@ -152,13 +142,6 @@ onMounted(async () => {
       v-else
       :card="currentCard"
       @complete="handleKnownCardComplete"
-    />
-
-    <FlashcardEditModal
-      :open="showEditModal"
-      :flashcard-id="currentCard?.id ?? null"
-      @close="showEditModal = false"
-      @updated="handleFlashcardUpdated"
     />
   </div>
 </template>

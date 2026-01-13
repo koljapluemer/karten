@@ -3,8 +3,11 @@ import PageLearningContentList from '@/pages/learning-content-list/PageLearningC
 import PageLearningContentAdd from '@/pages/learning-content-add/PageLearningContentAdd.vue'
 import PageLearningContentEdit from '@/pages/learning-content-edit/PageLearningContentEdit.vue'
 import PageFlashcardList from '@/pages/flashcard-list/PageFlashcardList.vue'
+import PageFlashcardAdd from '@/pages/flashcard-add/PageFlashcardAdd.vue'
+import PageFlashcardEdit from '@/pages/flashcard-edit/PageFlashcardEdit.vue'
 import PagePractice from '@/pages/practice/PagePractice.vue'
 import PageSettings from '@/pages/settings/PageSettings.vue'
+import { pushNavigationHistory } from './navigation/navigationStore'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -34,6 +37,16 @@ const router = createRouter({
       component: PageFlashcardList
     },
     {
+      path: '/flashcards/add',
+      name: 'flashcard-add',
+      component: PageFlashcardAdd
+    },
+    {
+      path: '/flashcards/:id/edit',
+      name: 'flashcard-edit',
+      component: PageFlashcardEdit
+    },
+    {
       path: '/practice',
       name: 'practice',
       component: PagePractice
@@ -44,6 +57,10 @@ const router = createRouter({
       component: PageSettings
     }
   ]
+})
+
+router.afterEach((to) => {
+  pushNavigationHistory(to.fullPath)
 })
 
 export default router
