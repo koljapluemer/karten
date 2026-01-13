@@ -148,12 +148,16 @@ const handleDetach = async (payload: { cardId: string; parentId: string | null }
 
 const handleOpenCreate = (parentId: string | null) => {
   closeAttachPanel()
+  const query: Record<string, string> = {
+    returnTo: route.fullPath,
+    context: parentId ? 'prerequisite-creation' : 'related-creation'
+  }
+  if (parentId) {
+    query.attachToParentId = parentId
+  }
   router.push({
     path: '/flashcards/add',
-    query: {
-      returnTo: route.fullPath,
-      context: parentId ? 'prerequisite-creation' : 'related-creation'
-    }
+    query
   })
 }
 

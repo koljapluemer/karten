@@ -19,7 +19,7 @@ const handleSave = async () => {
     return
   }
 
-  await createFlashcard(front.value, back.value, instruction.value, [])
+  const flashcard = await createFlashcard(front.value, back.value, instruction.value, [])
 
   if (instruction.value.trim()) {
     addInstructionToHistory(instruction.value)
@@ -28,7 +28,23 @@ const handleSave = async () => {
   showToast('Flashcard created', 'success')
 
   const returnTo = route.query.returnTo as string || '/flashcards'
-  router.push(returnTo)
+
+  // Append createdId to returnTo URL if navigation came from a context that needs it
+  const context = route.query.context as string
+  if (context && flashcard.id) {
+    const url = new URL(returnTo, window.location.origin)
+    url.searchParams.set('createdId', flashcard.id)
+
+    // Pass through attachToParentId if it was provided (for prerequisite creation)
+    const attachToParentId = route.query.attachToParentId as string
+    if (attachToParentId) {
+      url.searchParams.set('attachToParentId', attachToParentId)
+    }
+
+    router.push(url.pathname + url.search)
+  } else {
+    router.push(returnTo)
+  }
 }
 
 const handleCancel = () => {

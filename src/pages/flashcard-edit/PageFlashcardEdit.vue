@@ -5,6 +5,7 @@ import FlashcardFormEdit from '@/entities/flashcard/FlashcardFormEdit.vue'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { db } from '@/app/storage/db'
 import type { LearningProgress } from '@/app/storage/db'
+import { showToast } from '@/app/toast/toastStore'
 
 const router = useRouter()
 const route = useRoute()
@@ -48,6 +49,19 @@ onMounted(async () => {
 
     const progressId = id.replace('flashcard:', 'learning-progress:')
     learningProgress.value = await db.learningProgress.get(progressId) || null
+
+    // Handle auto-attach of newly created prerequisite flashcard
+    const createdId = route.query.createdId as string
+    if (createdId && !blockedBy.value.includes(createdId)) {
+      blockedBy.value = [...blockedBy.value, createdId]
+      await updateFlashcard(id, front.value, back.value, instruction.value, blockedBy.value)
+      showToast('Prerequisite flashcard attached', 'success')
+
+      // Clean URL by removing createdId param
+      const cleanUrl = new URL(route.fullPath, window.location.origin)
+      cleanUrl.searchParams.delete('createdId')
+      router.replace(cleanUrl.pathname + cleanUrl.search)
+    }
   } catch {
     notFound.value = true
   }
