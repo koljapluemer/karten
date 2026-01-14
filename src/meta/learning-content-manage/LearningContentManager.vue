@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import RelatedFlashcardsManager from './RelatedFlashcardsManager.vue'
+import GradualClozeDeletionWizard from './GradualClozeDeletionWizard.vue'
+import { showToast } from '@/app/toast/toastStore'
 
 const props = defineProps<{
   content: string
@@ -22,6 +24,20 @@ const relatedFlashcardsValue = computed({
   get: () => props.relatedFlashcards ?? [],
   set: (value: string[]) => emit('update:related-flashcards', value)
 })
+
+const wizardOpen = ref(false)
+
+const openWizard = () => {
+  wizardOpen.value = true
+}
+
+const handleWizardComplete = (lastCardId: string) => {
+  if (!relatedFlashcardsValue.value.includes(lastCardId)) {
+    relatedFlashcardsValue.value = [...relatedFlashcardsValue.value, lastCardId]
+  }
+  emit('blur')
+  showToast('Gradual cloze deletion created', 'success')
+}
 </script>
 
 <template>
@@ -41,6 +57,24 @@ const relatedFlashcardsValue = computed({
       />
     </fieldset>
 
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="font-bold">
+        Related Flashcards
+      </h3>
+      <button
+        class="btn btn-sm"
+        @click="openWizard"
+      >
+        Establish gradual cloze deletion
+      </button>
+    </div>
+
     <RelatedFlashcardsManager v-model="relatedFlashcardsValue" />
+
+    <GradualClozeDeletionWizard
+      v-model:open="wizardOpen"
+      :initial-content="contentValue"
+      @complete="handleWizardComplete"
+    />
   </div>
 </template>
