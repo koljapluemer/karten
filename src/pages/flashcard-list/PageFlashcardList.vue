@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
-import { loadFlashcards, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
+import { loadFlashcards, deleteFlashcard, createFlashcard } from '@/entities/flashcard/flashcardStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
+import JsonlUploadButton from './JsonlUploadButton.vue'
+import { parseFlashcardsFromJsonl } from './importHelpers'
 
 const items = ref<FlashCardDoc[]>([])
 const viewModalCard = ref<FlashCardDoc | null>(null)
 const showViewModal = ref(false)
+const uploading = ref(false)
 
 onMounted(async () => {
   items.value = await loadFlashcards()
@@ -27,6 +30,19 @@ const handleDelete = async (id: string) => {
 const closeViewModal = () => {
   showViewModal.value = false
 }
+
+const handleJsonlUpload = async (file: File) => {
+  uploading.value = true
+  try {
+    const parsed = await parseFlashcardsFromJsonl(file)
+    for (const item of parsed) {
+      await createFlashcard(item.front, item.back, item.instruction)
+    }
+    items.value = await loadFlashcards()
+  } finally {
+    uploading.value = false
+  }
+}
 </script>
 
 <template>
@@ -35,13 +51,19 @@ const closeViewModal = () => {
       Flashcards
     </h1>
 
-    <router-link
-      to="/flashcards/add"
-      class="btn btn-primary mb-4"
-    >
-      <Plus :size="20" />
-      Add Flashcard
-    </router-link>
+    <div class="flex gap-2 mb-4">
+      <router-link
+        to="/flashcards/add"
+        class="btn btn-primary"
+      >
+        <Plus :size="20" />
+        Add Flashcard
+      </router-link>
+      <JsonlUploadButton
+        :loading="uploading"
+        @file="handleJsonlUpload"
+      />
+    </div>
 
     <div class="overflow-x-auto">
       <table class="table">

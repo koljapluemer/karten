@@ -15,22 +15,34 @@ onMounted(() => {
     <nav class="navbar bg-base-200">
       <div class="flex-1">
         <div class="flex gap-1">
-          <RouterLink to="/practice" class="btn btn-ghost">
+          <RouterLink
+            to="/practice"
+            class="btn btn-ghost"
+          >
             <Play :size="20" />
             <span class="hidden sm:inline">Practice</span>
           </RouterLink>
-          <RouterLink to="/learning-content" class="btn btn-ghost">
+          <RouterLink
+            to="/learning-content"
+            class="btn btn-ghost"
+          >
             <BookOpen :size="20" />
             <span class="hidden sm:inline">Learning Content</span>
           </RouterLink>
-          <RouterLink to="/flashcards" class="btn btn-ghost">
+          <RouterLink
+            to="/flashcards"
+            class="btn btn-ghost"
+          >
             <Layers :size="20" />
             <span class="hidden sm:inline">Flashcards</span>
           </RouterLink>
         </div>
       </div>
       <div class="flex-none">
-        <RouterLink to="/settings" class="btn btn-ghost">
+        <RouterLink
+          to="/settings"
+          class="btn btn-ghost"
+        >
           <Settings :size="20" />
           <span class="hidden sm:inline">Settings</span>
         </RouterLink>
