@@ -65,7 +65,7 @@ const notDueCount = computed(() => {
 const dailyFlips = computed<ChartDataPoint[]>(() => {
   const today = startOfDay(new Date())
   const counts = new Map<string, number>(
-    reviewCounts.value.map(item => [item.date, item.count])
+    reviewCounts.value.map((item: ReviewCountDoc) => [item.date, item.count])
   )
 
   const days: ChartDataPoint[] = []

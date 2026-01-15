@@ -26,10 +26,19 @@ export interface LearningProgress extends Card {
   realmId?: string
 }
 
+export interface ReviewCount {
+  id: string
+  date: string
+  count: number
+  owner?: string
+  realmId?: string
+}
+
 class KartenDatabase extends Dexie {
-  flashcards!: EntityTable<FlashCard, 'id'>
-  learningContent!: EntityTable<LearningContent, 'id'>
-  learningProgress!: EntityTable<LearningProgress, 'id'>
+  declare flashcards: EntityTable<FlashCard, 'id'>
+  declare learningContent: EntityTable<LearningContent, 'id'>
+  declare learningProgress: EntityTable<LearningProgress, 'id'>
+  declare reviewCounts: EntityTable<ReviewCount, 'id'>
 
   constructor() {
     super('karten', { addons: [dexieCloud] })
@@ -38,6 +47,13 @@ class KartenDatabase extends Dexie {
       flashcards: 'id, *blockedBy, owner, realmId',
       learningContent: 'id, *relatedFlashcards, owner, realmId',
       learningProgress: 'id, due, owner, realmId'
+    })
+
+    this.version(2).stores({
+      flashcards: 'id, *blockedBy, owner, realmId',
+      learningContent: 'id, *relatedFlashcards, owner, realmId',
+      learningProgress: 'id, due, owner, realmId',
+      reviewCounts: 'id, date, owner, realmId'
     })
   }
 }
