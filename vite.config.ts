@@ -10,49 +10,29 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicons/favicon.ico', 'favicons/apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Karten',
         short_name: 'Karten',
         description: 'Flashcard app with spaced repetition',
-        theme_color: '#4f46e5',
-        background_color: '#ffffff',
+        theme_color: '#7a29e9',
+        background_color: '#210b3f',
         display: 'standalone',
         scope: '/',
         start_url: '/',
         icons: [
           {
-            src: 'pwa/android/android-launchericon-48-48.png',
-            sizes: '48x48',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa/android/android-launchericon-72-72.png',
-            sizes: '72x72',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa/android/android-launchericon-96-96.png',
-            sizes: '96x96',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa/android/android-launchericon-144-144.png',
-            sizes: '144x144',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa/android/android-launchericon-192-192.png',
+            src: 'android-chrome-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa/android/android-launchericon-512-512.png',
+            src: 'android-chrome-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'pwa/android/android-launchericon-512-512.png',
+            src: 'android-chrome-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
