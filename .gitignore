@@ -31,3 +31,4 @@ dexie-cloud.key
 *.sw?
 
 .vscode
+dev-dist
