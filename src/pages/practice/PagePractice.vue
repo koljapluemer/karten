@@ -7,6 +7,7 @@ import {
   initializeNewCard,
   updateCardProgress
 } from '@/entities/learning-progress/LearningProgressStore'
+import { incrementReviewCountForToday } from '@/entities/review-count/reviewCountStore'
 import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
 import type { LearningProgressDoc } from '@/entities/learning-progress/LearningProgress'
 import type { Rating } from 'ts-fsrs'
@@ -71,13 +72,18 @@ function selectNextCard(): FlashCardDoc | null {
 
   const preferUnseen = Math.random() < 0.1
 
+  const pickRandom = (items: FlashCardDoc[]): FlashCardDoc | null => {
+    if (items.length === 0) return null
+    return items[Math.floor(Math.random() * items.length)] ?? null
+  }
+
   let nextCard: FlashCardDoc | null = null
   if (preferUnseen && unseen.length > 0) {
-    nextCard = unseen[Math.floor(Math.random() * unseen.length)]!
+    nextCard = pickRandom(unseen)
   } else if (due.length > 0) {
-    nextCard = due[Math.floor(Math.random() * due.length)]!
+    nextCard = pickRandom(due)
   } else if (unseen.length > 0) {
-    nextCard = unseen[Math.floor(Math.random() * unseen.length)]!
+    nextCard = pickRandom(unseen)
   }
 
   return nextCard
@@ -88,6 +94,7 @@ async function handleNewCardComplete() {
 
   const completedCardId = currentCard.value.id
   await initializeNewCard(completedCardId)
+  await incrementReviewCountForToday()
   await loadData()
   previousCardId.value = completedCardId
   currentCard.value = selectNextCard()
@@ -98,6 +105,7 @@ async function handleKnownCardComplete(rating: Rating) {
 
   const completedCardId = currentCard.value.id
   await updateCardProgress(completedCardId, rating)
+  await incrementReviewCountForToday()
   await loadData()
   previousCardId.value = completedCardId
   currentCard.value = selectNextCard()

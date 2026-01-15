@@ -6,6 +6,7 @@ import PageFlashcardList from '@/pages/flashcard-list/PageFlashcardList.vue'
 import PageFlashcardAdd from '@/pages/flashcard-add/PageFlashcardAdd.vue'
 import PageFlashcardEdit from '@/pages/flashcard-edit/PageFlashcardEdit.vue'
 import PagePractice from '@/pages/practice/PagePractice.vue'
+import PageStats from '@/pages/stats/StatsPage.vue'
 import PageSettings from '@/pages/settings/PageSettings.vue'
 import { pushNavigationHistory } from './navigation/navigationStore'
 
@@ -50,6 +51,11 @@ const router = createRouter({
       path: '/practice',
       name: 'practice',
       component: PagePractice
+    },
+    {
+      path: '/stats',
+      name: 'stats',
+      component: PageStats
     },
     {
       path: '/settings',
