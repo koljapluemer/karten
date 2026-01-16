@@ -5,11 +5,12 @@ import { showToast } from '@/app/toast/toastStore'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
 import { generateFlashcards } from '@/features/ai-flashcard-generate/openAIService'
 import type { GeneratedCard, InstructionMode } from '@/features/ai-flashcard-generate/types'
+import type { FlashCard } from '@/db/Flashcard'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 
 const props = defineProps<{
   open: boolean
-  content: string
+  card: FlashCard
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +20,7 @@ const emit = defineEmits<{
 
 const step = ref<'prompt' | 'results'>('prompt')
 const prompt = ref('')
-const cardCount = ref(5)
+const cardCount = ref(3)
 const instructionMode = ref<InstructionMode>('fixed')
 const fixedInstruction = ref('Recall')
 const isLoading = ref(false)
@@ -28,31 +29,29 @@ const results = ref<GeneratedCard[]>([])
 const selected = ref<Set<number>>(new Set())
 
 const buildPrompt = () => {
+  const cardInfo = `- Front: ${props.card.front}
+- Back: ${props.card.back}
+- Instruction: ${props.card.instruction}`
+
   if (instructionMode.value === 'fixed') {
-    return `Based on the following learning content, generate ${cardCount.value} flashcards.
-Each flashcard should have:
+    return `The following flashcard was difficult for me. Generate ${cardCount.value} flashcards covering prerequisite knowledge that would help me understand and remember this content better.
+
+Flashcard:
+${cardInfo}
+
+Generate exactly ${cardCount.value} flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
 - front: a question or prompt
-- back: the answer
-
-Learning Content:
----
-${props.content}
----
-
-Generate exactly ${cardCount.value} flashcards that test understanding of key concepts.`
+- back: the answer`
   } else {
-    return `Based on the following learning content, generate ${cardCount.value} flashcards.
-Each flashcard should have:
+    return `The following flashcard was difficult for me. Generate ${cardCount.value} flashcards covering prerequisite knowledge that would help me understand and remember this content better.
+
+Flashcard:
+${cardInfo}
+
+Generate exactly ${cardCount.value} flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
 - front: a question or prompt
 - back: the answer
-- instruction: a brief instruction for the learner (e.g., "Recall", "Explain", "Define", "Compare")
-
-Learning Content:
----
-${props.content}
----
-
-Generate exactly ${cardCount.value} flashcards that test understanding of key concepts.`
+- instruction: a brief instruction for the learner (e.g., "Recall", "Explain", "Define", "Compare")`
   }
 }
 
@@ -80,7 +79,7 @@ watch(
 )
 
 watch(
-  [() => props.content, cardCount, instructionMode],
+  [() => props.card, cardCount, instructionMode],
   () => {
     if (props.open && step.value === 'prompt') {
       prompt.value = buildPrompt()
@@ -147,7 +146,6 @@ const handleAccept = async () => {
       )
       cardIds.push(created.id)
     }
-    showToast(`Created ${cardIds.length} flashcards`, 'success')
     emit('accept', cardIds)
   } catch (err) {
     showToast('Failed to create flashcards', 'error')
@@ -167,7 +165,7 @@ const handleClose = () => {
   >
     <div class="modal-box max-w-4xl">
       <h3 class="text-lg font-semibold mb-4">
-        AI Generate Flashcards
+        Generate Previous Knowledge Flashcards
       </h3>
 
       <div
@@ -266,8 +264,8 @@ const handleClose = () => {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-2">
           <div
-            v-for="(card, index) in results"
-            :key="`${card.front}-${index}`"
+            v-for="(generatedCard, index) in results"
+            :key="`${generatedCard.front}-${index}`"
             class="relative"
           >
             <input
@@ -278,9 +276,9 @@ const handleClose = () => {
             >
             <div class="scale-90 origin-top-left pointer-events-none">
               <FlashcardRenderer
-                :front="card.front"
-                :back="card.back"
-                :instruction="getCardInstruction(card)"
+                :front="generatedCard.front"
+                :back="generatedCard.back"
+                :instruction="getCardInstruction(generatedCard)"
                 :show-back="true"
               />
             </div>
