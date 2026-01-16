@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { showToast } from '@/app/toast/toastStore'
-import type { FlashCardDoc } from '@/db/Flashcard'
+import type { FlashCard } from '@/db/Flashcard'
 
 const router = useRouter()
 const route = useRoute()
@@ -17,7 +17,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string[]]
 }>()
 
-const allFlashcards = ref<FlashCardDoc[]>([])
+const allFlashcards = ref<FlashCard[]>([])
 const searchQuery = ref('')
 
 onMounted(async () => {
@@ -29,7 +29,7 @@ onMounted(async () => {
 const blockedFlashcards = computed(() => {
   return props.modelValue
     .map((id) => allFlashcards.value.find((f) => f.id === id))
-    .filter((f): f is FlashCardDoc => f !== undefined)
+    .filter((f): f is FlashCard => f !== undefined)
 })
 
 const searchResults = computed(() => {

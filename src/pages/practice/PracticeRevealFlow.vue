@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
-import type { FlashCardDoc } from '@/db/Flashcard'
+import type { FlashCard } from '@/db/Flashcard'
 import { Rating } from 'ts-fsrs'
 
 const props = defineProps<{
-  card: FlashCardDoc
+  card: FlashCard
 }>()
 
 const emit = defineEmits<{

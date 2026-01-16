@@ -1,7 +1,7 @@
-import type { FlashCardDoc } from '@/db/Flashcard'
+import type { FlashCard } from '@/db/Flashcard'
 
 export type FlashcardNode = {
-  card: FlashCardDoc
+  card: FlashCard
   children: FlashcardNode[]
   parentId: string | null
   repeated: boolean

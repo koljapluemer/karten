@@ -1,10 +1,9 @@
 import { db } from '@/db/db'
-import type { FlashCard } from '@/db/db'
-import type { FlashCardDoc } from '../../db/Flashcard'
+import type { FlashCard } from '@/db/Flashcard'
 
 const buildFlashcardId = (): string => `flashcard:${crypto.randomUUID()}`
 
-export const loadFlashcards = async (): Promise<FlashCardDoc[]> => {
+export const loadFlashcards = async (): Promise<FlashCard[]> => {
   return await db.flashcards.toArray()
 }
 
@@ -13,7 +12,7 @@ export const createFlashcard = async (
   back: string,
   instruction: string,
   blockedBy: string[] = []
-): Promise<FlashCardDoc> => {
+): Promise<FlashCard> => {
   const id = buildFlashcardId()
 
   const card: FlashCard = {
@@ -47,7 +46,7 @@ export const deleteFlashcard = async (id: string): Promise<void> => {
   await db.flashcards.delete(id)
 }
 
-export const getFlashcardById = async (id: string): Promise<FlashCardDoc> => {
+export const getFlashcardById = async (id: string): Promise<FlashCard> => {
   const card = await db.flashcards.get(id)
   if (!card) throw new Error(`Flashcard ${id} not found`)
   return card

@@ -3,12 +3,12 @@ import { ref, onMounted } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard } from '@/entities/flashcard/flashcardStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
-import type { FlashCardDoc } from '@/db/Flashcard'
+import type { FlashCard } from '@/db/Flashcard'
 import JsonlUploadButton from './JsonlUploadButton.vue'
 import { parseFlashcardsFromJsonl } from './importHelpers'
 
-const items = ref<FlashCardDoc[]>([])
-const viewModalCard = ref<FlashCardDoc | null>(null)
+const items = ref<FlashCard[]>([])
+const viewModalCard = ref<FlashCard | null>(null)
 const showViewModal = ref(false)
 const uploading = ref(false)
 
@@ -16,7 +16,7 @@ onMounted(async () => {
   items.value = await loadFlashcards()
 })
 
-const handleView = (card: FlashCardDoc) => {
+const handleView = (card: FlashCard) => {
   viewModalCard.value = card
   showViewModal.value = true
 }

@@ -6,10 +6,10 @@ import { loadLearningContent, deleteLearningContent, createLearningContent } fro
 import LearningContentRenderer from '@/entities/learning-content/LearningContentRenderer.vue'
 import ZipUploadButton from './ZipUploadButton.vue'
 import { parseLearningContentFromZip } from './importHelpers'
-import type { LearningContentDoc } from '@/db/LearningContent'
+import type { LearningContent } from '@/db/LearningContent'
 
 const router = useRouter()
-const items = ref<LearningContentDoc[]>([])
+const items = ref<LearningContent[]>([])
 const viewModalContent = ref<string>('')
 const showViewModal = ref(false)
 const uploading = ref(false)

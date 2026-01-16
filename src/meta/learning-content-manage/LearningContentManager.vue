@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import RelatedFlashcardsManager from './RelatedFlashcardsManager.vue'
 import GradualClozeDeletionWizard from './GradualClozeDeletionWizard.vue'
+import AIFlashcardGeneratorModal from './AIFlashcardGeneratorModal.vue'
 import { showToast } from '@/app/toast/toastStore'
+import { getOpenAIKey } from '@/app/storage/openAIKey'
 
 const props = defineProps<{
   content: string
@@ -15,6 +18,8 @@ const emit = defineEmits<{
   blur: []
 }>()
 
+const router = useRouter()
+
 const contentValue = computed({
   get: () => props.content,
   set: (value: string) => emit('update:content', value)
@@ -26,9 +31,32 @@ const relatedFlashcardsValue = computed({
 })
 
 const wizardOpen = ref(false)
+const aiModalOpen = ref(false)
 
 const openWizard = () => {
   wizardOpen.value = true
+}
+
+const openAIModal = () => {
+  const apiKey = getOpenAIKey()
+  if (!apiKey) {
+    showToast('Please set OpenAI API key in settings', 'error')
+    router.push('/settings')
+    return
+  }
+  aiModalOpen.value = true
+}
+
+const handleAIModalAccept = (cardIds: string[]) => {
+  const newRelated = [...relatedFlashcardsValue.value]
+  for (const id of cardIds) {
+    if (!newRelated.includes(id)) {
+      newRelated.push(id)
+    }
+  }
+  relatedFlashcardsValue.value = newRelated
+  aiModalOpen.value = false
+  emit('blur')
 }
 
 const handleWizardComplete = (lastCardId: string) => {
@@ -61,12 +89,20 @@ const handleWizardComplete = (lastCardId: string) => {
       <h3 class="font-bold">
         Related Flashcards
       </h3>
-      <button
-        class="btn btn-sm"
-        @click="openWizard"
-      >
-        Establish gradual cloze deletion
-      </button>
+      <div class="flex gap-2">
+        <button
+          class="btn btn-sm"
+          @click="openAIModal"
+        >
+          AI Generate Flashcards
+        </button>
+        <button
+          class="btn btn-sm"
+          @click="openWizard"
+        >
+          Establish gradual cloze deletion
+        </button>
+      </div>
     </div>
 
     <RelatedFlashcardsManager v-model="relatedFlashcardsValue" />
@@ -75,6 +111,13 @@ const handleWizardComplete = (lastCardId: string) => {
       v-model:open="wizardOpen"
       :initial-content="contentValue"
       @complete="handleWizardComplete"
+    />
+
+    <AIFlashcardGeneratorModal
+      :open="aiModalOpen"
+      :content="contentValue"
+      @close="aiModalOpen = false"
+      @accept="handleAIModalAccept"
     />
   </div>
 </template>

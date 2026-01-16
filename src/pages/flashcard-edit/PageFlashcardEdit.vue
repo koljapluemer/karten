@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import FlashcardFormEdit from '@/entities/flashcard/FlashcardFormEdit.vue'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { db } from '@/db/db'
-import type { LearningProgress } from '@/db/db'
+import type { LearningProgress } from '@/db/LearningProgress'
 import { showToast } from '@/app/toast/toastStore'
 
 const router = useRouter()

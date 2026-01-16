@@ -6,18 +6,18 @@ import StreakVisualization from './StreakVisualization.vue'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import { loadReviewCounts } from '@/entities/review-count/reviewCountStore'
-import type { FlashCardDoc } from '@/db/Flashcard'
-import type { LearningProgressDoc } from '@/db/LearningProgress'
-import type { ReviewCountDoc } from '@/db/ReviewCount'
+import type { FlashCard } from '@/db/Flashcard'
+import type { LearningProgress } from '@/db/LearningProgress'
+import type { ReviewCount } from '@/db/ReviewCount'
 
 type ChartDataPoint = {
   date: string
   count: number
 }
 
-const flashcards = ref<FlashCardDoc[]>([])
-const progress = ref<LearningProgressDoc[]>([])
-const reviewCounts = ref<ReviewCountDoc[]>([])
+const flashcards = ref<FlashCard[]>([])
+const progress = ref<LearningProgress[]>([])
+const reviewCounts = ref<ReviewCount[]>([])
 const isLoading = ref(true)
 
 const progressIdToFlashcardId = (progressId: string): string =>
@@ -65,7 +65,7 @@ const notDueCount = computed(() => {
 const dailyFlips = computed<ChartDataPoint[]>(() => {
   const today = startOfDay(new Date())
   const counts = new Map<string, number>(
-    reviewCounts.value.map((item: ReviewCountDoc) => [item.date, item.count])
+    reviewCounts.value.map((item: ReviewCount) => [item.date, item.count])
   )
 
   const days: ChartDataPoint[] = []

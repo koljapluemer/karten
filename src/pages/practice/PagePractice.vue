@@ -8,15 +8,15 @@ import {
   updateCardProgress
 } from '@/entities/learning-progress/LearningProgressStore'
 import { incrementReviewCountForToday } from '@/entities/review-count/reviewCountStore'
-import type { FlashCardDoc } from '@/db/Flashcard'
-import type { LearningProgressDoc } from '@/db/LearningProgress'
+import type { FlashCard } from '@/db/Flashcard'
+import type { LearningProgress } from '@/db/LearningProgress'
 import type { Rating } from 'ts-fsrs'
 import PracticeMemorizeFlow from './PracticeMemorizeFlow.vue'
 import PracticeRevealFlow from './PracticeRevealFlow.vue'
 
-const flashcards = ref<FlashCardDoc[]>([])
-const progressMap = ref<Map<string, LearningProgressDoc>>(new Map())
-const currentCard = ref<FlashCardDoc | null>(null)
+const flashcards = ref<FlashCard[]>([])
+const progressMap = ref<Map<string, LearningProgress>>(new Map())
+const currentCard = ref<FlashCard | null>(null)
 const previousCardId = ref<string | null>(null)
 const isLoading = ref(true)
 
@@ -32,7 +32,7 @@ async function loadData() {
 
   flashcards.value = cards
 
-  const map = new Map<string, LearningProgressDoc>()
+  const map = new Map<string, LearningProgress>()
   progressDocs.forEach((p) => {
     const flashcardId = p.id.replace('learning-progress:', 'flashcard:')
     map.set(flashcardId, p)
@@ -40,7 +40,7 @@ async function loadData() {
   progressMap.value = map
 }
 
-function isCardEligible(card: FlashCardDoc): boolean {
+function isCardEligible(card: FlashCard): boolean {
   for (const blockedId of card.blockedBy) {
     const blockedProgress = progressMap.value.get(blockedId)
 
@@ -53,7 +53,7 @@ function isCardEligible(card: FlashCardDoc): boolean {
   return true
 }
 
-function selectNextCard(): FlashCardDoc | null {
+function selectNextCard(): FlashCard | null {
   const eligible = flashcards.value.filter(isCardEligible)
 
   if (eligible.length === 0) return null
@@ -72,12 +72,12 @@ function selectNextCard(): FlashCardDoc | null {
 
   const preferUnseen = Math.random() < 0.1
 
-  const pickRandom = (items: FlashCardDoc[]): FlashCardDoc | null => {
+  const pickRandom = (items: FlashCard[]): FlashCard | null => {
     if (items.length === 0) return null
     return items[Math.floor(Math.random() * items.length)] ?? null
   }
 
-  let nextCard: FlashCardDoc | null = null
+  let nextCard: FlashCard | null = null
   if (preferUnseen && unseen.length > 0) {
     nextCard = pickRandom(unseen)
   } else if (due.length > 0) {

@@ -1,17 +1,16 @@
 import { db } from '@/db/db'
-import type { LearningContent } from '@/db/db'
-import type { LearningContentDoc } from '../../db/LearningContent'
+import type { LearningContent } from '@/db/LearningContent'
 
 const buildLearningContentId = (): string => `learning-content:${crypto.randomUUID()}`
 
-export const loadLearningContent = async (): Promise<LearningContentDoc[]> => {
+export const loadLearningContent = async (): Promise<LearningContent[]> => {
   return await db.learningContent.toArray()
 }
 
 export const createLearningContent = async (
   content: string,
   relatedFlashcards: string[] = []
-): Promise<LearningContentDoc> => {
+): Promise<LearningContent> => {
   const id = buildLearningContentId()
 
   const entity: LearningContent = {
@@ -39,7 +38,7 @@ export const deleteLearningContent = async (id: string): Promise<void> => {
   await db.learningContent.delete(id)
 }
 
-export const getLearningContentById = async (id: string): Promise<LearningContentDoc> => {
+export const getLearningContentById = async (id: string): Promise<LearningContent> => {
   const content = await db.learningContent.get(id)
   if (!content) throw new Error(`Learning content ${id} not found`)
   return content

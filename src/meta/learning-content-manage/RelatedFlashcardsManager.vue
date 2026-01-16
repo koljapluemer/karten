@@ -6,7 +6,7 @@ import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/fla
 import { showToast } from '@/app/toast/toastStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import RelatedFlashcardNode from './RelatedFlashcardNode.vue'
-import type { FlashCardDoc } from '@/db/Flashcard'
+import type { FlashCard } from '@/db/Flashcard'
 import type { FlashcardNode } from './relatedFlashcardsTypes'
 
 const router = useRouter()
@@ -20,18 +20,18 @@ const emit = defineEmits<{
   'update:modelValue': [value: string[]]
 }>()
 
-const allFlashcards = ref<FlashCardDoc[]>([])
+const allFlashcards = ref<FlashCard[]>([])
 const attachOpen = ref(false)
 const attachParentId = ref<string | null>(null)
 const searchQuery = ref('')
 const showViewModal = ref(false)
-const viewFlashcard = ref<FlashCardDoc | null>(null)
+const viewFlashcard = ref<FlashCard | null>(null)
 
 onMounted(async () => {
   allFlashcards.value = await loadFlashcards()
 })
 
-const getCardById = (id: string): FlashCardDoc | undefined =>
+const getCardById = (id: string): FlashCard | undefined =>
   allFlashcards.value.find((card) => card.id === id)
 
 const buildTree = (
@@ -102,7 +102,7 @@ const closeAttachPanel = () => {
   searchQuery.value = ''
 }
 
-const updateLocalFlashcard = (updated: FlashCardDoc) => {
+const updateLocalFlashcard = (updated: FlashCard) => {
   allFlashcards.value = allFlashcards.value.map((card) =>
     card.id === updated.id ? updated : card
   )
@@ -161,7 +161,7 @@ const handleOpenCreate = (parentId: string | null) => {
   })
 }
 
-const handleView = (card: FlashCardDoc) => {
+const handleView = (card: FlashCard) => {
   viewFlashcard.value = card
   showViewModal.value = true
 }
