@@ -1,6 +1,6 @@
-import { db } from '@/app/storage/db'
-import type { LearningContent } from '@/app/storage/db'
-import type { LearningContentDoc } from './LearningContent'
+import { db } from '@/db/db'
+import type { LearningContent } from '@/db/db'
+import type { LearningContentDoc } from '../../db/LearningContent'
 
 const buildLearningContentId = (): string => `learning-content:${crypto.randomUUID()}`
 

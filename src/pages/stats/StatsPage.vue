@@ -6,9 +6,9 @@ import StreakVisualization from './StreakVisualization.vue'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import { loadReviewCounts } from '@/entities/review-count/reviewCountStore'
-import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
-import type { LearningProgressDoc } from '@/entities/learning-progress/LearningProgress'
-import type { ReviewCountDoc } from '@/entities/review-count/ReviewCount'
+import type { FlashCardDoc } from '@/db/Flashcard'
+import type { LearningProgressDoc } from '@/db/LearningProgress'
+import type { ReviewCountDoc } from '@/db/ReviewCount'
 
 type ChartDataPoint = {
   date: string

@@ -8,8 +8,8 @@ import {
   updateCardProgress
 } from '@/entities/learning-progress/LearningProgressStore'
 import { incrementReviewCountForToday } from '@/entities/review-count/reviewCountStore'
-import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
-import type { LearningProgressDoc } from '@/entities/learning-progress/LearningProgress'
+import type { FlashCardDoc } from '@/db/Flashcard'
+import type { LearningProgressDoc } from '@/db/LearningProgress'
 import type { Rating } from 'ts-fsrs'
 import PracticeMemorizeFlow from './PracticeMemorizeFlow.vue'
 import PracticeRevealFlow from './PracticeRevealFlow.vue'

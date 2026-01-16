@@ -6,7 +6,7 @@ import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/fla
 import { showToast } from '@/app/toast/toastStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import RelatedFlashcardNode from './RelatedFlashcardNode.vue'
-import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
+import type { FlashCardDoc } from '@/db/Flashcard'
 import type { FlashcardNode } from './relatedFlashcardsTypes'
 
 const router = useRouter()

@@ -1,4 +1,4 @@
-import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
+import type { FlashCardDoc } from '@/db/Flashcard'
 
 export type FlashcardNode = {
   card: FlashCardDoc

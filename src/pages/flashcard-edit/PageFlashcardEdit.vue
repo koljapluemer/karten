@@ -3,8 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FlashcardFormEdit from '@/entities/flashcard/FlashcardFormEdit.vue'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
-import { db } from '@/app/storage/db'
-import type { LearningProgress } from '@/app/storage/db'
+import { db } from '@/db/db'
+import type { LearningProgress } from '@/db/db'
 import { showToast } from '@/app/toast/toastStore'
 
 const router = useRouter()

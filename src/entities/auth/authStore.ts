@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { db } from '@/app/storage/db'
+import { db } from '@/db/db'
 import type { User } from './User'
 
 const currentUser = ref<User | null>(null)

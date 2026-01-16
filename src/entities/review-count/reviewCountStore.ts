@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
-import { db } from '@/app/storage/db'
-import type { ReviewCount } from '@/app/storage/db'
-import type { ReviewCountDoc } from './ReviewCount'
+import { db } from '@/db/db'
+import type { ReviewCount } from '@/db/db'
+import type { ReviewCountDoc } from '../../db/ReviewCount'
 
 const buildReviewCountId = (dateKey: string): string => `review-count:${dateKey}`
 

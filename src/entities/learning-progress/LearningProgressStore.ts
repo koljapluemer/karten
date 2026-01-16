@@ -1,6 +1,6 @@
-import { db } from '@/app/storage/db'
-import type { LearningProgress } from '@/app/storage/db'
-import type { LearningProgressDoc } from './LearningProgress'
+import { db } from '@/db/db'
+import type { LearningProgress } from '@/db/db'
+import type { LearningProgressDoc } from '../../db/LearningProgress'
 import { fsrs, createEmptyCard, Rating, type Card } from 'ts-fsrs'
 
 const flashcardIdToProgressId = (flashcardId: string): string => {

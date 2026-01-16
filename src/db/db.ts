@@ -1,38 +1,15 @@
 import Dexie, { type EntityTable } from 'dexie'
 import dexieCloud from 'dexie-cloud-addon'
-import type { Card } from 'ts-fsrs'
+import type { FlashCard } from './Flashcard'
+import type { LearningContent } from './LearningContent'
+import type { LearningProgress } from './LearningProgress'
+import type { ReviewCount } from './ReviewCount'
 
-export interface FlashCard {
-  id: string
-  instruction: string
-  front: string
-  back: string
-  blockedBy: string[]
-  owner?: string
-  realmId?: string
-}
 
-export interface LearningContent {
-  id: string
-  content: string
-  relatedFlashcards: string[]
-  owner?: string
-  realmId?: string
-}
 
-export interface LearningProgress extends Card {
-  id: string
-  owner?: string
-  realmId?: string
-}
 
-export interface ReviewCount {
-  id: string
-  date: string
-  count: number
-  owner?: string
-  realmId?: string
-}
+
+
 
 class KartenDatabase extends Dexie {
   declare flashcards: EntityTable<FlashCard, 'id'>

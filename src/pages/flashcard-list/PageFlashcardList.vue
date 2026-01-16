@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard } from '@/entities/flashcard/flashcardStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
-import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
+import type { FlashCardDoc } from '@/db/Flashcard'
 import JsonlUploadButton from './JsonlUploadButton.vue'
 import { parseFlashcardsFromJsonl } from './importHelpers'
 

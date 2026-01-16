@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { showToast } from '@/app/toast/toastStore'
-import type { FlashCardDoc } from '@/entities/flashcard/Flashcard'
+import type { FlashCardDoc } from '@/db/Flashcard'
 
 const router = useRouter()
 const route = useRoute()

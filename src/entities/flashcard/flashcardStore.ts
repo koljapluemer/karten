@@ -1,6 +1,6 @@
-import { db } from '@/app/storage/db'
-import type { FlashCard } from '@/app/storage/db'
-import type { FlashCardDoc } from './Flashcard'
+import { db } from '@/db/db'
+import type { FlashCard } from '@/db/db'
+import type { FlashCardDoc } from '../../db/Flashcard'
 
 const buildFlashcardId = (): string => `flashcard:${crypto.randomUUID()}`
 
