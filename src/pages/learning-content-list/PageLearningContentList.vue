@@ -9,6 +9,7 @@ import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.v
 import ZipUploadButton from './ZipUploadButton.vue'
 import { parseLearningContentFromZip } from './importHelpers'
 import { showToast } from '@/app/toast/toastStore'
+import { pickRandom } from '@/dumb/random'
 import type { LearningContent } from '@/db/LearningContent'
 import type { Tag } from '@/db/Tag'
 
@@ -104,12 +105,12 @@ const handleOpenRandom = () => {
     (item) => !item.relatedFlashcards || item.relatedFlashcards.length === 0
   )
 
-  if (withoutFlashcards.length === 0) {
+  const random = pickRandom(withoutFlashcards)
+  if (!random) {
     showToast('No learning content without flashcards found', 'info')
     return
   }
 
-  const random = withoutFlashcards[Math.floor(Math.random() * withoutFlashcards.length)]
   router.push(`/learning-content/${random.id}/edit`)
 }
 </script>

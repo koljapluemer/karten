@@ -3,6 +3,7 @@ import { Shuffle, Trash2 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { loadLearningContent, deleteLearningContent } from '@/entities/learning-content/learningContentStore'
 import { showToast } from '@/app/toast/toastStore'
+import { pickRandom } from '@/dumb/random'
 
 const router = useRouter()
 
@@ -27,12 +28,12 @@ const handleOpenRandom = async () => {
     (item) => item.id !== props.currentId && (!item.relatedFlashcards || item.relatedFlashcards.length === 0)
   )
 
-  if (withoutFlashcards.length === 0) {
+  const random = pickRandom(withoutFlashcards)
+  if (!random) {
     showToast('No learning content without flashcards found', 'info')
     return
   }
 
-  const random = withoutFlashcards[Math.floor(Math.random() * withoutFlashcards.length)]
   router.push(`/learning-content/${random.id}/edit`)
 }
 </script>
