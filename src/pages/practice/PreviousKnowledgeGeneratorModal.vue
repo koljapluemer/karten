@@ -20,7 +20,6 @@ const emit = defineEmits<{
 
 const step = ref<'prompt' | 'results'>('prompt')
 const prompt = ref('')
-const cardCount = ref(3)
 const instructionMode = ref<InstructionMode>('fixed')
 const fixedInstruction = ref('Recall')
 const isLoading = ref(false)
@@ -34,21 +33,21 @@ const buildPrompt = () => {
 - Instruction: ${props.card.instruction}`
 
   if (instructionMode.value === 'fixed') {
-    return `The following flashcard was difficult for me. Generate ${cardCount.value} flashcards covering prerequisite knowledge that would help me understand and remember this content better.
+    return `The following flashcard was difficult for me. Generate 3 flashcards covering prerequisite knowledge that would help me understand and remember this content better.
 
 Flashcard:
 ${cardInfo}
 
-Generate exactly ${cardCount.value} flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
+Generate exactly 3 flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
 - front: a question or prompt
 - back: the answer`
   } else {
-    return `The following flashcard was difficult for me. Generate ${cardCount.value} flashcards covering prerequisite knowledge that would help me understand and remember this content better.
+    return `The following flashcard was difficult for me. Generate 3 flashcards covering prerequisite knowledge that would help me understand and remember this content better.
 
 Flashcard:
 ${cardInfo}
 
-Generate exactly ${cardCount.value} flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
+Generate exactly 3 flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
 - front: a question or prompt
 - back: the answer
 - instruction: a brief instruction for the learner (e.g., "Recall", "Explain", "Define", "Compare")`
@@ -79,7 +78,7 @@ watch(
 )
 
 watch(
-  [() => props.card, cardCount, instructionMode],
+  [() => props.card, instructionMode],
   () => {
     if (props.open && step.value === 'prompt') {
       prompt.value = buildPrompt()
@@ -172,19 +171,6 @@ const handleClose = () => {
         v-if="step === 'prompt'"
         class="space-y-4"
       >
-        <fieldset class="fieldset">
-          <label class="label">
-            <span class="label-text">Number of flashcards</span>
-          </label>
-          <input
-            v-model.number="cardCount"
-            type="number"
-            class="input input-bordered w-24"
-            min="1"
-            max="20"
-          >
-        </fieldset>
-
         <fieldset class="fieldset">
           <label class="label">
             <span class="label-text">Instruction mode</span>

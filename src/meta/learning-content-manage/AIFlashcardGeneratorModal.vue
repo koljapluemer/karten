@@ -19,7 +19,6 @@ const emit = defineEmits<{
 
 const step = ref<'prompt' | 'results'>('prompt')
 const prompt = ref('')
-const cardCount = ref(5)
 const instructionMode = ref<InstructionMode>('fixed')
 const fixedInstruction = ref('Recall')
 const isLoading = ref(false)
@@ -29,7 +28,7 @@ const selected = ref<Set<number>>(new Set())
 
 const buildPrompt = () => {
   if (instructionMode.value === 'fixed') {
-    return `Based on the following learning content, generate ${cardCount.value} flashcards.
+    return `Based on the following learning content, generate 5 flashcards.
 Each flashcard should have:
 - front: a question or prompt
 - back: the answer
@@ -39,9 +38,9 @@ Learning Content:
 ${props.content}
 ---
 
-Generate exactly ${cardCount.value} flashcards that test understanding of key concepts.`
+Generate exactly 5 flashcards that test understanding of key concepts.`
   } else {
-    return `Based on the following learning content, generate ${cardCount.value} flashcards.
+    return `Based on the following learning content, generate 5 flashcards.
 Each flashcard should have:
 - front: a question or prompt
 - back: the answer
@@ -52,7 +51,7 @@ Learning Content:
 ${props.content}
 ---
 
-Generate exactly ${cardCount.value} flashcards that test understanding of key concepts.`
+Generate exactly 5 flashcards that test understanding of key concepts.`
   }
 }
 
@@ -80,7 +79,7 @@ watch(
 )
 
 watch(
-  [() => props.content, cardCount, instructionMode],
+  [() => props.content, instructionMode],
   () => {
     if (props.open && step.value === 'prompt') {
       prompt.value = buildPrompt()
@@ -174,19 +173,6 @@ const handleClose = () => {
         v-if="step === 'prompt'"
         class="space-y-4"
       >
-        <fieldset class="fieldset">
-          <label class="label">
-            <span class="label-text">Number of flashcards</span>
-          </label>
-          <input
-            v-model.number="cardCount"
-            type="number"
-            class="input input-bordered w-24"
-            min="1"
-            max="20"
-          >
-        </fieldset>
-
         <fieldset class="fieldset">
           <label class="label">
             <span class="label-text">Instruction mode</span>
