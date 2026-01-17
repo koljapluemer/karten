@@ -193,7 +193,7 @@ onMounted(async () => {
         :to="`/flashcards/${currentCard.id}/edit?returnTo=/practice`"
         class="btn btn-ghost btn-sm"
       >
-        <Pencil :size="16" />
+        <Pencil  />
       </router-link>
     </div>
 

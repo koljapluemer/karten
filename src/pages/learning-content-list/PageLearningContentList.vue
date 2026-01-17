@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
+import { Eye, Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
 import { loadTags } from '@/entities/tag/tagStore'
 import LearningContentRenderer from '@/entities/learning-content/LearningContentRenderer.vue'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import ZipUploadButton from './ZipUploadButton.vue'
 import { parseLearningContentFromZip } from './importHelpers'
+import { showToast } from '@/app/toast/toastStore'
 import type { LearningContent } from '@/db/LearningContent'
 import type { Tag } from '@/db/Tag'
 
@@ -97,6 +98,20 @@ const handleZipUpload = async (file: File) => {
     uploading.value = false
   }
 }
+
+const handleOpenRandom = () => {
+  const withoutFlashcards = items.value.filter(
+    (item) => !item.relatedFlashcards || item.relatedFlashcards.length === 0
+  )
+
+  if (withoutFlashcards.length === 0) {
+    showToast('No learning content without flashcards found', 'info')
+    return
+  }
+
+  const random = withoutFlashcards[Math.floor(Math.random() * withoutFlashcards.length)]
+  router.push(`/learning-content/${random.id}/edit`)
+}
 </script>
 
 <template>
@@ -151,16 +166,20 @@ const handleZipUpload = async (file: File) => {
 
     <div class="flex gap-2 mb-4">
       <button
-        class="btn btn-primary"
+        class="btn btn-primary btn-sm"
         @click="handleAdd"
       >
-        <Plus :size="20" />
+        <Plus  />
         Add Learning Content
       </button>
       <ZipUploadButton
         :loading="uploading"
         @file="handleZipUpload"
       />
+      <button class="btn btn-sm" @click="handleOpenRandom">
+        <Shuffle  />
+        Random without flashcards
+      </button>
     </div>
 
     <div class="overflow-x-auto">
@@ -185,19 +204,19 @@ const handleZipUpload = async (file: File) => {
                   class="btn btn-sm btn-ghost"
                   @click="handleView(item.content)"
                 >
-                  <Eye :size="16" />
+                  <Eye  />
                 </button>
                 <button
                   class="btn btn-sm btn-ghost"
                   @click="handleEdit(item.id)"
                 >
-                  <Pencil :size="16" />
+                  <Pencil  />
                 </button>
                 <button
                   class="btn btn-sm btn-ghost"
                   @click="handleDelete(item.id)"
                 >
-                  <Trash2 :size="16" />
+                  <Trash2  />
                 </button>
               </div>
             </td>

@@ -39,11 +39,11 @@ const openFilePicker = () => {
       @change="handleFileChange"
     >
     <button
-      class="btn btn-outline btn-sm"
+      class="btn btn-sm"
       :disabled="loading"
       @click="openFilePicker"
     >
-      <Upload :size="16" />
+      <Upload  />
       {{ label || 'Upload ZIP' }}
     </button>
   </div>

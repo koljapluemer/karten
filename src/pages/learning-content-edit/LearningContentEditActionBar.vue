@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Shuffle } from 'lucide-vue-next'
+import { Shuffle, Trash2 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { loadLearningContent } from '@/entities/learning-content/learningContentStore'
+import { loadLearningContent, deleteLearningContent } from '@/entities/learning-content/learningContentStore'
 import { showToast } from '@/app/toast/toastStore'
 
 const router = useRouter()
@@ -11,6 +11,13 @@ const props = defineProps<{
 }>()
 
 const handleClose = () => {
+  router.push('/learning-content')
+}
+
+const handleDelete = async () => {
+  if (!confirm('Delete this learning content?')) return
+  await deleteLearningContent(props.currentId)
+  showToast('Learning content deleted', 'info')
   router.push('/learning-content')
 }
 
@@ -36,8 +43,12 @@ const handleOpenRandom = async () => {
       Close
     </button>
     <button class="btn" @click="handleOpenRandom">
-      <Shuffle :size="16" />
+      <Shuffle  />
       Random without flashcards
+    </button>
+    <button class="btn" @click="handleDelete">
+      <Trash2  />
+      Delete
     </button>
   </div>
 </template>

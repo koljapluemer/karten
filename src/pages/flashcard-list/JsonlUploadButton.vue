@@ -43,7 +43,7 @@ const openFilePicker = () => {
       :disabled="loading"
       @click="openFilePicker"
     >
-      <Upload :size="16" />
+      <Upload  />
       {{ label || 'Upload JSONL' }}
     </button>
   </div>

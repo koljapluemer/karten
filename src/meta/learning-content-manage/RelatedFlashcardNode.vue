@@ -47,35 +47,35 @@ const depthClass = computed(() => {
           title="Edit"
           @click="emit('edit', node.card.id)"
         >
-          <Pencil :size="16" />
+          <Pencil  />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Delete"
           @click="emit('delete', node.card.id)"
         >
-          <Trash2 :size="16" />
+          <Trash2  />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Detach"
           @click="emit('detach', { cardId: node.card.id, parentId: node.parentId })"
         >
-          <Link2Off :size="16" />
+          <Link2Off  />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Attach existing prerequisite"
           @click="emit('attach-existing', node.card.id)"
         >
-          <Link2 :size="16" />
+          <Link2  />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Create prerequisite"
           @click="emit('create-child', node.card.id)"
         >
-          <Plus :size="16" />
+          <Plus  />
         </button>
       </div>
     </div>

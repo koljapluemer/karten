@@ -287,10 +287,10 @@ const handleWizardComplete = (lastCardId: string) => {
 
 
           <button class="btn btn-sm" title="Attach existing" @click="openAttachPanel(null)">
-            <Link2 :size="16" /> Link
+            <Link2  /> Link
           </button>
           <button class="btn btn-sm" title="Create new" @click="handleOpenCreate(null)">
-            <Plus :size="16" />
+            <Plus  />
             Add New
           </button>
         </div>
@@ -335,7 +335,7 @@ const handleWizardComplete = (lastCardId: string) => {
           </div>
 
           <button class="btn btn-sm mt-4" @click="handleOpenCreate(attachParentId)">
-            <Plus :size="16" />
+            <Plus  />
             Create New Flashcard
           </button>
         </div>
