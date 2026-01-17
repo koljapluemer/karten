@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import LearningContentManager from '@/meta/learning-content-manage/LearningContentManager.vue'
+import LearningContentEditActionBar from './LearningContentEditActionBar.vue'
 import { getLearningContentById, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
@@ -16,8 +17,8 @@ const tags = ref<string[]>([])
 const allTags = ref<Tag[]>([])
 const notFound = ref(false)
 
-onMounted(async () => {
-  const id = route.params.id as string
+const loadContent = async (id: string) => {
+  notFound.value = false
   try {
     allTags.value = await loadTags()
     const item = await getLearningContentById(id)
@@ -54,7 +55,13 @@ onMounted(async () => {
   } catch {
     notFound.value = true
   }
-})
+}
+
+watch(
+  () => route.params.id as string,
+  (id) => loadContent(id),
+  { immediate: true }
+)
 
 const handleBlur = async () => {
   const id = route.params.id as string
@@ -67,10 +74,6 @@ const handleCreateTag = async (tagContent: string) => {
   tags.value = [...tags.value, tag.id]
   await handleBlur()
 }
-
-const handleClose = () => {
-  router.push('/learning-content')
-}
 </script>
 
 <template>
@@ -81,15 +84,12 @@ const handleClose = () => {
 
     <div v-if="notFound">
       <p>Learning content not found.</p>
-      <button
-        class="btn mt-4"
-        @click="handleClose"
-      >
-        Back to List
-      </button>
+      <LearningContentEditActionBar :current-id="($route.params.id as string)" class="mt-4" />
     </div>
 
-    <div v-else>
+    <div v-else class="flex flex-col gap-4">
+      <LearningContentEditActionBar :current-id="($route.params.id as string)" />
+
       <LearningContentManager
         v-model:content="content"
         v-model:related-flashcards="relatedFlashcards"
@@ -99,14 +99,7 @@ const handleClose = () => {
         @create-tag="handleCreateTag"
       />
 
-      <div class="flex gap-2 mt-4">
-        <button
-          class="btn"
-          @click="handleClose"
-        >
-          Close
-        </button>
-      </div>
+      <LearningContentEditActionBar :current-id="($route.params.id as string)" />
     </div>
   </div>
 </template>
