@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getInstructionHistory } from './instructionHistory'
+import TagInput from '@/dumb/TagInput.vue'
+import type { Tag } from '@/db/Tag'
 
 const props = defineProps<{
   front: string
   back: string
   instruction: string
+  tags: string[]
+  allTags: Tag[]
 }>()
 
 const emit = defineEmits<{
   'update:front': [value: string]
   'update:back': [value: string]
   'update:instruction': [value: string]
+  'update:tags': [value: string[]]
+  'create-tag': [content: string]
 }>()
 
 const frontValue = computed({
@@ -42,6 +48,11 @@ const filteredHistory = computed(() => {
 const selectInstruction = (instruction: string) => {
   instructionValue.value = instruction
 }
+
+const tagsValue = computed({
+  get: () => props.tags ?? [],
+  set: (value: string[]) => emit('update:tags', value)
+})
 </script>
 
 <template>
@@ -99,6 +110,15 @@ const selectInstruction = (instruction: string) => {
         name="back"
         class="textarea"
         rows="6"
+      />
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <label class="label">Tags</label>
+      <TagInput
+        v-model="tagsValue"
+        :all-tags="allTags"
+        @create-tag="(content) => emit('create-tag', content)"
       />
     </fieldset>
   </div>

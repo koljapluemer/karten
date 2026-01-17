@@ -3,13 +3,19 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
+import { loadTags } from '@/entities/tag/tagStore'
 import LearningContentRenderer from '@/entities/learning-content/LearningContentRenderer.vue'
+import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import ZipUploadButton from './ZipUploadButton.vue'
 import { parseLearningContentFromZip } from './importHelpers'
 import type { LearningContent } from '@/db/LearningContent'
+import type { Tag } from '@/db/Tag'
 
 const router = useRouter()
 const items = ref<LearningContent[]>([])
+const allTags = ref<Tag[]>([])
+const filterTags = ref<string[]>([])
+const filterMode = ref<TagFilterMode>('any')
 const viewModalContent = ref<string>('')
 const showViewModal = ref(false)
 const uploading = ref(false)
@@ -18,6 +24,7 @@ const searchQuery = ref('')
 
 onMounted(async () => {
   items.value = await loadLearningContent()
+  allTags.value = await loadTags()
 })
 
 const filteredItems = computed(() => {
@@ -28,6 +35,20 @@ const filteredItems = computed(() => {
     result = result.filter(item => item.relatedFlashcards && item.relatedFlashcards.length > 0)
   } else if (flashcardFilter.value === 'without') {
     result = result.filter(item => !item.relatedFlashcards || item.relatedFlashcards.length === 0)
+  }
+
+  // Filter by tags
+  if (filterTags.value.length > 0) {
+    result = result.filter(item => {
+      const itemTags = item.tags ?? []
+      if (filterMode.value === 'any') {
+        return filterTags.value.some(tagId => itemTags.includes(tagId))
+      } else if (filterMode.value === 'all') {
+        return filterTags.value.every(tagId => itemTags.includes(tagId))
+      } else {
+        return !filterTags.value.some(tagId => itemTags.includes(tagId))
+      }
+    })
   }
 
   // Fuzzy search
@@ -115,6 +136,17 @@ const handleZipUpload = async (file: File) => {
         class="input input-sm flex-1"
         placeholder="Search learning content..."
       >
+    </div>
+
+    <div
+      v-if="allTags.length > 0"
+      class="mb-4"
+    >
+      <TagFilter
+        v-model:selected-tags="filterTags"
+        v-model:mode="filterMode"
+        :all-tags="allTags"
+      />
     </div>
 
     <div class="flex gap-2 mb-4">

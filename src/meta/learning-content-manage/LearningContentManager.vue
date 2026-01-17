@@ -4,17 +4,23 @@ import { useRouter } from 'vue-router'
 import RelatedFlashcardsManager from './RelatedFlashcardsManager.vue'
 import GradualClozeDeletionWizard from './GradualClozeDeletionWizard.vue'
 import AIFlashcardGeneratorModal from './AIFlashcardGeneratorModal.vue'
+import TagInput from '@/dumb/TagInput.vue'
 import { showToast } from '@/app/toast/toastStore'
 import { getOpenAIKey } from '@/app/storage/openAIKey'
+import type { Tag } from '@/db/Tag'
 
 const props = defineProps<{
   content: string
   relatedFlashcards: string[]
+  tags: string[]
+  allTags: Tag[]
 }>()
 
 const emit = defineEmits<{
   'update:content': [value: string]
   'update:related-flashcards': [value: string[]]
+  'update:tags': [value: string[]]
+  'create-tag': [content: string]
   blur: []
 }>()
 
@@ -28,6 +34,11 @@ const contentValue = computed({
 const relatedFlashcardsValue = computed({
   get: () => props.relatedFlashcards ?? [],
   set: (value: string[]) => emit('update:related-flashcards', value)
+})
+
+const tagsValue = computed({
+  get: () => props.tags ?? [],
+  set: (value: string[]) => emit('update:tags', value)
 })
 
 const wizardOpen = ref(false)
@@ -82,6 +93,15 @@ const handleWizardComplete = (lastCardId: string) => {
         class="textarea"
         rows="10"
         @blur="emit('blur')"
+      />
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <label class="label">Tags</label>
+      <TagInput
+        v-model="tagsValue"
+        :all-tags="allTags"
+        @create-tag="(content) => emit('create-tag', content)"
       />
     </fieldset>
 

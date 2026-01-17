@@ -1,19 +1,43 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard } from '@/entities/flashcard/flashcardStore'
+import { loadTags } from '@/entities/tag/tagStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import type { FlashCard } from '@/db/Flashcard'
+import type { Tag } from '@/db/Tag'
 import JsonlUploadButton from './JsonlUploadButton.vue'
 import { parseFlashcardsFromJsonl } from './importHelpers'
 
 const items = ref<FlashCard[]>([])
+const allTags = ref<Tag[]>([])
+const filterTags = ref<string[]>([])
+const filterMode = ref<TagFilterMode>('any')
 const viewModalCard = ref<FlashCard | null>(null)
 const showViewModal = ref(false)
 const uploading = ref(false)
 
 onMounted(async () => {
   items.value = await loadFlashcards()
+  allTags.value = await loadTags()
+})
+
+const filteredItems = computed(() => {
+  if (filterTags.value.length === 0) {
+    return items.value
+  }
+
+  return items.value.filter(item => {
+    const itemTags = item.tags ?? []
+    if (filterMode.value === 'any') {
+      return filterTags.value.some(tagId => itemTags.includes(tagId))
+    } else if (filterMode.value === 'all') {
+      return filterTags.value.every(tagId => itemTags.includes(tagId))
+    } else {
+      return !filterTags.value.some(tagId => itemTags.includes(tagId))
+    }
+  })
 })
 
 const handleView = (card: FlashCard) => {
@@ -65,6 +89,17 @@ const handleJsonlUpload = async (file: File) => {
       />
     </div>
 
+    <div
+      v-if="allTags.length > 0"
+      class="mb-4"
+    >
+      <TagFilter
+        v-model:selected-tags="filterTags"
+        v-model:mode="filterMode"
+        :all-tags="allTags"
+      />
+    </div>
+
     <div class="overflow-x-auto">
       <table class="table">
         <thead>
@@ -76,7 +111,7 @@ const handleJsonlUpload = async (file: File) => {
         </thead>
         <tbody>
           <tr
-            v-for="item in items"
+            v-for="item in filteredItems"
             :key="item.id"
           >
             <td class="truncate max-w-md">

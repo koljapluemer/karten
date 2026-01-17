@@ -2,12 +2,16 @@
 import { computed } from 'vue'
 import BlockedByManager from './BlockedByManager.vue'
 import { getInstructionHistory } from './instructionHistory'
+import TagInput from '@/dumb/TagInput.vue'
+import type { Tag } from '@/db/Tag'
 
 const props = defineProps<{
   front: string
   back: string
   instruction: string
   blockedBy: string[]
+  tags: string[]
+  allTags: Tag[]
 }>()
 
 const emit = defineEmits<{
@@ -15,6 +19,8 @@ const emit = defineEmits<{
   'update:back': [value: string]
   'update:instruction': [value: string]
   'update:blocked-by': [value: string[]]
+  'update:tags': [value: string[]]
+  'create-tag': [content: string]
   blur: []
 }>()
 
@@ -36,6 +42,11 @@ const instructionValue = computed({
 const blockedByValue = computed({
   get: () => props.blockedBy ?? [],
   set: (value: string[]) => emit('update:blocked-by', value)
+})
+
+const tagsValue = computed({
+  get: () => props.tags ?? [],
+  set: (value: string[]) => emit('update:tags', value)
 })
 
 const filteredHistory = computed(() => {
@@ -115,5 +126,14 @@ const selectInstruction = (instruction: string) => {
     </fieldset>
 
     <BlockedByManager v-model="blockedByValue" />
+
+    <fieldset class="fieldset">
+      <label class="label">Tags</label>
+      <TagInput
+        v-model="tagsValue"
+        :all-tags="allTags"
+        @create-tag="(content) => emit('create-tag', content)"
+      />
+    </fieldset>
   </div>
 </template>

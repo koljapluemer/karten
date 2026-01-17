@@ -11,7 +11,8 @@ export const createFlashcard = async (
   front: string,
   back: string,
   instruction: string,
-  blockedBy: string[] = []
+  blockedBy: string[] = [],
+  tags: string[] = []
 ): Promise<FlashCard> => {
   const id = buildFlashcardId()
 
@@ -20,7 +21,8 @@ export const createFlashcard = async (
     front,
     back,
     instruction,
-    blockedBy: [...blockedBy] // Convert to plain array
+    blockedBy: [...blockedBy],
+    tags: [...tags]
   }
 
   await db.flashcards.add(card)
@@ -32,13 +34,15 @@ export const updateFlashcard = async (
   front: string,
   back: string,
   instruction: string,
-  blockedBy: string[] = []
+  blockedBy: string[] = [],
+  tags: string[] = []
 ): Promise<void> => {
   await db.flashcards.update(id, {
     front,
     back,
     instruction,
-    blockedBy: [...blockedBy] // Convert to plain array
+    blockedBy: [...blockedBy],
+    tags: [...tags]
   })
 }
 

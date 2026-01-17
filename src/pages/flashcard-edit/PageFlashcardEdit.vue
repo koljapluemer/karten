@@ -3,8 +3,10 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FlashcardFormEdit from '@/entities/flashcard/FlashcardFormEdit.vue'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
+import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import { db } from '@/db/db'
 import type { LearningProgress } from '@/db/LearningProgress'
+import type { Tag } from '@/db/Tag'
 import { showToast } from '@/app/toast/toastStore'
 
 const router = useRouter()
@@ -14,6 +16,8 @@ const front = ref('')
 const back = ref('')
 const instruction = ref('')
 const blockedBy = ref<string[]>([])
+const tags = ref<string[]>([])
+const allTags = ref<Tag[]>([])
 const notFound = ref(false)
 const learningProgress = ref<LearningProgress | null>(null)
 
@@ -40,11 +44,13 @@ const lastReviewDate = computed(() => {
 onMounted(async () => {
   const id = route.params.id as string
   try {
+    allTags.value = await loadTags()
     const flashcard = await getFlashcardById(id)
     front.value = flashcard.front
     back.value = flashcard.back
     instruction.value = flashcard.instruction
-    blockedBy.value = flashcard.blockedBy
+    blockedBy.value = flashcard.blockedBy ?? []
+    tags.value = flashcard.tags ?? []
     notFound.value = false
 
     const progressId = id.replace('flashcard:', 'learning-progress:')
@@ -54,7 +60,7 @@ onMounted(async () => {
     const createdId = route.query.createdId as string
     if (createdId && !blockedBy.value.includes(createdId)) {
       blockedBy.value = [...blockedBy.value, createdId]
-      await updateFlashcard(id, front.value, back.value, instruction.value, blockedBy.value)
+      await updateFlashcard(id, front.value, back.value, instruction.value, blockedBy.value, tags.value)
       showToast('Prerequisite flashcard attached', 'success')
 
       // Clean URL by removing createdId param
@@ -70,7 +76,14 @@ onMounted(async () => {
 const handleBlur = async () => {
   const id = route.params.id as string
   if (!id) return
-  await updateFlashcard(id, front.value, back.value, instruction.value, blockedBy.value)
+  await updateFlashcard(id, front.value, back.value, instruction.value, blockedBy.value, tags.value)
+}
+
+const handleCreateTag = async (content: string) => {
+  const tag = await getOrCreateTag(content)
+  allTags.value = await loadTags()
+  tags.value = [...tags.value, tag.id]
+  await handleBlur()
 }
 
 const handleClose = () => {
@@ -101,7 +114,10 @@ const handleClose = () => {
         v-model:back="back"
         v-model:instruction="instruction"
         v-model:blocked-by="blockedBy"
+        v-model:tags="tags"
+        :all-tags="allTags"
         @blur="handleBlur"
+        @create-tag="handleCreateTag"
       />
 
       <div

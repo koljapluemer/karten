@@ -3,9 +3,8 @@ export interface FlashCard {
   instruction: string
   front: string
   back: string
-  blockedBy: string[] // ids of `Flashcard
-//   tags: string[] // ids of `Tag`
-// dexie management  
+  blockedBy: string[] // ids of `Flashcard`
+  tags: string[] // ids of `Tag`
   owner?: string
   realmId?: string
 }

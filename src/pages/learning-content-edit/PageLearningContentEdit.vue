@@ -4,20 +4,26 @@ import { useRouter, useRoute } from 'vue-router'
 import LearningContentManager from '@/meta/learning-content-manage/LearningContentManager.vue'
 import { getLearningContentById, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
+import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import { showToast } from '@/app/toast/toastStore'
+import type { Tag } from '@/db/Tag'
 
 const router = useRouter()
 const route = useRoute()
 const content = ref('')
 const relatedFlashcards = ref<string[]>([])
+const tags = ref<string[]>([])
+const allTags = ref<Tag[]>([])
 const notFound = ref(false)
 
 onMounted(async () => {
   const id = route.params.id as string
   try {
+    allTags.value = await loadTags()
     const item = await getLearningContentById(id)
     content.value = item.content
     relatedFlashcards.value = item.relatedFlashcards ?? []
+    tags.value = item.tags ?? []
 
     // Handle auto-attach of newly created flashcard
     const createdId = route.query.createdId as string
@@ -52,7 +58,14 @@ onMounted(async () => {
 
 const handleBlur = async () => {
   const id = route.params.id as string
-  await updateLearningContent(id, content.value, relatedFlashcards.value)
+  await updateLearningContent(id, content.value, relatedFlashcards.value, tags.value)
+}
+
+const handleCreateTag = async (tagContent: string) => {
+  const tag = await getOrCreateTag(tagContent)
+  allTags.value = await loadTags()
+  tags.value = [...tags.value, tag.id]
+  await handleBlur()
 }
 
 const handleClose = () => {
@@ -80,7 +93,10 @@ const handleClose = () => {
       <LearningContentManager
         v-model:content="content"
         v-model:related-flashcards="relatedFlashcards"
+        v-model:tags="tags"
+        :all-tags="allTags"
         @blur="handleBlur"
+        @create-tag="handleCreateTag"
       />
 
       <div class="flex gap-2 mt-4">
