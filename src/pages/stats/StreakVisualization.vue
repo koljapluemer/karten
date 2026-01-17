@@ -66,7 +66,6 @@ const streak = computed<number>(() => {
         />
         <Circle
           v-else
-          
         />
       </div>
     </div>

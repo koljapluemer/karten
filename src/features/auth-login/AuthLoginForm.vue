@@ -58,7 +58,6 @@ const handleLogin = async () => {
         >
           <LogIn
             v-if="!isLoading"
-            
           />
           <span
             v-if="isLoading"

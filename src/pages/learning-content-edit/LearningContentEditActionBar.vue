@@ -40,15 +40,24 @@ const handleOpenRandom = async () => {
 
 <template>
   <div class="flex gap-2">
-    <button class="btn" @click="handleClose">
+    <button
+      class="btn"
+      @click="handleClose"
+    >
       Close
     </button>
-    <button class="btn" @click="handleOpenRandom">
-      <Shuffle  />
+    <button
+      class="btn"
+      @click="handleOpenRandom"
+    >
+      <Shuffle />
       Random without flashcards
     </button>
-    <button class="btn" @click="handleDelete">
-      <Trash2  />
+    <button
+      class="btn"
+      @click="handleDelete"
+    >
+      <Trash2 />
       Delete
     </button>
   </div>

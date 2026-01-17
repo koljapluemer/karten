@@ -110,7 +110,7 @@ const handleCreateNew = () => {
                   class="btn btn-sm btn-ghost"
                   @click="handleDetach(card.id)"
                 >
-                  <Trash2  />
+                  <Trash2 />
                 </button>
               </td>
             </tr>
@@ -153,7 +153,7 @@ const handleCreateNew = () => {
         class="btn btn-sm"
         @click="handleCreateNew"
       >
-        <Plus  />
+        <Plus />
         Create New Flashcard
       </button>
     </div>

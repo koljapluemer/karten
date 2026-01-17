@@ -170,15 +170,18 @@ const handleOpenRandom = () => {
         class="btn btn-primary btn-sm"
         @click="handleAdd"
       >
-        <Plus  />
+        <Plus />
         Add Learning Content
       </button>
       <ZipUploadButton
         :loading="uploading"
         @file="handleZipUpload"
       />
-      <button class="btn btn-sm" @click="handleOpenRandom">
-        <Shuffle  />
+      <button
+        class="btn btn-sm"
+        @click="handleOpenRandom"
+      >
+        <Shuffle />
         Random without flashcards
       </button>
     </div>
@@ -205,19 +208,19 @@ const handleOpenRandom = () => {
                   class="btn btn-sm btn-ghost"
                   @click="handleView(item.content)"
                 >
-                  <Eye  />
+                  <Eye />
                 </button>
                 <button
                   class="btn btn-sm btn-ghost"
                   @click="handleEdit(item.id)"
                 >
-                  <Pencil  />
+                  <Pencil />
                 </button>
                 <button
                   class="btn btn-sm btn-ghost"
                   @click="handleDelete(item.id)"
                 >
-                  <Trash2  />
+                  <Trash2 />
                 </button>
               </div>
             </td>

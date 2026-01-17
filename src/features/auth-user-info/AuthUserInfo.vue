@@ -32,7 +32,7 @@ const handleLogout = async () => {
           :disabled="isLoading"
           @click="handleLogout"
         >
-          <LogOut  />
+          <LogOut />
           Logout
         </button>
       </div>

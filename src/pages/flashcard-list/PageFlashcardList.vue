@@ -80,7 +80,7 @@ const handleJsonlUpload = async (file: File) => {
         to="/flashcards/add"
         class="btn btn-primary"
       >
-        <Plus  />
+        <Plus />
         Add Flashcard
       </router-link>
       <JsonlUploadButton
@@ -126,19 +126,19 @@ const handleJsonlUpload = async (file: File) => {
                   class="btn btn-sm btn-ghost"
                   @click="handleView(item)"
                 >
-                  <Eye  />
+                  <Eye />
                 </button>
                 <router-link
                   :to="`/flashcards/${item.id}/edit`"
                   class="btn btn-sm btn-ghost"
                 >
-                  <Pencil  />
+                  <Pencil />
                 </router-link>
                 <button
                   class="btn btn-sm btn-ghost"
                   @click="handleDelete(item.id)"
                 >
-                  <Trash2  />
+                  <Trash2 />
                 </button>
               </div>
             </td>

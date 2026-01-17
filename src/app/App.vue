@@ -19,28 +19,28 @@ onMounted(() => {
             to="/practice"
             class="btn btn-ghost"
           >
-            <Play  />
+            <Play />
             <span class="hidden sm:inline">Practice</span>
           </RouterLink>
           <RouterLink
             to="/learning-content"
             class="btn btn-ghost"
           >
-            <BookOpen  />
+            <BookOpen />
             <span class="hidden sm:inline">Learning Content</span>
           </RouterLink>
           <RouterLink
             to="/flashcards"
             class="btn btn-ghost"
           >
-            <Layers  />
+            <Layers />
             <span class="hidden sm:inline">Flashcards</span>
           </RouterLink>
           <RouterLink
             to="/stats"
             class="btn btn-ghost"
           >
-            <ChartBarBig  />
+            <ChartBarBig />
             <span class="hidden sm:inline">Stats</span>
           </RouterLink>
         </div>
@@ -50,7 +50,7 @@ onMounted(() => {
           to="/settings"
           class="btn btn-ghost"
         >
-          <Settings  />
+          <Settings />
           <span class="hidden sm:inline">Settings</span>
         </RouterLink>
       </div>

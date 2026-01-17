@@ -110,7 +110,7 @@ const handleKeydown = (e: KeyboardEvent) => {
           class="hover:opacity-70"
           @click="removeTag(tag.id)"
         >
-          <X  />
+          <X />
         </button>
       </span>
       <button
@@ -119,7 +119,7 @@ const handleKeydown = (e: KeyboardEvent) => {
         title="Clear all tags"
         @click="clearAllTags"
       >
-        <RotateCcw  />
+        <RotateCcw />
       </button>
     </div>
 

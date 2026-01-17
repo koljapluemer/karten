@@ -34,7 +34,10 @@ const depthClass = computed(() => {
     class="flex flex-col gap-2"
     :class="depthClass"
   >
-    <div class="max-w-md" style="zoom: 0.8;">
+    <div
+      class="max-w-md"
+      style="zoom: 0.8;"
+    >
       <FlashcardRenderer
         :front="node.card.front"
         :back="node.card.back"
@@ -47,35 +50,35 @@ const depthClass = computed(() => {
           title="Edit"
           @click="emit('edit', node.card.id)"
         >
-          <Pencil  />
+          <Pencil />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Delete"
           @click="emit('delete', node.card.id)"
         >
-          <Trash2  />
+          <Trash2 />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Detach"
           @click="emit('detach', { cardId: node.card.id, parentId: node.parentId })"
         >
-          <Link2Off  />
+          <Link2Off />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Attach existing prerequisite"
           @click="emit('attach-existing', node.card.id)"
         >
-          <Link2  />
+          <Link2 />
         </button>
         <button
           class="btn btn-sm btn-ghost"
           title="Create prerequisite"
           @click="emit('create-child', node.card.id)"
         >
-          <Plus  />
+          <Plus />
         </button>
       </div>
     </div>

@@ -84,10 +84,16 @@ const handleCreateTag = async (tagContent: string) => {
 
     <div v-if="notFound">
       <p>Learning content not found.</p>
-      <LearningContentEditActionBar :current-id="($route.params.id as string)" class="mt-4" />
+      <LearningContentEditActionBar
+        :current-id="($route.params.id as string)"
+        class="mt-4"
+      />
     </div>
 
-    <div v-else class="flex flex-col gap-4">
+    <div
+      v-else
+      class="flex flex-col gap-4"
+    >
       <LearningContentEditActionBar :current-id="($route.params.id as string)" />
 
       <LearningContentManager

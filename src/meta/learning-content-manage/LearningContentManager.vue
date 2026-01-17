@@ -259,16 +259,28 @@ const handleWizardComplete = (lastCardId: string) => {
           Core Data 
         </h2>
         <fieldset class="fieldset">
-          <label for="learning-content" class="label">Learning Content</label>
-          <textarea id="learning-content" v-model="contentValue" name="learning-content" class="textarea" rows="10"
-            @blur="emit('blur')" />
+          <label
+            for="learning-content"
+            class="label"
+          >Learning Content</label>
+          <textarea
+            id="learning-content"
+            v-model="contentValue"
+            name="learning-content"
+            class="textarea"
+            rows="10"
+            @blur="emit('blur')"
+          />
         </fieldset>
 
         <fieldset class="fieldset">
           <label class="label">Tags</label>
-          <TagInput v-model="tagsValue" :all-tags="allTags" @create-tag="(content) => emit('create-tag', content)" />
+          <TagInput
+            v-model="tagsValue"
+            :all-tags="allTags"
+            @create-tag="(content) => emit('create-tag', content)"
+          />
         </fieldset>
-
       </div>
     </div>
 
@@ -278,34 +290,62 @@ const handleWizardComplete = (lastCardId: string) => {
           Related Flashcards
         </h2>
         <div class="flex gap-2">
-          <button class="btn btn-sm" @click="openAIModal">
+          <button
+            class="btn btn-sm"
+            @click="openAIModal"
+          >
             AI Generate Flashcards
           </button>
-          <button class="btn btn-sm" @click="openWizard">
+          <button
+            class="btn btn-sm"
+            @click="openWizard"
+          >
             Establish gradual cloze deletion
           </button>
 
 
-          <button class="btn btn-sm" title="Attach existing" @click="openAttachPanel(null)">
-            <Link2  /> Link
+          <button
+            class="btn btn-sm"
+            title="Attach existing"
+            @click="openAttachPanel(null)"
+          >
+            <Link2 /> Link
           </button>
-          <button class="btn btn-sm" title="Create new" @click="handleOpenCreate(null)">
-            <Plus  />
+          <button
+            class="btn btn-sm"
+            title="Create new"
+            @click="handleOpenCreate(null)"
+          >
+            <Plus />
             Add New
           </button>
         </div>
 
-        <div v-if="relatedNodes.length === 0" class="text-light">
+        <div
+          v-if="relatedNodes.length === 0"
+          class="text-light"
+        >
           No related flashcards yet.
         </div>
 
         <div class="flex flex-col gap-2">
-          <RelatedFlashcardNode v-for="node in relatedNodes" :key="node.card.id" :node="node" :depth="0"
-            @edit="handleEditFlashcard" @delete="handleDeleteFlashcard" @detach="handleDetach"
-            @attach-existing="openAttachPanel" @create-child="handleOpenCreate" />
+          <RelatedFlashcardNode
+            v-for="node in relatedNodes"
+            :key="node.card.id"
+            :node="node"
+            :depth="0"
+            @edit="handleEditFlashcard"
+            @delete="handleDeleteFlashcard"
+            @detach="handleDetach"
+            @attach-existing="openAttachPanel"
+            @create-child="handleOpenCreate"
+          />
         </div>
 
-        <div v-if="attachOpen" class="border-t pt-4 mt-4">
+        <div
+          v-if="attachOpen"
+          class="border-t pt-4 mt-4"
+        >
           <div class="flex items-start justify-between gap-2">
             <div>
               <h4 class="font-bold mb-2">
@@ -315,38 +355,65 @@ const handleWizardComplete = (lastCardId: string) => {
                 {{ attachLabel }}
               </p>
             </div>
-            <button class="btn btn-sm btn-ghost" @click="closeAttachPanel">
+            <button
+              class="btn btn-sm btn-ghost"
+              @click="closeAttachPanel"
+            >
               Close
             </button>
           </div>
 
           <fieldset class="fieldset">
-            <label for="attach-flashcard-search" class="label">Search flashcards</label>
-            <input id="attach-flashcard-search" v-model="searchQuery" type="text" class="input"
-              placeholder="Search by front or back...">
+            <label
+              for="attach-flashcard-search"
+              class="label"
+            >Search flashcards</label>
+            <input
+              id="attach-flashcard-search"
+              v-model="searchQuery"
+              type="text"
+              class="input"
+              placeholder="Search by front or back..."
+            >
           </fieldset>
 
-          <div v-if="searchResults.length > 0" class="flex flex-col gap-1">
-            <button v-for="card in searchResults" :key="card.id" class="btn btn-sm btn-ghost justify-start"
-              @click="handleAttachExisting(card.id)">
+          <div
+            v-if="searchResults.length > 0"
+            class="flex flex-col gap-1"
+          >
+            <button
+              v-for="card in searchResults"
+              :key="card.id"
+              class="btn btn-sm btn-ghost justify-start"
+              @click="handleAttachExisting(card.id)"
+            >
               <span class="truncate">{{ card.front }}</span>
               <span class="text-light truncate">{{ card.back }}</span>
             </button>
           </div>
 
-          <button class="btn btn-sm mt-4" @click="handleOpenCreate(attachParentId)">
-            <Plus  />
+          <button
+            class="btn btn-sm mt-4"
+            @click="handleOpenCreate(attachParentId)"
+          >
+            <Plus />
             Create New Flashcard
           </button>
         </div>
-
       </div>
     </div>
   </div>
 
-  <GradualClozeDeletionWizard v-model:open="wizardOpen" :initial-content="contentValue"
-    @complete="handleWizardComplete" />
+  <GradualClozeDeletionWizard
+    v-model:open="wizardOpen"
+    :initial-content="contentValue"
+    @complete="handleWizardComplete"
+  />
 
-  <AIFlashcardGeneratorModal :open="aiModalOpen" :content="contentValue" @close="aiModalOpen = false"
-    @accept="handleAIModalAccept" />
+  <AIFlashcardGeneratorModal
+    :open="aiModalOpen"
+    :content="contentValue"
+    @close="aiModalOpen = false"
+    @accept="handleAIModalAccept"
+  />
 </template>
