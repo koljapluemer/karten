@@ -6,9 +6,11 @@ import StreakVisualization from './StreakVisualization.vue'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import { loadReviewCounts } from '@/entities/review-count/reviewCountStore'
+import { loadLearningContent } from '@/entities/learning-content/learningContentStore'
 import type { FlashCard } from '@/db/Flashcard'
 import type { LearningProgress } from '@/db/LearningProgress'
 import type { ReviewCount } from '@/db/ReviewCount'
+import type { LearningContent } from '@/db/LearningContent'
 
 type ChartDataPoint = {
   date: string
@@ -18,6 +20,7 @@ type ChartDataPoint = {
 const flashcards = ref<FlashCard[]>([])
 const progress = ref<LearningProgress[]>([])
 const reviewCounts = ref<ReviewCount[]>([])
+const learningContent = ref<LearningContent[]>([])
 const isLoading = ref(true)
 
 const progressIdToFlashcardId = (progressId: string): string =>
@@ -25,14 +28,16 @@ const progressIdToFlashcardId = (progressId: string): string =>
 
 const loadData = async () => {
   isLoading.value = true
-  const [cards, progressDocs, countDocs] = await Promise.all([
+  const [cards, progressDocs, countDocs, contentDocs] = await Promise.all([
     loadFlashcards(),
     loadLearningProgress(),
-    loadReviewCounts()
+    loadReviewCounts(),
+    loadLearningContent()
   ])
   flashcards.value = cards
   progress.value = progressDocs
   reviewCounts.value = countDocs
+  learningContent.value = contentDocs
   isLoading.value = false
 }
 
@@ -61,6 +66,12 @@ const notDueCount = computed(() => {
   const now = new Date()
   return progressForExistingCards.value.filter(item => new Date(item.due) > now).length
 })
+
+const learningContentCount = computed(() => learningContent.value.length)
+
+const learningContentWithoutFlashcardsCount = computed(() =>
+  learningContent.value.filter(item => item.relatedFlashcards.length === 0).length
+)
 
 const dailyFlips = computed<ChartDataPoint[]>(() => {
   const today = startOfDay(new Date())
@@ -118,6 +129,28 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
           </div>
           <div class="stat-value">
             {{ notDueCount }}
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="!isLoading"
+        class="stats stats-vertical lg:stats-horizontal shadow"
+      >
+        <div class="stat">
+          <div class="stat-title text-light">
+            Learning content
+          </div>
+          <div class="stat-value">
+            {{ learningContentCount }}
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-title text-light">
+            Without flashcards
+          </div>
+          <div class="stat-value">
+            {{ learningContentWithoutFlashcardsCount }}
           </div>
         </div>
       </div>
