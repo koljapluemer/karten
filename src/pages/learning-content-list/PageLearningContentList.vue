@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
 import { loadTags } from '@/entities/tag/tagStore'
@@ -13,6 +13,7 @@ import type { LearningContent } from '@/db/LearningContent'
 import type { Tag } from '@/db/Tag'
 
 const router = useRouter()
+const route = useRoute()
 const items = ref<LearningContent[]>([])
 const allTags = ref<Tag[]>([])
 const filterTags = ref<string[]>([])
@@ -21,10 +22,107 @@ const uploading = ref(false)
 const flashcardFilter = ref<'all' | 'with' | 'without'>('all')
 const searchQuery = ref('')
 
+const parseTagsQuery = (value: unknown) => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string')
+  }
+  if (typeof value === 'string' && value.trim()) {
+    return [value]
+  }
+  return []
+}
+
+const parseFilterMode = (value: unknown): TagFilterMode => {
+  if (value === 'all' || value === 'any' || value === 'none') {
+    return value
+  }
+  return 'any'
+}
+
+const parseFlashcardFilter = (value: unknown): 'all' | 'with' | 'without' => {
+  if (value === 'with' || value === 'without' || value === 'all') {
+    return value
+  }
+  return 'all'
+}
+
+const buildQueryFromState = () => {
+  const query: Record<string, string | string[]> = {}
+  const trimmedSearch = searchQuery.value.trim()
+  if (trimmedSearch) {
+    query.q = trimmedSearch
+  }
+  if (flashcardFilter.value !== 'all') {
+    query.flash = flashcardFilter.value
+  }
+  if (filterMode.value !== 'any') {
+    query.mode = filterMode.value
+  }
+  if (filterTags.value.length > 0) {
+    query.tags = filterTags.value
+  }
+  return query
+}
+
+const parseQueryToState = (query: typeof route.query) => {
+  searchQuery.value = typeof query.q === 'string' ? query.q : ''
+  flashcardFilter.value = parseFlashcardFilter(query.flash)
+  filterMode.value = parseFilterMode(query.mode)
+  filterTags.value = parseTagsQuery(query.tags)
+}
+
+const isQueryEqual = (left: typeof route.query, right: Record<string, string | string[]>) => {
+  const normalizeTags = (value: unknown) => {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string')
+    }
+    if (typeof value === 'string' && value.trim()) {
+      return [value]
+    }
+    return []
+  }
+
+  const normalize = (query: typeof route.query | Record<string, string | string[]>) => ({
+    q: typeof query.q === 'string' ? query.q : '',
+    flash: parseFlashcardFilter(query.flash),
+    mode: parseFilterMode(query.mode),
+    tags: normalizeTags(query.tags),
+  })
+
+  const leftNormalized = normalize(left)
+  const rightNormalized = normalize(right)
+
+  if (leftNormalized.q !== rightNormalized.q) return false
+  if (leftNormalized.flash !== rightNormalized.flash) return false
+  if (leftNormalized.mode !== rightNormalized.mode) return false
+  if (leftNormalized.tags.length !== rightNormalized.tags.length) return false
+
+  return leftNormalized.tags.every((tag, index) => tag === rightNormalized.tags[index])
+}
+
 onMounted(async () => {
   items.value = await loadLearningContent()
   allTags.value = await loadTags()
 })
+
+watch(
+  () => route.query,
+  (query) => {
+    parseQueryToState(query)
+  },
+  { immediate: true }
+)
+
+watch(
+  [searchQuery, flashcardFilter, filterMode, filterTags],
+  () => {
+    const query = buildQueryFromState()
+    if (!isQueryEqual(route.query, query)) {
+      router.replace({ query })
+    }
+  },
+  { deep: true }
+)
 
 const filteredItems = computed(() => {
   let result = items.value
@@ -61,12 +159,14 @@ const filteredItems = computed(() => {
   return result
 })
 
+const filteredItemCount = computed(() => filteredItems.value.length)
+
 const handleAdd = () => {
-  router.push('/learning-content/add')
+  router.push({ path: '/learning-content/add', query: route.query })
 }
 
 const handleEdit = (id: string) => {
-  router.push(`/learning-content/${id}/edit`)
+  router.push({ path: `/learning-content/${id}/edit`, query: route.query })
 }
 
 const handleDelete = async (id: string) => {
@@ -99,7 +199,7 @@ const handleOpenRandom = () => {
     return
   }
 
-  router.push(`/learning-content/${random.id}/edit`)
+  router.push({ path: `/learning-content/${random.id}/edit`, query: route.query })
 }
 </script>
 
@@ -172,6 +272,10 @@ const handleOpenRandom = () => {
         <Shuffle />
         Random without flashcards
       </button>
+    </div>
+
+    <div class="text-sm text-gray-500 mb-2">
+      Showing {{ filteredItemCount }} learning content items
     </div>
 
     <div class="overflow-x-auto">

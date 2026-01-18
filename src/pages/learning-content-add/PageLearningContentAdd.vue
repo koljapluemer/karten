@@ -45,7 +45,7 @@ const handleCreateTag = async (tagContent: string) => {
 }
 
 const handleClose = () => {
-  router.push('/learning-content')
+  router.push({ path: '/learning-content', query: route.query })
 }
 
 const handleAddAnother = () => {
