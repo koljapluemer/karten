@@ -8,6 +8,7 @@ import PageFlashcardEdit from '@/pages/flashcard-edit/PageFlashcardEdit.vue'
 import PagePractice from '@/pages/practice/PagePractice.vue'
 import PageStats from '@/pages/stats/StatsPage.vue'
 import PageSettings from '@/pages/settings/PageSettings.vue'
+import PagePromptManage from '@/pages/prompt-manage/PagePromptManage.vue'
 import { pushNavigationHistory } from './navigation/navigationStore'
 
 const router = createRouter({
@@ -61,6 +62,11 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: PageSettings
+    },
+    {
+      path: '/prompts',
+      name: 'prompt-manage',
+      component: PagePromptManage
     }
   ]
 })

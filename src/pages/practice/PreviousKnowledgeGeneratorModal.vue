@@ -4,9 +4,10 @@ import { getOpenAIKey } from '@/app/storage/openAIKey'
 import { showToast } from '@/app/toast/toastStore'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
 import { generateFlashcards } from '@/features/ai-flashcard-generate/openAIService'
-import type { GeneratedCard, InstructionMode } from '@/features/ai-flashcard-generate/types'
+import type { GeneratedCard } from '@/features/ai-flashcard-generate/types'
 import type { FlashCard } from '@/db/Flashcard'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import PromptSelector from '@/features/prompt-select/PromptSelector.vue'
 
 const props = defineProps<{
   open: boolean
@@ -19,44 +20,21 @@ const emit = defineEmits<{
 }>()
 
 const step = ref<'prompt' | 'results'>('prompt')
-const prompt = ref('')
-const instructionMode = ref<InstructionMode>('fixed')
-const fixedInstruction = ref('Recall')
+const currentPrompt = ref('')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const results = ref<GeneratedCard[]>([])
 const selected = ref<Set<number>>(new Set())
 
-const buildPrompt = () => {
-  const cardInfo = `- Front: ${props.card.front}
-- Back: ${props.card.back}
-- Instruction: ${props.card.instruction}`
-
-  if (instructionMode.value === 'fixed') {
-    return `The following flashcard was difficult for me. Generate 3 flashcards covering prerequisite knowledge that would help me understand and remember this content better.
-
-Flashcard:
-${cardInfo}
-
-Generate exactly 3 flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
-- front: a question or prompt
-- back: the answer`
-  } else {
-    return `The following flashcard was difficult for me. Generate 3 flashcards covering prerequisite knowledge that would help me understand and remember this content better.
-
-Flashcard:
-${cardInfo}
-
-Generate exactly 3 flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
-- front: a question or prompt
-- back: the answer
-- instruction: a brief instruction for the learner (e.g., "Recall", "Explain", "Define", "Compare")`
-  }
-}
+const magicValues = computed(() => ({
+  flashcard: `${props.card.front}\n---\n${props.card.back}`,
+  front: props.card.front,
+  back: props.card.back,
+  instruction: props.card.instruction
+}))
 
 const reset = () => {
   step.value = 'prompt'
-  prompt.value = buildPrompt()
   results.value = []
   selected.value = new Set()
   error.value = null
@@ -77,14 +55,9 @@ watch(
   }
 )
 
-watch(
-  [() => props.card, instructionMode],
-  () => {
-    if (props.open && step.value === 'prompt') {
-      prompt.value = buildPrompt()
-    }
-  }
-)
+const handlePromptChange = (prompt: string) => {
+  currentPrompt.value = prompt
+}
 
 const toggleSelection = (index: number) => {
   const next = new Set(selected.value)
@@ -112,7 +85,7 @@ const callOpenAI = async () => {
   error.value = null
 
   try {
-    results.value = await generateFlashcards(prompt.value, instructionMode.value)
+    results.value = await generateFlashcards(currentPrompt.value, 'ai')
     selectAll()
     step.value = 'results'
   } catch (err) {
@@ -127,10 +100,7 @@ const selectedCards = computed(() =>
 )
 
 const getCardInstruction = (card: GeneratedCard): string => {
-  if (instructionMode.value === 'ai' && card.instruction) {
-    return card.instruction
-  }
-  return fixedInstruction.value
+  return card.instruction || 'Recall'
 }
 
 const handleAccept = async () => {
@@ -171,50 +141,11 @@ const handleClose = () => {
         v-if="step === 'prompt'"
         class="space-y-4"
       >
-        <fieldset class="fieldset">
-          <label class="label">
-            <span class="label-text">Instruction mode</span>
-          </label>
-          <div class="flex flex-col gap-2">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                v-model="instructionMode"
-                type="radio"
-                name="instruction-mode"
-                value="fixed"
-                class="radio radio-sm"
-              >
-              <span>Use fixed instruction</span>
-            </label>
-            <input
-              v-if="instructionMode === 'fixed'"
-              v-model="fixedInstruction"
-              type="text"
-              class="input input-bordered input-sm ml-6 w-48"
-              placeholder="e.g., Recall"
-            >
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                v-model="instructionMode"
-                type="radio"
-                name="instruction-mode"
-                value="ai"
-                class="radio radio-sm"
-              >
-              <span>Let AI generate instructions</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <fieldset class="fieldset">
-          <label class="label">
-            <span class="label-text">Prompt</span>
-          </label>
-          <textarea
-            v-model="prompt"
-            class="textarea textarea-bordered min-h-[200px] w-full"
-          />
-        </fieldset>
+        <PromptSelector
+          :magic-values="magicValues"
+          context="previous-knowledge"
+          @prompt-change="handlePromptChange"
+        />
 
         <div
           v-if="error"
@@ -226,7 +157,7 @@ const handleClose = () => {
         <div class="modal-action">
           <button
             class="btn btn-primary"
-            :disabled="isLoading"
+            :disabled="isLoading || !currentPrompt"
             @click="callOpenAI"
           >
             {{ isLoading ? 'Generating...' : 'Generate' }}
