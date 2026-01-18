@@ -54,9 +54,8 @@ const handleConfused = () => {
 
     <div
       v-else
-      class="flex justify-center"
+      class="flex justify-center gap-2"
     >
-      <div class="grid grid-cols-5 gap-2">
         <button
           class="btn btn-outline"
           @click="handleConfused"
@@ -87,7 +86,6 @@ const handleConfused = () => {
         >
           Easy
         </button>
-      </div>
     </div>
   </div>
 </template>
