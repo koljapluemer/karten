@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Eye, Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
+import { Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
 import { loadTags } from '@/entities/tag/tagStore'
-import LearningContentRenderer from '@/entities/learning-content/LearningContentRenderer.vue'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import ZipUploadButton from './ZipUploadButton.vue'
 import { parseLearningContentFromZip } from './importHelpers'
@@ -18,8 +17,6 @@ const items = ref<LearningContent[]>([])
 const allTags = ref<Tag[]>([])
 const filterTags = ref<string[]>([])
 const filterMode = ref<TagFilterMode>('any')
-const viewModalContent = ref<string>('')
-const showViewModal = ref(false)
 const uploading = ref(false)
 const flashcardFilter = ref<'all' | 'with' | 'without'>('all')
 const searchQuery = ref('')
@@ -72,19 +69,10 @@ const handleEdit = (id: string) => {
   router.push(`/learning-content/${id}/edit`)
 }
 
-const handleView = (content: string) => {
-  viewModalContent.value = content
-  showViewModal.value = true
-}
-
 const handleDelete = async (id: string) => {
   if (!confirm('Delete this learning content?')) return
   await deleteLearningContent(id)
   items.value = await loadLearningContent()
-}
-
-const closeModal = () => {
-  showViewModal.value = false
 }
 
 const handleZipUpload = async (file: File) => {
@@ -206,12 +194,6 @@ const handleOpenRandom = () => {
               <div class="flex gap-2">
                 <button
                   class="btn btn-sm btn-ghost"
-                  @click="handleView(item.content)"
-                >
-                  <Eye />
-                </button>
-                <button
-                  class="btn btn-sm btn-ghost"
                   @click="handleEdit(item.id)"
                 >
                   <Pencil />
@@ -228,22 +210,5 @@ const handleOpenRandom = () => {
         </tbody>
       </table>
     </div>
-
-    <dialog
-      :open="showViewModal"
-      class="modal"
-    >
-      <div class="modal-box">
-        <LearningContentRenderer :content="viewModalContent" />
-        <div class="modal-action">
-          <button
-            class="btn"
-            @click="closeModal"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </dialog>
   </div>
 </template>
