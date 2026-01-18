@@ -24,8 +24,10 @@ const cardClasses = computed(() => [
     :class="cardClasses"
     data-theme="light"
   >
-    <div class="card-body gap-4 grid place-items-center text-center">
-      <MarkdownContent :value="front" />
+    <div class="card-body gap-4">
+      <div class="w-full">
+        <MarkdownContent :value="front" />
+      </div>
       <div
         v-if="props.showBack"
         class="w-full border-t-2 border-dotted border-base-300 pt-4"

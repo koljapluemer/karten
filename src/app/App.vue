@@ -73,5 +73,4 @@ onMounted(() => {
 <style>
 @import "tailwindcss";
 @plugin "daisyui";
-@plugin "@tailwindcss/typography";
 </style>
