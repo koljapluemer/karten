@@ -14,7 +14,6 @@ The prop `content` is simply a string, but we allow a mustache-like syntax to us
 - `{{flashcard}}` (a rendered flashcard, front, then a line with "---", then back)
 - `{{front}}`
 - `{{back}}`
-- `{{instruction}}`
 - `{{learningcontent}}`
 
 The semiotics of these will become clear in a second.
@@ -25,7 +24,7 @@ Save the last selected prompt in localstorage so it can be picked as default val
 Below the prompt text, there should be a button "Adapt" that switches the prompt to a textarea, now editable.
 These edits are *not* saved back to the prompt, they are just for this run.
 
-For ease of use, remove the logic of selecting whether the instructions should be fixed or AI-generated, and just always let the AI generate instructions.
+For ease of use, simplify the AI generation to not use a fixed instruction mode.
 If an AI prompt (or the prompt management page) is opened and there are currently no prompts, generate some sensibly named default prompts
 based on the hardcoded prompts we're currently using.
 

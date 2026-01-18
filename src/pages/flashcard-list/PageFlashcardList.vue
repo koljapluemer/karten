@@ -60,7 +60,7 @@ const handleJsonlUpload = async (file: File) => {
   try {
     const parsed = await parseFlashcardsFromJsonl(file)
     for (const item of parsed) {
-      await createFlashcard(item.front, item.back, item.instruction)
+      await createFlashcard(item.front, item.back)
     }
     items.value = await loadFlashcards()
   } finally {
@@ -156,7 +156,6 @@ const handleJsonlUpload = async (file: File) => {
           v-if="viewModalCard"
           :front="viewModalCard.front"
           :back="viewModalCard.back"
-          :instruction="viewModalCard.instruction"
           :show-back="true"
         />
         <div class="modal-action">

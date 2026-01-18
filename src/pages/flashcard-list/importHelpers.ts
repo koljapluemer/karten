@@ -1,5 +1,4 @@
 export type ParsedFlashcard = {
-  instruction: string
   front: string
   back: string
 }
@@ -16,12 +15,10 @@ export const parseFlashcardsFromJsonl = async (file: File): Promise<ParsedFlashc
     try {
       const parsed = JSON.parse(trimmed)
       if (
-        typeof parsed.instruction === 'string' &&
         typeof parsed.front === 'string' &&
         typeof parsed.back === 'string'
       ) {
         items.push({
-          instruction: parsed.instruction,
           front: parsed.front,
           back: parsed.back,
         })

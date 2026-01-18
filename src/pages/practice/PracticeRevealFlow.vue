@@ -37,7 +37,6 @@ const handleConfused = () => {
     <FlashcardRenderer
       :front="card.front"
       :back="card.back"
-      :instruction="card.instruction"
       :show-back="isRevealed"
     />
 

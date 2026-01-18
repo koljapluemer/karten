@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FlashcardFormAdd from '@/entities/flashcard/FlashcardFormAdd.vue'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
-import { addInstructionToHistory } from '@/entities/flashcard/instructionHistory'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import { showToast } from '@/app/toast/toastStore'
 import type { Tag } from '@/db/Tag'
@@ -13,7 +12,6 @@ const route = useRoute()
 
 const front = ref('')
 const back = ref('')
-const instruction = ref('')
 const tags = ref<string[]>([])
 const allTags = ref<Tag[]>([])
 
@@ -33,11 +31,7 @@ const handleSave = async () => {
     return
   }
 
-  const flashcard = await createFlashcard(front.value, back.value, instruction.value, [], tags.value)
-
-  if (instruction.value.trim()) {
-    addInstructionToHistory(instruction.value)
-  }
+  const flashcard = await createFlashcard(front.value, back.value, [], tags.value)
 
   showToast('Flashcard created', 'success')
 
@@ -76,7 +70,6 @@ const handleCancel = () => {
     <FlashcardFormAdd
       v-model:front="front"
       v-model:back="back"
-      v-model:instruction="instruction"
       v-model:tags="tags"
       :all-tags="allTags"
       @create-tag="handleCreateTag"

@@ -146,7 +146,6 @@ const handleDelete = async (id: string) => {
               <code class="bg-base-200 px-1 rounded">&#123;&#123;flashcard&#125;&#125;</code>,
               <code class="bg-base-200 px-1 rounded">&#123;&#123;front&#125;&#125;</code>,
               <code class="bg-base-200 px-1 rounded">&#123;&#123;back&#125;&#125;</code>,
-              <code class="bg-base-200 px-1 rounded">&#123;&#123;instruction&#125;&#125;</code>,
               <code class="bg-base-200 px-1 rounded">&#123;&#123;learningcontent&#125;&#125;</code>
             </p>
           </fieldset>

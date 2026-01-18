@@ -1,48 +1,25 @@
 import { getOpenAIKey } from '@/app/storage/openAIKey'
-import type { GeneratedCard, InstructionMode } from './types'
+import type { GeneratedCard } from './types'
 
-export function buildSchema(instructionMode: InstructionMode): object {
-  if (instructionMode === 'fixed') {
-    return {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        cards: {
-          type: 'array',
-          items: {
-            type: 'object',
-            additionalProperties: false,
-            properties: {
-              front: { type: 'string' },
-              back: { type: 'string' }
-            },
-            required: ['front', 'back']
-          }
+export function buildSchema(): object {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      cards: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            front: { type: 'string' },
+            back: { type: 'string' }
+          },
+          required: ['front', 'back']
         }
-      },
-      required: ['cards']
-    }
-  } else {
-    return {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        cards: {
-          type: 'array',
-          items: {
-            type: 'object',
-            additionalProperties: false,
-            properties: {
-              front: { type: 'string' },
-              back: { type: 'string' },
-              instruction: { type: 'string' }
-            },
-            required: ['front', 'back', 'instruction']
-          }
-        }
-      },
-      required: ['cards']
-    }
+      }
+    },
+    required: ['cards']
   }
 }
 
@@ -55,8 +32,7 @@ function parseCards(text: string): GeneratedCard[] {
 }
 
 export async function generateFlashcards(
-  prompt: string,
-  instructionMode: InstructionMode
+  prompt: string
 ): Promise<GeneratedCard[]> {
   const apiKey = getOpenAIKey()
   if (!apiKey) {
@@ -86,7 +62,7 @@ export async function generateFlashcards(
         json_schema: {
           name: 'generated_cards',
           strict: true,
-          schema: buildSchema(instructionMode)
+          schema: buildSchema()
         }
       }
     })

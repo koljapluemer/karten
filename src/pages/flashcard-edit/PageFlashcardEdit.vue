@@ -14,7 +14,6 @@ const route = useRoute()
 
 const front = ref('')
 const back = ref('')
-const instruction = ref('')
 const blockedBy = ref<string[]>([])
 const tags = ref<string[]>([])
 const allTags = ref<Tag[]>([])
@@ -48,7 +47,6 @@ onMounted(async () => {
     const flashcard = await getFlashcardById(id)
     front.value = flashcard.front
     back.value = flashcard.back
-    instruction.value = flashcard.instruction
     blockedBy.value = flashcard.blockedBy ?? []
     tags.value = flashcard.tags ?? []
     notFound.value = false
@@ -60,7 +58,7 @@ onMounted(async () => {
     const createdId = route.query.createdId as string
     if (createdId && !blockedBy.value.includes(createdId)) {
       blockedBy.value = [...blockedBy.value, createdId]
-      await updateFlashcard(id, front.value, back.value, instruction.value, blockedBy.value, tags.value)
+      await updateFlashcard(id, front.value, back.value, blockedBy.value, tags.value)
       showToast('Prerequisite flashcard attached', 'success')
 
       // Clean URL by removing createdId param
@@ -76,7 +74,7 @@ onMounted(async () => {
 const handleBlur = async () => {
   const id = route.params.id as string
   if (!id) return
-  await updateFlashcard(id, front.value, back.value, instruction.value, blockedBy.value, tags.value)
+  await updateFlashcard(id, front.value, back.value, blockedBy.value, tags.value)
 }
 
 const handleCreateTag = async (content: string) => {
@@ -112,7 +110,6 @@ const handleClose = () => {
       <FlashcardFormEdit
         v-model:front="front"
         v-model:back="back"
-        v-model:instruction="instruction"
         v-model:blocked-by="blockedBy"
         v-model:tags="tags"
         :all-tags="allTags"

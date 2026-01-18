@@ -7,7 +7,6 @@ const props = defineProps<{
   back: string
   showBack?: boolean
   flipped?: boolean
-  instruction: string
 }>()
 
 const cardClasses = computed(() => [
@@ -21,11 +20,6 @@ const cardClasses = computed(() => [
 </script>
 
 <template>
-  <div
-    class="text-center font-mono py-1"
-  >
-    {{ instruction }}
-  </div>
   <div
     :class="cardClasses"
     data-theme="light"

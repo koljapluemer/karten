@@ -142,7 +142,7 @@ const attachBlockedBy = async (parentId: string, childId: string) => {
   const parent = getCardById(parentId)
   if (!parent || parent.blockedBy.includes(childId)) return
   const blockedBy = [...parent.blockedBy, childId]
-  await updateFlashcard(parent.id, parent.front, parent.back, parent.instruction, blockedBy)
+  await updateFlashcard(parent.id, parent.front, parent.back, blockedBy)
   updateLocalFlashcard({ ...parent, blockedBy })
   showToast('Flashcard attached', 'success')
 }
@@ -165,7 +165,7 @@ const handleDetach = async (payload: { cardId: string; parentId: string | null }
   const parent = getCardById(payload.parentId)
   if (!parent) return
   const blockedBy = parent.blockedBy.filter((id) => id !== payload.cardId)
-  await updateFlashcard(parent.id, parent.front, parent.back, parent.instruction, blockedBy)
+  await updateFlashcard(parent.id, parent.front, parent.back, blockedBy)
   updateLocalFlashcard({ ...parent, blockedBy })
   showToast('Flashcard detached', 'info')
 }
@@ -205,7 +205,7 @@ const handleDeleteFlashcard = async (id: string) => {
 
   for (const parent of parents) {
     const blockedBy = parent.blockedBy.filter((childId) => childId !== id)
-    await updateFlashcard(parent.id, parent.front, parent.back, parent.instruction, blockedBy)
+    await updateFlashcard(parent.id, parent.front, parent.back, blockedBy)
     updateLocalFlashcard({ ...parent, blockedBy })
   }
 

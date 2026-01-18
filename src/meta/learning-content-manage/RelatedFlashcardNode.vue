@@ -41,7 +41,6 @@ const depthClass = computed(() => {
       <FlashcardRenderer
         :front="node.card.front"
         :back="node.card.back"
-        :instruction="node.card.instruction"
         :show-back="true"
       />
       <div class="flex gap-1 justify-center">

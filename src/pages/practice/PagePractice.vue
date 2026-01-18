@@ -143,7 +143,6 @@ async function handlePreviousKnowledgeAccept(cardIds: string[]) {
       pendingCard.value.id,
       pendingCard.value.front,
       pendingCard.value.back,
-      pendingCard.value.instruction,
       updatedBlockedBy
     )
     showToast(`Added ${cardIds.length} flashcards as previous knowledge`, 'success')

@@ -18,7 +18,6 @@ const emit = defineEmits<{
 const phase = ref<WizardPhase>('confirm')
 const baseContent = ref('')
 const currentText = ref('')
-const instruction = ref('Complete the missing parts')
 const selections = ref<ClozeSelection[]>([])
 
 watch(
@@ -27,7 +26,6 @@ watch(
     if (newValue) {
       baseContent.value = props.initialContent
       currentText.value = props.initialContent
-      instruction.value = 'Complete the missing parts'
       selections.value = []
       phase.value = 'confirm'
     }
@@ -37,7 +35,6 @@ watch(
 const resetWizard = () => {
   baseContent.value = ''
   currentText.value = ''
-  instruction.value = 'Complete the missing parts'
   selections.value = []
   phase.value = 'confirm'
 }
@@ -117,7 +114,6 @@ const handleFinish = async () => {
       const card = await createFlashcard(
         selection.clozedVersion,
         baseContent.value,
-        instruction.value,
         blockedBy
       )
 
@@ -165,19 +161,6 @@ const handleFinish = async () => {
             class="textarea"
             rows="8"
           />
-        </fieldset>
-
-        <fieldset class="fieldset">
-          <label
-            for="instruction"
-            class="label"
-          >Instruction</label>
-          <input
-            id="instruction"
-            v-model="instruction"
-            type="text"
-            class="input"
-          >
         </fieldset>
 
         <div class="modal-action">

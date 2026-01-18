@@ -8,14 +8,12 @@ Flashcard:
 
 Generate exactly 3 flashcards that cover foundational concepts, definitions, or related knowledge that would make this flashcard easier to learn. Each flashcard should have:
 - front: a question or prompt
-- back: the answer
-- instruction: a brief instruction for the learner (e.g., "Recall", "Explain", "Define", "Compare")`
+- back: the answer`
 
 const LEARNING_CONTENT_PROMPT = `Based on the following learning content, generate 5 flashcards.
 Each flashcard should have:
 - front: a question or prompt
 - back: the answer
-- instruction: a brief instruction for the learner (e.g., "Recall", "Explain", "Define", "Compare")
 
 Learning Content:
 ---

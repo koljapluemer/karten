@@ -10,7 +10,6 @@ export const loadFlashcards = async (): Promise<FlashCard[]> => {
 export const createFlashcard = async (
   front: string,
   back: string,
-  instruction: string,
   blockedBy: string[] = [],
   tags: string[] = []
 ): Promise<FlashCard> => {
@@ -20,7 +19,6 @@ export const createFlashcard = async (
     id,
     front,
     back,
-    instruction,
     blockedBy: [...blockedBy],
     tags: [...tags]
   }
@@ -33,14 +31,12 @@ export const updateFlashcard = async (
   id: string,
   front: string,
   back: string,
-  instruction: string,
   blockedBy: string[] = [],
   tags: string[] = []
 ): Promise<void> => {
   await db.flashcards.update(id, {
     front,
     back,
-    instruction,
     blockedBy: [...blockedBy],
     tags: [...tags]
   })

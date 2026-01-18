@@ -36,7 +36,7 @@ const loadContent = async (id: string) => {
         const parent = await getFlashcardById(attachToParentId)
         if (parent && !parent.blockedBy.includes(createdId)) {
           const updatedBlockedBy = [...parent.blockedBy, createdId]
-          await updateFlashcard(attachToParentId, parent.front, parent.back, parent.instruction, updatedBlockedBy)
+          await updateFlashcard(attachToParentId, parent.front, parent.back, updatedBlockedBy)
           showToast('Prerequisite flashcard attached', 'success')
         }
       } else if (!relatedFlashcards.value.includes(createdId)) {

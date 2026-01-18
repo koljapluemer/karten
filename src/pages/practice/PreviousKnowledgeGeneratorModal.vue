@@ -29,8 +29,7 @@ const selected = ref<Set<number>>(new Set())
 const magicValues = computed(() => ({
   flashcard: `${props.card.front}\n---\n${props.card.back}`,
   front: props.card.front,
-  back: props.card.back,
-  instruction: props.card.instruction
+  back: props.card.back
 }))
 
 const reset = () => {
@@ -85,7 +84,7 @@ const callOpenAI = async () => {
   error.value = null
 
   try {
-    results.value = await generateFlashcards(currentPrompt.value, 'ai')
+    results.value = await generateFlashcards(currentPrompt.value)
     selectAll()
     step.value = 'results'
   } catch (err) {
@@ -99,10 +98,6 @@ const selectedCards = computed(() =>
   results.value.filter((_item, index) => selected.value.has(index))
 )
 
-const getCardInstruction = (card: GeneratedCard): string => {
-  return card.instruction || 'Recall'
-}
-
 const handleAccept = async () => {
   try {
     const cardIds: string[] = []
@@ -110,7 +105,6 @@ const handleAccept = async () => {
       const created = await createFlashcard(
         card.front,
         card.back,
-        getCardInstruction(card),
         []
       )
       cardIds.push(created.id)
@@ -195,7 +189,6 @@ const handleClose = () => {
               <FlashcardRenderer
                 :front="generatedCard.front"
                 :back="generatedCard.back"
-                :instruction="getCardInstruction(generatedCard)"
                 :show-back="true"
               />
             </div>
