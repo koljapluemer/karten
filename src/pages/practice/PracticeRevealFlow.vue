@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'complete', rating: Rating): void
+  (event: 'confused'): void
 }>()
 
 const isRevealed = ref(false)
@@ -24,6 +25,10 @@ const handleReveal = () => {
 
 const handleRating = (rating: Rating) => {
   emit('complete', rating)
+}
+
+const handleConfused = () => {
+  emit('confused')
 }
 </script>
 
@@ -52,7 +57,13 @@ const handleRating = (rating: Rating) => {
       v-else
       class="flex justify-center"
     >
-      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div class="grid grid-cols-5 gap-2">
+        <button
+          class="btn btn-outline"
+          @click="handleConfused"
+        >
+          Confused
+        </button>
         <button
           class="btn btn-outline"
           @click="handleRating(Rating.Again)"

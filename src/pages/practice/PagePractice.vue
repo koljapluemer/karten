@@ -26,7 +26,6 @@ const currentCard = ref<FlashCard | null>(null)
 const previousCardId = ref<string | null>(null)
 const isLoading = ref(true)
 
-const pendingRating = ref<Rating | null>(null)
 const pendingCard = ref<FlashCard | null>(null)
 const showPreviousKnowledgeModal = ref(false)
 
@@ -113,42 +112,25 @@ async function handleNewCardComplete() {
 async function handleKnownCardComplete(rating: Rating) {
   if (!currentCard.value) return
 
-  // Rating 1 = Again, Rating 2 = Hard
-  if (rating === 1 || rating === 2) {
-    pendingRating.value = rating
-    pendingCard.value = currentCard.value
-    return
-  }
-
-  await applyRatingAndProceed(rating)
-}
-
-async function applyRatingAndProceed(rating: Rating) {
-  if (!currentCard.value) return
-
   const completedCardId = currentCard.value.id
   await updateCardProgress(completedCardId, rating)
   await incrementReviewCountForToday()
   await loadData()
   previousCardId.value = completedCardId
   currentCard.value = selectNextCard()
-  pendingRating.value = null
-  pendingCard.value = null
 }
 
-function handleContinue() {
-  if (pendingRating.value !== null) {
-    applyRatingAndProceed(pendingRating.value)
-  }
-}
+function handleConfused() {
+  if (!currentCard.value) return
 
-function handleGeneratePreviousKnowledge() {
   const apiKey = getOpenAIKey()
   if (!apiKey) {
     showToast('Please set OpenAI API key in settings', 'error')
     router.push('/settings')
     return
   }
+
+  pendingCard.value = currentCard.value
   showPreviousKnowledgeModal.value = true
 }
 
@@ -167,13 +149,31 @@ async function handlePreviousKnowledgeAccept(cardIds: string[]) {
     showToast(`Added ${cardIds.length} flashcards as previous knowledge`, 'success')
   }
 
-  if (pendingRating.value !== null) {
-    await applyRatingAndProceed(pendingRating.value)
+  // Apply "Again" rating after generating previous knowledge
+  if (pendingCard.value) {
+    const completedCardId = pendingCard.value.id
+    await updateCardProgress(completedCardId, 1 as Rating)
+    await incrementReviewCountForToday()
+    await loadData()
+    previousCardId.value = completedCardId
+    currentCard.value = selectNextCard()
+    pendingCard.value = null
   }
 }
 
-function handlePreviousKnowledgeClose() {
+async function handlePreviousKnowledgeClose() {
   showPreviousKnowledgeModal.value = false
+
+  // Apply "Again" rating even if modal is closed without generating
+  if (pendingCard.value) {
+    const completedCardId = pendingCard.value.id
+    await updateCardProgress(completedCardId, 1 as Rating)
+    await incrementReviewCountForToday()
+    await loadData()
+    previousCardId.value = completedCardId
+    currentCard.value = selectNextCard()
+    pendingCard.value = null
+  }
 }
 
 onMounted(async () => {
@@ -205,28 +205,6 @@ onMounted(async () => {
       No cards available to practice right now.
     </div>
 
-    <template v-else-if="pendingRating !== null && pendingCard">
-      <div class="text-center mb-6">
-        <p class="text-sm opacity-70 mb-4">
-          This card was difficult. Would you like to generate prerequisite flashcards?
-        </p>
-        <div class="flex gap-2 justify-center">
-          <button
-            class="btn"
-            @click="handleContinue"
-          >
-            Continue
-          </button>
-          <button
-            class="btn btn-primary"
-            @click="handleGeneratePreviousKnowledge"
-          >
-            Generate Previous Knowledge Flashcard
-          </button>
-        </div>
-      </div>
-    </template>
-
     <PracticeMemorizeFlow
       v-else-if="isCurrentCardNew"
       :card="currentCard"
@@ -237,6 +215,7 @@ onMounted(async () => {
       v-else
       :card="currentCard"
       @complete="handleKnownCardComplete"
+      @confused="handleConfused"
     />
 
     <PreviousKnowledgeGeneratorModal
