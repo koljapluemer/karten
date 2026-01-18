@@ -82,8 +82,22 @@ const cardClasses = computed(() => [
   background-color: transparent;
 }
 
-.markdown-body :deep(*) {
-  all: revert;
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  list-style: revert;
+  padding: revert;
+  margin: revert;
+}
+
+.markdown-body :deep(li) {
+  display: revert;
+}
+
+.markdown-body :deep(blockquote) {
+  border-left: 4px solid #ddd;
+  padding-left: 1em;
+  margin-left: 0;
+  color: #666;
 }
 
 .markdown-body :deep(pre) {
