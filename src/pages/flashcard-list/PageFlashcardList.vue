@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard } from '@/entities/flashcard/flashcardStore'
-import { loadTags } from '@/entities/tag/tagStore'
+import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import type { FlashCard } from '@/db/Flashcard'
@@ -60,9 +60,17 @@ const handleJsonlUpload = async (file: File) => {
   try {
     const parsed = await parseFlashcardsFromJsonl(file)
     for (const item of parsed) {
-      await createFlashcard(item.front, item.back)
+      const tagIds: string[] = []
+      if (item.tags) {
+        for (const tagContent of item.tags) {
+          const tag = await getOrCreateTag(tagContent)
+          tagIds.push(tag.id)
+        }
+      }
+      await createFlashcard(item.front, item.back, [], tagIds)
     }
     items.value = await loadFlashcards()
+    allTags.value = await loadTags()
   } finally {
     uploading.value = false
   }

@@ -1,6 +1,7 @@
 export type ParsedFlashcard = {
   front: string
   back: string
+  tags?: string[]
 }
 
 export const parseFlashcardsFromJsonl = async (file: File): Promise<ParsedFlashcard[]> => {
@@ -18,10 +19,19 @@ export const parseFlashcardsFromJsonl = async (file: File): Promise<ParsedFlashc
         typeof parsed.front === 'string' &&
         typeof parsed.back === 'string'
       ) {
-        items.push({
+        const flashcard: ParsedFlashcard = {
           front: parsed.front,
           back: parsed.back,
-        })
+        }
+
+        if (Array.isArray(parsed.tags)) {
+          const parsedTags = parsed.tags.filter((tag: unknown) => typeof tag === 'string')
+          if (parsedTags.length > 0) {
+            flashcard.tags = parsedTags
+          }
+        }
+
+        items.push(flashcard)
       }
     } catch {
       // Skip invalid JSON lines
