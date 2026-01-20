@@ -61,10 +61,11 @@ const streak = computed<number>(() => {
       >
         <Flame
           v-if="day.practiced"
-          
+          :size="16"
           class="text-orange-500"
         />
         <Circle
+          :size="16"
           v-else
         />
       </div>

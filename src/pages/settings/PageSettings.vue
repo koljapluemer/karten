@@ -46,38 +46,34 @@ const handleClearKey = () => {
   <div>
     <h1>Settings</h1>
 
-    <div class="max-w-2xl space-y-8">
+    <div class="max-w-2xl flex flex-col gap-6">
       <AuthUserInfo v-if="isLoggedIn" />
       <AuthLoginForm v-else />
 
       <fieldset class="fieldset">
-        <legend class="fieldset-legend">
-          Daily Goal
-        </legend>
+        <label class="label">Daily Goal</label>
         <div class="flex items-center gap-2">
           <input
             type="number"
             min="1"
-            class="input input-bordered w-24"
+            class="input w-24"
             :value="dailyGoal"
             @change="handleDailyGoalChange"
           >
           <span>cards per day</span>
         </div>
-        <p class="text-sm opacity-70 mt-1">
+        <p class="text-light mt-2">
           Your daily goal for flipped cards. Shown as a target line on your stats.
         </p>
       </fieldset>
 
       <fieldset class="fieldset">
-        <legend class="fieldset-legend">
-          OpenAI API Key
-        </legend>
+        <label class="label">OpenAI API Key</label>
         <div class="flex gap-2">
           <input
             v-model="openAIKey"
             type="password"
-            class="input input-bordered flex-1"
+            class="input flex-1"
             placeholder="sk-..."
             @blur="handleKeyBlur"
           >
@@ -89,7 +85,7 @@ const handleClearKey = () => {
             Clear
           </button>
         </div>
-        <p class="text-sm opacity-70 mt-1">
+        <p class="text-light mt-2">
           Used for AI-powered flashcard generation. Key is stored locally in your browser.
         </p>
       </fieldset>

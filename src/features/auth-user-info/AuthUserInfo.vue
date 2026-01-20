@@ -18,24 +18,18 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="card shadow">
-    <div class="card-body">
-      <h3 class="card-title">
-        Account
-      </h3>
-
-      <p>{{ currentUser?.email || 'Not provided' }}</p>
-
-      <div class="card-actions justify-end mt-4">
-        <button
-          class="btn btn-outline"
-          :disabled="isLoading"
-          @click="handleLogout"
-        >
-          <LogOut />
-          Logout
-        </button>
-      </div>
+  <fieldset class="fieldset">
+    <label class="label">Account</label>
+    <div class="flex items-center gap-4">
+      <span>{{ currentUser?.email || 'Not provided' }}</span>
+      <button
+        class="btn btn-outline"
+        :disabled="isLoading"
+        @click="handleLogout"
+      >
+        <LogOut />
+        Logout
+      </button>
     </div>
-  </div>
+  </fieldset>
 </template>

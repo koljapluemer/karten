@@ -24,48 +24,39 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="card shadow">
-    <div class="card-body">
-      <h3 class="card-title">
-        Sign In
-      </h3>
-      <p class="text-light">
-        Enter your email to receive a one-time password
-      </p>
-
-      <fieldset class="fieldset">
-        <label
-          for="email"
-          class="label"
-        >Email</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          name="email"
-          class="input"
-          placeholder="you@example.com"
-          :disabled="isLoading"
-          @keyup.enter="handleLogin"
-        >
-      </fieldset>
-
-      <div class="card-actions justify-end mt-4">
-        <button
-          class="btn btn-primary"
-          :disabled="isLoading"
-          @click="handleLogin"
-        >
-          <LogIn
-            v-if="!isLoading"
-          />
-          <span
-            v-if="isLoading"
-            class="loading loading-spinner"
-          />
-          {{ isLoading ? 'Sending...' : 'Send OTP' }}
-        </button>
-      </div>
+  <fieldset class="fieldset">
+    <label
+      for="email"
+      class="label"
+    >Sign In</label>
+    <p class="text-light mb-2">
+      Enter your email to receive a one-time password
+    </p>
+    <div class="flex gap-2">
+      <input
+        id="email"
+        v-model="email"
+        type="email"
+        name="email"
+        class="input flex-1"
+        placeholder="you@example.com"
+        :disabled="isLoading"
+        @keyup.enter="handleLogin"
+      >
+      <button
+        class="btn btn-primary"
+        :disabled="isLoading"
+        @click="handleLogin"
+      >
+        <LogIn
+          v-if="!isLoading"
+        />
+        <span
+          v-if="isLoading"
+          class="loading loading-spinner"
+        />
+        {{ isLoading ? 'Sending...' : 'Send OTP' }}
+      </button>
     </div>
-  </div>
+  </fieldset>
 </template>
