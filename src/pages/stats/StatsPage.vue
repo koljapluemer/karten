@@ -96,87 +96,72 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
 </script>
 
 <template>
-  <div class="w-full max-w-full">
-    <h1 class="text-2xl font-bold mb-4">
-      Stats
-    </h1>
+  <h1 class="text-2xl font-bold mb-4">
+    Stats
+  </h1>
 
-    <div class="grid gap-4">
-      <div
-        v-if="isLoading"
-        class="text-light"
-      >
-        Loading...
-      </div>
-      <div
-        v-else
-        class="stats stats-vertical lg:stats-horizontal shadow"
-      >
-        <div class="stat">
-          <div class="stat-title text-light">
-            Unseen
-          </div>
-          <div class="stat-value">
-            {{ unseenCount }}
-          </div>
+  <div class="grid gap-4">
+    <div v-if="isLoading" class="text-light">
+      Loading...
+    </div>
+    <div v-else class="stats stats-vertical lg:stats-horizontal shadow">
+      <div class="stat">
+        <div class="stat-title text-light">
+          Unseen
         </div>
-        <div class="stat">
-          <div class="stat-title text-light">
-            Due
-          </div>
-          <div class="stat-value">
-            {{ dueCount }}
-          </div>
-        </div>
-        <div class="stat">
-          <div class="stat-title text-light">
-            Not due
-          </div>
-          <div class="stat-value">
-            {{ notDueCount }}
-          </div>
+        <div class="stat-value">
+          {{ unseenCount }}
         </div>
       </div>
+      <div class="stat">
+        <div class="stat-title text-light">
+          Due
+        </div>
+        <div class="stat-value">
+          {{ dueCount }}
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-title text-light">
+          Not due
+        </div>
+        <div class="stat-value">
+          {{ notDueCount }}
+        </div>
+      </div>
+    </div>
 
-      <div
-        v-if="!isLoading"
-        class="stats stats-vertical lg:stats-horizontal shadow"
-      >
-        <div class="stat">
-          <div class="stat-title text-light">
-            Learning content
-          </div>
-          <div class="stat-value">
-            {{ learningContentCount }}
-          </div>
+    <div v-if="!isLoading" class="stats stats-vertical lg:stats-horizontal shadow">
+      <div class="stat">
+        <div class="stat-title text-light">
+          Learning content
         </div>
-        <div class="stat">
-          <div class="stat-title text-light">
-            Without flashcards
-          </div>
-          <div class="stat-value">
-            {{ learningContentWithoutFlashcardsCount }}
-          </div>
+        <div class="stat-value">
+          {{ learningContentCount }}
         </div>
       </div>
-
-      <div>
-        <h2 class="text-xl font-semibold mb-4">
-          Streak
-        </h2>
-        <StreakVisualization :data="dailyFlips" />
+      <div class="stat">
+        <div class="stat-title text-light">
+          Without flashcards
+        </div>
+        <div class="stat-value">
+          {{ learningContentWithoutFlashcardsCount }}
+        </div>
       </div>
+    </div>
 
-      <div>
-        <h2 class="text-xl font-semibold mb-4">
-          Flipped flashcards per day
-        </h2>
-        <DailyCountsChart
-          :data="dailyFlips"
-          label="Flips"
-          :goal="userSettings?.dailyFlippedCardGoal"
-        />
-      </div>
+    <div>
+      <h2 class="text-xl font-semibold mb-4">
+        Streak
+      </h2>
+      <StreakVisualization :data="dailyFlips" />
+    </div>
+
+    <div>
+      <h2 class="text-xl font-semibold mb-4">
+        Flipped flashcards per day
+      </h2>
+      <DailyCountsChart :data="dailyFlips" label="Flips" :goal="userSettings?.dailyFlippedCardGoal" />
     </div>
   </div>
 </template>

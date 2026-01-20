@@ -28,7 +28,8 @@ const flashcards = ref<FlashCard[]>([])
 const allTags = ref<Tag[]>([])
 const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const currentCard = ref<FlashCard | null>(null)
-const previousCardId = ref<string | null>(null)
+const recentCardIds = ref<string[]>([])
+const COOLDOWN_SIZE = 4
 const isLoading = ref(true)
 
 const pendingCard = ref<FlashCard | null>(null)
@@ -49,6 +50,10 @@ const currentCardTags = computed(() => {
   const tagIds = currentCard.value.tags ?? []
   return allTags.value.filter(tag => tagIds.includes(tag.id))
 })
+
+function addToRecentCards(cardId: string) {
+  recentCardIds.value = [cardId, ...recentCardIds.value].slice(0, COOLDOWN_SIZE)
+}
 
 async function loadData() {
   const [cards, progressDocs, tags] = await Promise.all([
@@ -90,11 +95,11 @@ function selectNextCard(): FlashCard | null {
 
   if (eligible.length === 0) return null
 
-  // Exclude previous card to prevent repeats
-  const eligibleExcludingPrevious = eligible.filter((c) => c.id !== previousCardId.value)
+  // Exclude recent cards to prevent repeats (4-card cooldown)
+  const eligibleExcludingRecent = eligible.filter((c) => !recentCardIds.value.includes(c.id))
 
-  // If all eligible cards were filtered out (only 1 eligible card which is previous), use eligible
-  const pool = eligibleExcludingPrevious.length > 0 ? eligibleExcludingPrevious : eligible
+  // If all eligible cards were filtered out, use eligible
+  const pool = eligibleExcludingRecent.length > 0 ? eligibleExcludingRecent : eligible
 
   const unseen = pool.filter((c) => !progressMap.value.has(c.id))
   const due = pool.filter((c) => {
@@ -128,7 +133,7 @@ async function handleNewCardComplete() {
   await initializeNewCard(completedCardId)
   await incrementReviewCountForToday()
   await loadData()
-  previousCardId.value = completedCardId
+  addToRecentCards(completedCardId)
   currentCard.value = selectNextCard()
 }
 
@@ -139,7 +144,7 @@ async function handleKnownCardComplete(rating: Rating) {
   await updateCardProgress(completedCardId, rating)
   await incrementReviewCountForToday()
   await loadData()
-  previousCardId.value = completedCardId
+  addToRecentCards(completedCardId)
   currentCard.value = selectNextCard()
 }
 
@@ -177,7 +182,7 @@ async function handlePreviousKnowledgeAccept(cardIds: string[]) {
     await updateCardProgress(completedCardId, 1 as Rating)
     await incrementReviewCountForToday()
     await loadData()
-    previousCardId.value = completedCardId
+    addToRecentCards(completedCardId)
     currentCard.value = selectNextCard()
     pendingCard.value = null
   }
@@ -192,7 +197,7 @@ async function handlePreviousKnowledgeClose() {
     await updateCardProgress(completedCardId, 1 as Rating)
     await incrementReviewCountForToday()
     await loadData()
-    previousCardId.value = completedCardId
+    addToRecentCards(completedCardId)
     currentCard.value = selectNextCard()
     pendingCard.value = null
   }
