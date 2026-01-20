@@ -34,36 +34,18 @@ const cardClasses = computed(() => [
 </script>
 
 <template>
-  <div
-    :class="cardClasses"
-    data-theme="light"
-  >
+  <div :class="cardClasses" data-theme="light">
     <div class="card-body gap-4">
-      <div
-        class="markdown-body"
-        v-html="frontHtml"
-      />
-      <div
-        v-if="props.showBack"
-        class="w-full border-t-2 border-dotted border-base-300 pt-4"
-      >
-        <div
-          class="markdown-body"
-          v-html="backHtml"
-        />
-      </div>
-      <div
-        v-if="props.tags && props.tags.length > 0"
-        class="flex flex-wrap gap-1 pt-2"
-      >
-        <span
-          v-for="tag in props.tags"
-          :key="tag.id"
-          class="badge badge-primary badge-sm"
-        >
+      <div v-if="props.tags && props.tags.length > 0" class="flex flex-wrap gap-1 pt-2">
+        <span v-for="tag in props.tags" :key="tag.id" class="badge badge-soft badge-sm">
           {{ tag.content }}
         </span>
       </div>
+      <div class="markdown-body" v-html="frontHtml" />
+      <div v-if="props.showBack" class="w-full border-t-2 border-dotted border-base-300 pt-4">
+        <div class="markdown-body" v-html="backHtml" />
+      </div>
+
     </div>
   </div>
 </template>

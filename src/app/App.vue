@@ -11,7 +11,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-screen">
+  <div class="flex flex-col justify-between items-center w-full h-full">
     <nav class="navbar bg-base-200">
       <div class="flex-1">
         <div class="flex gap-1">
@@ -62,7 +62,7 @@ onMounted(() => {
         </RouterLink>
       </div>
     </nav>
-    <main class="flex-1 container mx-auto p-4 flex flex-col">
+    <main class="flex-1 flex flex-col justify-center">
       <RouterView />
     </main>
     <ToastContainer />

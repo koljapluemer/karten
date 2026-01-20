@@ -35,60 +35,29 @@ const handleConfused = () => {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <FlashcardRenderer
-      :front="card.front"
-      :back="card.back"
-      :show-back="isRevealed"
-      :tags="props.tags"
-    />
+  <FlashcardRenderer :front="card.front" :back="card.back" :show-back="isRevealed" :tags="props.tags" />
 
-    <div
-      v-if="!isRevealed"
-      class="flex justify-center"
-    >
-      <button
-        class="btn btn-outline"
-        @click="handleReveal"
-      >
-        Reveal
-      </button>
-    </div>
+  <div v-if="!isRevealed" class="flex justify-center mt-2">
+    <button class="btn btn-outline" @click="handleReveal">
+      Reveal
+    </button>
+  </div>
 
-    <div
-      v-else
-      class="flex justify-center gap-2"
-    >
-      <button
-        class="btn btn-outline"
-        @click="handleConfused"
-      >
-        Confused
-      </button>
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Again)"
-      >
-        Again
-      </button>
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Hard)"
-      >
-        Hard
-      </button>
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Good)"
-      >
-        Good
-      </button>
-      <button
-        class="btn btn-outline"
-        @click="handleRating(Rating.Easy)"
-      >
-        Easy
-      </button>
-    </div>
+  <div v-else class="flex justify-center gap-2 mt-2">
+    <button class="btn btn-outline" @click="handleConfused">
+      Confused
+    </button>
+    <button class="btn btn-outline" @click="handleRating(Rating.Again)">
+      Again
+    </button>
+    <button class="btn btn-outline" @click="handleRating(Rating.Hard)">
+      Hard
+    </button>
+    <button class="btn btn-outline" @click="handleRating(Rating.Good)">
+      Good
+    </button>
+    <button class="btn btn-outline" @click="handleRating(Rating.Easy)">
+      Easy
+    </button>
   </div>
 </template>
