@@ -56,36 +56,36 @@ const handleConfused = () => {
       v-else
       class="flex justify-center gap-2"
     >
-        <button
-          class="btn btn-outline"
-          @click="handleConfused"
-        >
-          Confused
-        </button>
-        <button
-          class="btn btn-outline"
-          @click="handleRating(Rating.Again)"
-        >
-          Again
-        </button>
-        <button
-          class="btn btn-outline"
-          @click="handleRating(Rating.Hard)"
-        >
-          Hard
-        </button>
-        <button
-          class="btn btn-outline"
-          @click="handleRating(Rating.Good)"
-        >
-          Good
-        </button>
-        <button
-          class="btn btn-outline"
-          @click="handleRating(Rating.Easy)"
-        >
-          Easy
-        </button>
+      <button
+        class="btn btn-outline"
+        @click="handleConfused"
+      >
+        Confused
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Again)"
+      >
+        Again
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Hard)"
+      >
+        Hard
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Good)"
+      >
+        Good
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Easy)"
+      >
+        Easy
+      </button>
     </div>
   </div>
 </template>

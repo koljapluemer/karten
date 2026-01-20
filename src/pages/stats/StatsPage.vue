@@ -7,7 +7,9 @@ import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import { loadReviewCounts } from '@/entities/review-count/reviewCountStore'
 import { loadLearningContent } from '@/entities/learning-content/learningContentStore'
+import { loadUserSettings } from '@/entities/user-settings/userSettingsStore'
 import type { FlashCard } from '@/db/Flashcard'
+import type { UserSettings } from '@/db/UserSettings'
 import type { LearningProgress } from '@/db/LearningProgress'
 import type { ReviewCount } from '@/db/ReviewCount'
 import type { LearningContent } from '@/db/LearningContent'
@@ -21,6 +23,7 @@ const flashcards = ref<FlashCard[]>([])
 const progress = ref<LearningProgress[]>([])
 const reviewCounts = ref<ReviewCount[]>([])
 const learningContent = ref<LearningContent[]>([])
+const userSettings = ref<UserSettings | null>(null)
 const isLoading = ref(true)
 
 const progressIdToFlashcardId = (progressId: string): string =>
@@ -28,16 +31,18 @@ const progressIdToFlashcardId = (progressId: string): string =>
 
 const loadData = async () => {
   isLoading.value = true
-  const [cards, progressDocs, countDocs, contentDocs] = await Promise.all([
+  const [cards, progressDocs, countDocs, contentDocs, settings] = await Promise.all([
     loadFlashcards(),
     loadLearningProgress(),
     loadReviewCounts(),
-    loadLearningContent()
+    loadLearningContent(),
+    loadUserSettings()
   ])
   flashcards.value = cards
   progress.value = progressDocs
   reviewCounts.value = countDocs
   learningContent.value = contentDocs
+  userSettings.value = settings
   isLoading.value = false
 }
 
@@ -169,6 +174,7 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
         <DailyCountsChart
           :data="dailyFlips"
           label="Flips"
+          :goal="userSettings?.dailyFlippedCardGoal"
         />
       </div>
     </div>

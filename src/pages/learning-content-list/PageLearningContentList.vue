@@ -33,7 +33,7 @@ const parseTagsQuery = (value: unknown) => {
 }
 
 const parseFilterMode = (value: unknown): TagFilterMode => {
-  if (value === 'all' || value === 'any' || value === 'none') {
+  if (value === 'all' || value === 'any' || value === 'excludes') {
     return value
   }
   return 'any'

@@ -6,6 +6,7 @@ import type { LearningProgress } from './LearningProgress'
 import type { ReviewCount } from './ReviewCount'
 import type { Tag } from './Tag'
 import type { Prompt } from './Prompt'
+import type { UserSettings } from './UserSettings'
 
 
 
@@ -20,6 +21,7 @@ class KartenDatabase extends Dexie {
   declare reviewCounts: EntityTable<ReviewCount, 'id'>
   declare tags: EntityTable<Tag, 'id'>
   declare prompts: EntityTable<Prompt, 'id'>
+  declare userSettings: EntityTable<UserSettings, 'id'>
 
   constructor() {
     super('karten', { addons: [dexieCloud] })
@@ -52,6 +54,16 @@ class KartenDatabase extends Dexie {
       reviewCounts: 'id, date, owner, realmId',
       tags: 'id, content, owner, realmId',
       prompts: 'id, name, owner, realmId'
+    })
+
+    this.version(5).stores({
+      flashcards: 'id, *blockedBy, *tags, owner, realmId',
+      learningContent: 'id, *relatedFlashcards, *tags, owner, realmId',
+      learningProgress: 'id, due, owner, realmId',
+      reviewCounts: 'id, date, owner, realmId',
+      tags: 'id, content, owner, realmId',
+      prompts: 'id, name, owner, realmId',
+      userSettings: 'id, owner, realmId'
     })
   }
 }

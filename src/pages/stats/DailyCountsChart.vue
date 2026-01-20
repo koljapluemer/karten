@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
+import annotationPlugin from 'chartjs-plugin-annotation'
 import { computed } from 'vue'
 import { format, parse } from 'date-fns'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, annotationPlugin)
 
 type ChartDataPoint = {
   date: string
@@ -14,6 +15,7 @@ type ChartDataPoint = {
 const props = defineProps<{
   data: ChartDataPoint[]
   label: string
+  goal?: number
 }>()
 
 const formatDateLabel = (dateStr: string) => {
@@ -32,13 +34,31 @@ const chartData = computed(() => ({
   ]
 }))
 
-const chartOptions = {
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
       position: 'bottom' as const
-    }
+    },
+    annotation: props.goal ? {
+      annotations: {
+        goalLine: {
+          type: 'line' as const,
+          yMin: props.goal,
+          yMax: props.goal,
+          borderColor: '#10b981',
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            display: true,
+            content: `Goal: ${props.goal}`,
+            position: 'end' as const,
+            backgroundColor: '#10b981'
+          }
+        }
+      }
+    } : {}
   },
   scales: {
     y: {
@@ -48,7 +68,7 @@ const chartOptions = {
       }
     }
   }
-}
+}))
 </script>
 
 <template>
