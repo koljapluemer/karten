@@ -2,10 +2,12 @@
 import { ref, watch } from 'vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import type { FlashCard } from '@/db/Flashcard'
+import type { Tag } from '@/db/Tag'
 import { Rating } from 'ts-fsrs'
 
 const props = defineProps<{
   card: FlashCard
+  tags?: Tag[]
 }>()
 
 const emit = defineEmits<{
@@ -38,6 +40,7 @@ const handleConfused = () => {
       :front="card.front"
       :back="card.back"
       :show-back="isRevealed"
+      :tags="props.tags"
     />
 
     <div

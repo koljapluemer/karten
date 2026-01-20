@@ -18,6 +18,12 @@ const viewModalCard = ref<FlashCard | null>(null)
 const showViewModal = ref(false)
 const uploading = ref(false)
 
+const viewModalTags = computed(() => {
+  if (!viewModalCard.value) return []
+  const tagIds = viewModalCard.value.tags ?? []
+  return allTags.value.filter(tag => tagIds.includes(tag.id))
+})
+
 onMounted(async () => {
   items.value = await loadFlashcards()
   allTags.value = await loadTags()
@@ -165,6 +171,7 @@ const handleJsonlUpload = async (file: File) => {
           :front="viewModalCard.front"
           :back="viewModalCard.back"
           :show-back="true"
+          :tags="viewModalTags"
         />
         <div class="modal-action">
           <button

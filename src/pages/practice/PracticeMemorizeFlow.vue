@@ -2,9 +2,11 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import type { FlashCard } from '@/db/Flashcard'
+import type { Tag } from '@/db/Tag'
 
-defineProps<{
+const props = defineProps<{
   card: FlashCard
+  tags?: Tag[]
 }>()
 
 const emit = defineEmits<{
@@ -54,9 +56,10 @@ onBeforeUnmount(stopTimer)
 <template>
   <div class="space-y-4">
     <FlashcardRenderer
-      :front="card.front"
-      :back="card.back"
+      :front="props.card.front"
+      :back="props.card.back"
       :show-back="phase !== 'recall'"
+      :tags="props.tags"
     />
 
     <div

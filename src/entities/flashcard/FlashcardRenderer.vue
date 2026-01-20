@@ -4,6 +4,7 @@ import MarkdownIt from 'markdown-it'
 import highlightjs from 'markdown-it-highlightjs'
 import 'github-markdown-css/github-markdown-light.css'
 import 'highlight.js/styles/github.css'
+import type { Tag } from '@/db/Tag'
 
 const md = new MarkdownIt({
   breaks: true,
@@ -16,6 +17,7 @@ const props = defineProps<{
   back: string
   showBack?: boolean
   flipped?: boolean
+  tags?: Tag[]
 }>()
 
 const frontHtml = computed(() => md.render(props.front))
@@ -49,6 +51,18 @@ const cardClasses = computed(() => [
           class="markdown-body"
           v-html="backHtml"
         />
+      </div>
+      <div
+        v-if="props.tags && props.tags.length > 0"
+        class="flex flex-wrap gap-1 pt-2"
+      >
+        <span
+          v-for="tag in props.tags"
+          :key="tag.id"
+          class="badge badge-primary badge-sm"
+        >
+          {{ tag.content }}
+        </span>
       </div>
     </div>
   </div>

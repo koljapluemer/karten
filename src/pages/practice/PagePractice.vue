@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Pencil, Ban, Flag, Trash2 } from 'lucide-vue-next'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
+import { loadTags } from '@/entities/tag/tagStore'
+import type { Tag } from '@/db/Tag'
 import {
   loadLearningProgress,
   initializeNewCard,
@@ -23,6 +25,7 @@ import PreviousKnowledgeGeneratorModal from './PreviousKnowledgeGeneratorModal.v
 const router = useRouter()
 
 const flashcards = ref<FlashCard[]>([])
+const allTags = ref<Tag[]>([])
 const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const currentCard = ref<FlashCard | null>(null)
 const previousCardId = ref<string | null>(null)
@@ -41,13 +44,21 @@ const isCurrentCardArchived = computed(() => {
   return progress?.isArchived ?? false
 })
 
+const currentCardTags = computed(() => {
+  if (!currentCard.value) return []
+  const tagIds = currentCard.value.tags ?? []
+  return allTags.value.filter(tag => tagIds.includes(tag.id))
+})
+
 async function loadData() {
-  const [cards, progressDocs] = await Promise.all([
+  const [cards, progressDocs, tags] = await Promise.all([
     loadFlashcards(),
-    loadLearningProgress()
+    loadLearningProgress(),
+    loadTags()
   ])
 
   flashcards.value = cards
+  allTags.value = tags
 
   const map = new Map<string, LearningProgress>()
   progressDocs.forEach((p) => {
@@ -260,12 +271,14 @@ onMounted(async () => {
     <PracticeMemorizeFlow
       v-else-if="isCurrentCardNew"
       :card="currentCard"
+      :tags="currentCardTags"
       @complete="handleNewCardComplete"
     />
 
     <PracticeRevealFlow
       v-else
       :card="currentCard"
+      :tags="currentCardTags"
       @complete="handleKnownCardComplete"
       @confused="handleConfused"
     />

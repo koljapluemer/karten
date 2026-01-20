@@ -334,6 +334,7 @@ const handleWizardComplete = (lastCardId: string) => {
             :key="node.card.id"
             :node="node"
             :depth="0"
+            :all-tags="allTags"
             @edit="handleEditFlashcard"
             @delete="handleDeleteFlashcard"
             @detach="handleDetach"
