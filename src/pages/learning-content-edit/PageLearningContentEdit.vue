@@ -3,6 +3,8 @@ import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LearningContentManager from '@/meta/learning-content-manage/LearningContentManager.vue'
 import LearningContentEditActionBar from './LearningContentEditActionBar.vue'
+import SaveIndicator from '@/dumb/SaveIndicator.vue'
+import { useAutoSave } from '@/dumb/useAutoSave'
 import { getLearningContentById, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
@@ -63,24 +65,28 @@ watch(
   { immediate: true }
 )
 
-const handleBlur = async () => {
+const save = async () => {
   const id = route.params.id as string
   await updateLearningContent(id, content.value, relatedFlashcards.value, tags.value)
 }
+
+const { status } = useAutoSave([content, relatedFlashcards, tags], save)
 
 const handleCreateTag = async (tagContent: string) => {
   const tag = await getOrCreateTag(tagContent)
   allTags.value = await loadTags()
   tags.value = [...tags.value, tag.id]
-  await handleBlur()
 }
 </script>
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-4">
-      Edit Learning Content
-    </h1>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold">
+        Edit Learning Content
+      </h1>
+      <SaveIndicator :status="status" />
+    </div>
 
     <div v-if="notFound">
       <p>Learning content not found.</p>
@@ -101,7 +107,6 @@ const handleCreateTag = async (tagContent: string) => {
         v-model:related-flashcards="relatedFlashcards"
         v-model:tags="tags"
         :all-tags="allTags"
-        @blur="handleBlur"
         @create-tag="handleCreateTag"
       />
 

@@ -25,7 +25,6 @@ const emit = defineEmits<{
   'update:related-flashcards': [value: string[]]
   'update:tags': [value: string[]]
   'create-tag': [content: string]
-  blur: []
 }>()
 
 const router = useRouter()
@@ -239,14 +238,12 @@ const handleAIModalAccept = (cardIds: string[]) => {
   }
   relatedFlashcardsValue.value = newRelated
   aiModalOpen.value = false
-  emit('blur')
 }
 
 const handleWizardComplete = (lastCardId: string) => {
   if (!relatedFlashcardsValue.value.includes(lastCardId)) {
     relatedFlashcardsValue.value = [...relatedFlashcardsValue.value, lastCardId]
   }
-  emit('blur')
   showToast('Gradual cloze deletion created', 'success')
 }
 </script>
@@ -269,7 +266,6 @@ const handleWizardComplete = (lastCardId: string) => {
             name="learning-content"
             class="textarea"
             rows="10"
-            @blur="emit('blur')"
           />
         </fieldset>
 

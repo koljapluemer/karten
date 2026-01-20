@@ -18,7 +18,6 @@ const emit = defineEmits<{
   'update:blocked-by': [value: string[]]
   'update:tags': [value: string[]]
   'create-tag': [content: string]
-  blur: []
 }>()
 
 const frontValue = computed({
@@ -55,7 +54,6 @@ const tagsValue = computed({
         name="front"
         class="textarea"
         rows="6"
-        @blur="emit('blur')"
       />
     </fieldset>
 
@@ -70,7 +68,6 @@ const tagsValue = computed({
         name="back"
         class="textarea"
         rows="6"
-        @blur="emit('blur')"
       />
     </fieldset>
 

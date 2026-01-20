@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import LearningContentManager from '@/meta/learning-content-manage/LearningContentManager.vue'
+import SaveIndicator from '@/dumb/SaveIndicator.vue'
+import { useAutoSave } from '@/dumb/useAutoSave'
 import { createLearningContent, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import type { Tag } from '@/db/Tag'
@@ -32,16 +34,20 @@ const handleBlur = async () => {
   if (!createdId.value) {
     const item = await createLearningContent(content.value, relatedFlashcards.value, tags.value)
     createdId.value = item.id
-  } else {
-    await updateLearningContent(createdId.value, content.value, relatedFlashcards.value, tags.value)
   }
 }
+
+const save = async () => {
+  if (!createdId.value) return
+  await updateLearningContent(createdId.value, content.value, relatedFlashcards.value, tags.value)
+}
+
+const { status } = useAutoSave([content, relatedFlashcards, tags], save)
 
 const handleCreateTag = async (tagContent: string) => {
   const tag = await getOrCreateTag(tagContent)
   allTags.value = await loadTags()
   tags.value = [...tags.value, tag.id]
-  await handleBlur()
 }
 
 const handleClose = () => {
@@ -64,9 +70,15 @@ const handleAddAnother = () => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-4">
-      Add Learning Content
-    </h1>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold">
+        Add Learning Content
+      </h1>
+      <SaveIndicator
+        v-if="createdId"
+        :status="status"
+      />
+    </div>
 
     <LearningContentManager
       v-model:content="content"

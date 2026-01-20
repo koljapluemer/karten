@@ -33,3 +33,7 @@ Do not use `index.ts` file reexporting components, simply export directly.
 - KEEP. IT. SIMPLE.
 - always run `npm run build` and `npm run lint:fix` to ensure everything is well done. Fix problems by writing clean code, not by disabling the linter.
 - save inputs on blur, avoid using "Save" buttons
+
+## Forms
+
+Edit pages use `useAutoSave` composable to watch form data and auto-save on any change (debounced 500ms). Form components are pure v-model wrappers with no save logic. Add pages may use blur for initial creation, then auto-save for subsequent edits.

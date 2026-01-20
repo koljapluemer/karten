@@ -2,6 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FlashcardFormEdit from '@/entities/flashcard/FlashcardFormEdit.vue'
+import SaveIndicator from '@/dumb/SaveIndicator.vue'
+import { useAutoSave } from '@/dumb/useAutoSave'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import { db } from '@/db/db'
@@ -71,17 +73,18 @@ onMounted(async () => {
   }
 })
 
-const handleBlur = async () => {
+const save = async () => {
   const id = route.params.id as string
   if (!id) return
   await updateFlashcard(id, front.value, back.value, blockedBy.value, tags.value)
 }
 
+const { status } = useAutoSave([front, back, blockedBy, tags], save)
+
 const handleCreateTag = async (content: string) => {
   const tag = await getOrCreateTag(content)
   allTags.value = await loadTags()
   tags.value = [...tags.value, tag.id]
-  await handleBlur()
 }
 
 const handleClose = () => {
@@ -92,9 +95,12 @@ const handleClose = () => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-4">
-      Edit Flashcard
-    </h1>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold">
+        Edit Flashcard
+      </h1>
+      <SaveIndicator :status="status" />
+    </div>
 
     <div v-if="notFound">
       <p>Flashcard not found.</p>
@@ -113,7 +119,6 @@ const handleClose = () => {
         v-model:blocked-by="blockedBy"
         v-model:tags="tags"
         :all-tags="allTags"
-        @blur="handleBlur"
         @create-tag="handleCreateTag"
       />
 
