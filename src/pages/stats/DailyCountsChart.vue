@@ -29,7 +29,9 @@ const chartData = computed(() => ({
     {
       label: props.label,
       data: props.data.map(point => point.count),
-      backgroundColor: '#2563eb'
+      backgroundColor: props.data.map(point =>
+        props.goal && point.count >= props.goal ? '#10b981' : '#2563eb'
+      )
     }
   ]
 }))
