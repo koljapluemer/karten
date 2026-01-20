@@ -84,3 +84,43 @@ export const updateCardProgress = async (
     last_review: updatedCard.last_review
   })
 }
+
+const getOrCreateProgress = async (flashcardId: string): Promise<LearningProgress> => {
+  const progressId = flashcardIdToProgressId(flashcardId)
+  const existing = await db.learningProgress.get(progressId)
+
+  if (existing) return existing
+
+  const now = new Date()
+  const initialCard = createEmptyCard(now)
+  const progressEntity: LearningProgress = {
+    id: progressId,
+    due: initialCard.due,
+    stability: initialCard.stability,
+    difficulty: initialCard.difficulty,
+    elapsed_days: initialCard.elapsed_days,
+    scheduled_days: initialCard.scheduled_days,
+    learning_steps: initialCard.learning_steps,
+    reps: initialCard.reps,
+    lapses: initialCard.lapses,
+    state: initialCard.state,
+    last_review: initialCard.last_review
+  }
+
+  await db.learningProgress.add(progressEntity)
+  return progressEntity
+}
+
+export const setCardDisabled = async (flashcardId: string, isDisabled: boolean): Promise<void> => {
+  await getOrCreateProgress(flashcardId)
+  const progressId = flashcardIdToProgressId(flashcardId)
+  await db.learningProgress.update(progressId, { isDisabled })
+}
+
+export const toggleCardArchived = async (flashcardId: string): Promise<boolean> => {
+  const progress = await getOrCreateProgress(flashcardId)
+  const newValue = !progress.isArchived
+  const progressId = flashcardIdToProgressId(flashcardId)
+  await db.learningProgress.update(progressId, { isArchived: newValue })
+  return newValue
+}

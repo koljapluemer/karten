@@ -65,8 +65,8 @@ const streak = computed<number>(() => {
           class="text-orange-500"
         />
         <Circle
-          :size="16"
           v-else
+          :size="16"
         />
       </div>
     </div>

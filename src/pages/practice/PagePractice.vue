@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Pencil } from 'lucide-vue-next'
-import { loadFlashcards, updateFlashcard } from '@/entities/flashcard/flashcardStore'
+import { Pencil, Ban, Flag, Trash2 } from 'lucide-vue-next'
+import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import {
   loadLearningProgress,
   initializeNewCard,
-  updateCardProgress
+  updateCardProgress,
+  setCardDisabled,
+  toggleCardArchived
 } from '@/entities/learning-progress/LearningProgressStore'
 import { incrementReviewCountForToday } from '@/entities/review-count/reviewCountStore'
 import { getOpenAIKey } from '@/app/storage/openAIKey'
@@ -32,6 +34,12 @@ const showPreviousKnowledgeModal = ref(false)
 const isCurrentCardNew = computed(() =>
   currentCard.value ? !progressMap.value.has(currentCard.value.id) : false
 )
+
+const isCurrentCardArchived = computed(() => {
+  if (!currentCard.value) return false
+  const progress = progressMap.value.get(currentCard.value.id)
+  return progress?.isArchived ?? false
+})
 
 async function loadData() {
   const [cards, progressDocs] = await Promise.all([
@@ -63,7 +71,11 @@ function isCardEligible(card: FlashCard): boolean {
 }
 
 function selectNextCard(): FlashCard | null {
-  const eligible = flashcards.value.filter(isCardEligible)
+  const notDisabled = flashcards.value.filter((c) => {
+    const progress = progressMap.value.get(c.id)
+    return !progress?.isDisabled
+  })
+  const eligible = notDisabled.filter(isCardEligible)
 
   if (eligible.length === 0) return null
 
@@ -175,6 +187,28 @@ async function handlePreviousKnowledgeClose() {
   }
 }
 
+async function handleDisable() {
+  if (!currentCard.value) return
+  await setCardDisabled(currentCard.value.id, true)
+  await loadData()
+  currentCard.value = selectNextCard()
+}
+
+async function handleToggleArchive() {
+  if (!currentCard.value) return
+  await toggleCardArchived(currentCard.value.id)
+  await loadData()
+}
+
+async function handleDelete() {
+  if (!currentCard.value) return
+  if (!confirm('Delete this flashcard?')) return
+  const cardId = currentCard.value.id
+  await deleteFlashcard(cardId)
+  await loadData()
+  currentCard.value = selectNextCard()
+}
+
 onMounted(async () => {
   await loadData()
   currentCard.value = selectNextCard()
@@ -186,7 +220,7 @@ onMounted(async () => {
   <div>
     <div
       v-if="currentCard"
-      class="flex justify-end mb-4"
+      class="flex justify-end gap-1 mb-4"
     >
       <router-link
         :to="`/flashcards/${currentCard.id}/edit?returnTo=/practice`"
@@ -194,6 +228,25 @@ onMounted(async () => {
       >
         <Pencil />
       </router-link>
+      <button
+        class="btn btn-ghost btn-sm"
+        @click="handleDisable"
+      >
+        <Ban />
+      </button>
+      <button
+        class="btn btn-sm"
+        :class="isCurrentCardArchived ? 'btn-secondary' : 'btn-ghost'"
+        @click="handleToggleArchive"
+      >
+        <Flag />
+      </button>
+      <button
+        class="btn btn-ghost btn-sm"
+        @click="handleDelete"
+      >
+        <Trash2 />
+      </button>
     </div>
 
     <div v-if="isLoading">

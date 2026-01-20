@@ -1,0 +1,10 @@
+- add stuff to the button bar on top of [the practice page](src/pages/practice/PagePractice.vue), next to the `Pencil` icon for jumping to edit
+    - add a button to disable a card
+        - this should be saved as a property of [learning progress](src/db/LearningProgress.ts) associated with the currently open [flashcard](src/db/Flashcard.ts) (if no associated learning progress object, add one)
+        - disabling the card should immediately jump to the next exercise in practice
+        - cards where `isDisabled` is true on their associated learning progress object should not be chosen for practice, ever
+    - add a button to flag a card
+        - this should also be saved in the associated progress object
+        - the button should act as a toggle with bg-secondary when `isArchived` is true
+        - archiving has no effect on practice, neither skipping to the next exercise nor excluding the card (it semiotics will be implemented later)
+    - add a delete button deleting the currently open flashcard after confirm
