@@ -29,6 +29,7 @@ const cardClasses = computed(() => [
   'bg-white',
   'text-gray-900',
   'w-full',
+  'text-lg',
   props.flipped && 'card-flipped'
 ])
 </script>

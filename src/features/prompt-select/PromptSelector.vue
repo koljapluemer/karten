@@ -70,7 +70,7 @@ const previewHtml = computed(() => {
 
 const finalPrompt = computed(() => {
   if (isAdapting.value) {
-    return replaceMagicValues(adaptedContent.value, props.magicValues)
+    return adaptedContent.value
   }
   if (!selectedPrompt.value) return ''
   return replaceMagicValues(selectedPrompt.value.content, props.magicValues)
@@ -89,7 +89,7 @@ watch(finalPrompt, (newPrompt) => {
 
 const handleAdapt = () => {
   if (selectedPrompt.value) {
-    adaptedContent.value = selectedPrompt.value.content
+    adaptedContent.value = finalPrompt.value
     isAdapting.value = true
   }
 }

@@ -233,7 +233,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 items-center min-w-lg max-w-lg mx-auto flex-1 pt-10">
+  <div class="flex flex-col gap-4 items-center w-full max-w-lg mx-auto flex-1 pt-10 px-4">
     <div
       v-if="currentCard"
       class="flex justify-center gap-1  items-center"

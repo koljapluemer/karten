@@ -11,10 +11,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col justify-between items-center w-full h-full">
+  <div class="flex flex-col justify-between items-center w-full h-full overflow-x-hidden">
     <nav class="navbar bg-base-200">
       <div class="flex-1">
-        <div class="flex gap-1">
+        <div class="flex gap-1 overflow-x-auto">
           <RouterLink
             to="/practice"
             class="btn btn-ghost"
@@ -62,7 +62,7 @@ onMounted(() => {
         </RouterLink>
       </div>
     </nav>
-    <main class="flex-1 flex flex-col justify-center w-full container">
+    <main class="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto px-4">
       <RouterView />
     </main>
     <ToastContainer />
