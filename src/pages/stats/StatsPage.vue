@@ -101,10 +101,16 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
   </h1>
 
   <div class="grid gap-4">
-    <div v-if="isLoading" class="text-light">
+    <div
+      v-if="isLoading"
+      class="text-light"
+    >
       Loading...
     </div>
-    <div v-else class="stats stats-vertical lg:stats-horizontal shadow">
+    <div
+      v-else
+      class="stats stats-vertical lg:stats-horizontal shadow"
+    >
       <div class="stat">
         <div class="stat-title text-light">
           Unseen
@@ -131,7 +137,10 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
       </div>
     </div>
 
-    <div v-if="!isLoading" class="stats stats-vertical lg:stats-horizontal shadow">
+    <div
+      v-if="!isLoading"
+      class="stats stats-vertical lg:stats-horizontal shadow"
+    >
       <div class="stat">
         <div class="stat-title text-light">
           Learning content
@@ -161,7 +170,11 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
       <h2 class="text-xl font-semibold mb-4">
         Flipped flashcards per day
       </h2>
-      <DailyCountsChart :data="dailyFlips" label="Flips" :goal="userSettings?.dailyFlippedCardGoal" />
+      <DailyCountsChart
+        :data="dailyFlips"
+        label="Flips"
+        :goal="userSettings?.dailyFlippedCardGoal"
+      />
     </div>
   </div>
 </template>

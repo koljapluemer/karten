@@ -204,115 +204,113 @@ const handleOpenRandom = () => {
 </script>
 
 <template>
-  <div>
-    <h1 class="text-2xl font-bold mb-4">
-      Learning Content
-    </h1>
+  <h1 class="text-2xl font-bold mb-4">
+    Learning Content
+  </h1>
 
-    <div class="flex gap-4 mb-4">
-      <div class="flex gap-1">
-        <button
-          class="btn btn-sm"
-          :class="{ 'btn-active': flashcardFilter === 'all' }"
-          @click="flashcardFilter = 'all'"
-        >
-          All
-        </button>
-        <button
-          class="btn btn-sm"
-          :class="{ 'btn-active': flashcardFilter === 'with' }"
-          @click="flashcardFilter = 'with'"
-        >
-          With Flashcards
-        </button>
-        <button
-          class="btn btn-sm"
-          :class="{ 'btn-active': flashcardFilter === 'without' }"
-          @click="flashcardFilter = 'without'"
-        >
-          Without Flashcards
-        </button>
-      </div>
-
-      <input
-        v-model="searchQuery"
-        type="text"
-        class="input input-sm flex-1"
-        placeholder="Search learning content..."
-      >
-    </div>
-
-    <div
-      v-if="allTags.length > 0"
-      class="mb-4"
-    >
-      <TagFilter
-        v-model:selected-tags="filterTags"
-        v-model:mode="filterMode"
-        :all-tags="allTags"
-      />
-    </div>
-
-    <div class="flex gap-2 mb-4">
-      <button
-        class="btn btn-primary btn-sm"
-        @click="handleAdd"
-      >
-        <Plus />
-        Add Learning Content
-      </button>
-      <ZipUploadButton
-        :loading="uploading"
-        @file="handleZipUpload"
-      />
+  <div class="flex gap-4 mb-4">
+    <div class="flex gap-1">
       <button
         class="btn btn-sm"
-        @click="handleOpenRandom"
+        :class="{ 'btn-active': flashcardFilter === 'all' }"
+        @click="flashcardFilter = 'all'"
       >
-        <Shuffle />
-        Random without flashcards
+        All
+      </button>
+      <button
+        class="btn btn-sm"
+        :class="{ 'btn-active': flashcardFilter === 'with' }"
+        @click="flashcardFilter = 'with'"
+      >
+        With Flashcards
+      </button>
+      <button
+        class="btn btn-sm"
+        :class="{ 'btn-active': flashcardFilter === 'without' }"
+        @click="flashcardFilter = 'without'"
+      >
+        Without Flashcards
       </button>
     </div>
 
-    <div class="text-sm text-gray-500 mb-2">
-      Showing {{ filteredItemCount }} learning content items
-    </div>
+    <input
+      v-model="searchQuery"
+      type="text"
+      class="input input-sm flex-1"
+      placeholder="Search learning content..."
+    >
+  </div>
 
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Content</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="item in filteredItems"
-            :key="item.id"
-          >
-            <td class="truncate max-w-md">
-              {{ item.content }}
-            </td>
-            <td>
-              <div class="flex gap-2">
-                <button
-                  class="btn btn-sm btn-ghost"
-                  @click="handleEdit(item.id)"
-                >
-                  <Pencil />
-                </button>
-                <button
-                  class="btn btn-sm btn-ghost"
-                  @click="handleDelete(item.id)"
-                >
-                  <Trash2 />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div
+    v-if="allTags.length > 0"
+    class="mb-4"
+  >
+    <TagFilter
+      v-model:selected-tags="filterTags"
+      v-model:mode="filterMode"
+      :all-tags="allTags"
+    />
+  </div>
+
+  <div class="flex gap-2 mb-4">
+    <button
+      class="btn btn-primary btn-sm"
+      @click="handleAdd"
+    >
+      <Plus />
+      Add Learning Content
+    </button>
+    <ZipUploadButton
+      :loading="uploading"
+      @file="handleZipUpload"
+    />
+    <button
+      class="btn btn-sm"
+      @click="handleOpenRandom"
+    >
+      <Shuffle />
+      Random without flashcards
+    </button>
+  </div>
+
+  <div class="text-sm text-gray-500 mb-2">
+    Showing {{ filteredItemCount }} learning content items
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Content</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in filteredItems"
+          :key="item.id"
+        >
+          <td class="truncate max-w-md">
+            {{ item.content }}
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <button
+                class="btn btn-sm btn-ghost"
+                @click="handleEdit(item.id)"
+              >
+                <Pencil />
+              </button>
+              <button
+                class="btn btn-sm btn-ghost"
+                @click="handleDelete(item.id)"
+              >
+                <Trash2 />
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>

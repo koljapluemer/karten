@@ -54,21 +54,43 @@ onBeforeUnmount(stopTimer)
 </script>
 
 <template>
-  <FlashcardRenderer :front="props.card.front" :back="props.card.back" :show-back="phase !== 'recall'"
-    :tags="props.tags" />
+  <FlashcardRenderer
+    :front="props.card.front"
+    :back="props.card.back"
+    :show-back="phase !== 'recall'"
+    :tags="props.tags"
+  />
 
-  <div v-if="phase === 'memorize'" class="w-full mt-2 bg-base-200 h-2 rounded">
-    <div class="h-full bg-primary transition-[width] duration-100" :style="{ width: progressWidth }" />
+  <div
+    v-if="phase === 'memorize'"
+    class="w-full mt-2 bg-base-200 h-2 rounded"
+  >
+    <div
+      class="h-full bg-primary transition-[width] duration-100"
+      :style="{ width: progressWidth }"
+    />
   </div>
 
-  <div v-if="phase === 'recall'" class=" mt-2 flex justify-center">
-    <button class="btn btn-outline" @click="handleReveal">
+  <div
+    v-if="phase === 'recall'"
+    class=" mt-2 flex justify-center"
+  >
+    <button
+      class="btn btn-outline"
+      @click="handleReveal"
+    >
       Reveal
     </button>
   </div>
 
-  <div v-else-if="phase === 'reveal'" class="flex justify-center mt-2">
-    <button class="btn btn-outline" @click="handleDone">
+  <div
+    v-else-if="phase === 'reveal'"
+    class="flex justify-center mt-2"
+  >
+    <button
+      class="btn btn-outline"
+      @click="handleDone"
+    >
       Done
     </button>
   </div>

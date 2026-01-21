@@ -233,19 +233,34 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 items-center min-w-lg flex-1 pt-10">
-    <div v-if="currentCard" class="flex justify-center gap-1  items-center">
-      <router-link :to="`/flashcards/${currentCard.id}/edit?returnTo=/practice`" class="btn btn-ghost btn-sm">
+  <div class="flex flex-col gap-4 items-center min-w-lg max-w-lg mx-auto flex-1 pt-10">
+    <div
+      v-if="currentCard"
+      class="flex justify-center gap-1  items-center"
+    >
+      <router-link
+        :to="`/flashcards/${currentCard.id}/edit?returnTo=/practice`"
+        class="btn btn-ghost btn-sm"
+      >
         <Pencil />
       </router-link>
-      <button class="btn btn-ghost btn-sm" @click="handleDisable">
+      <button
+        class="btn btn-ghost btn-sm"
+        @click="handleDisable"
+      >
         <Ban />
       </button>
-      <button class="btn btn-sm" :class="isCurrentCardArchived ? 'btn-secondary' : 'btn-ghost'"
-        @click="handleToggleArchive">
+      <button
+        class="btn btn-sm"
+        :class="isCurrentCardArchived ? 'btn-secondary' : 'btn-ghost'"
+        @click="handleToggleArchive"
+      >
         <Flag />
       </button>
-      <button class="btn btn-ghost btn-sm" @click="handleDelete">
+      <button
+        class="btn btn-ghost btn-sm"
+        @click="handleDelete"
+      >
         <Trash2 />
       </button>
     </div>
@@ -258,13 +273,27 @@ onMounted(async () => {
       No cards available to practice right now.
     </div>
 
-    <PracticeMemorizeFlow v-else-if="isCurrentCardNew" :card="currentCard" :tags="currentCardTags"
-      @complete="handleNewCardComplete" />
+    <PracticeMemorizeFlow
+      v-else-if="isCurrentCardNew"
+      :card="currentCard"
+      :tags="currentCardTags"
+      @complete="handleNewCardComplete"
+    />
 
-    <PracticeRevealFlow v-else :card="currentCard" :tags="currentCardTags" @complete="handleKnownCardComplete"
-      @confused="handleConfused" />
+    <PracticeRevealFlow
+      v-else
+      :card="currentCard"
+      :tags="currentCardTags"
+      @complete="handleKnownCardComplete"
+      @confused="handleConfused"
+    />
 
-    <PreviousKnowledgeGeneratorModal v-if="pendingCard" :open="showPreviousKnowledgeModal" :card="pendingCard"
-      @close="handlePreviousKnowledgeClose" @accept="handlePreviousKnowledgeAccept" />
+    <PreviousKnowledgeGeneratorModal
+      v-if="pendingCard"
+      :open="showPreviousKnowledgeModal"
+      :card="pendingCard"
+      @close="handlePreviousKnowledgeClose"
+      @accept="handlePreviousKnowledgeAccept"
+    />
   </div>
 </template>

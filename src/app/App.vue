@@ -62,7 +62,7 @@ onMounted(() => {
         </RouterLink>
       </div>
     </nav>
-    <main class="flex-1 flex flex-col justify-center">
+    <main class="flex-1 flex flex-col justify-center w-full container">
       <RouterView />
     </main>
     <ToastContainer />

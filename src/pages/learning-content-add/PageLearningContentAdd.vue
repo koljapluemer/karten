@@ -6,6 +6,7 @@ import SaveIndicator from '@/dumb/SaveIndicator.vue'
 import { useAutoSave } from '@/dumb/useAutoSave'
 import { createLearningContent, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
+import { showToast } from '@/app/toast/toastStore'
 import type { Tag } from '@/db/Tag'
 
 const router = useRouter()
@@ -30,19 +31,17 @@ onMounted(async () => {
   }
 })
 
-const handleBlur = async () => {
+const createOrUpdate = async () => {
   if (!createdId.value) {
+    if (!content.value.trim()) return
     const item = await createLearningContent(content.value, relatedFlashcards.value, tags.value)
     createdId.value = item.id
+  } else {
+    await updateLearningContent(createdId.value, content.value, relatedFlashcards.value, tags.value)
   }
 }
 
-const save = async () => {
-  if (!createdId.value) return
-  await updateLearningContent(createdId.value, content.value, relatedFlashcards.value, tags.value)
-}
-
-const { status } = useAutoSave([content, relatedFlashcards, tags], save)
+const { status } = useAutoSave([content, relatedFlashcards, tags], createOrUpdate)
 
 const handleCreateTag = async (tagContent: string) => {
   const tag = await getOrCreateTag(tagContent)
@@ -50,11 +49,29 @@ const handleCreateTag = async (tagContent: string) => {
   tags.value = [...tags.value, tag.id]
 }
 
-const handleClose = () => {
+const handleSave = async () => {
+  if (!content.value.trim()) {
+    showToast('Content cannot be empty', 'error')
+    return
+  }
+  await createOrUpdate()
+  showToast('Learning content saved', 'success')
   router.push({ path: '/learning-content', query: route.query })
 }
 
-const handleAddAnother = () => {
+const handleCancel = () => {
+  showToast('Cancelled', 'info')
+  router.push({ path: '/learning-content', query: route.query })
+}
+
+const handleAddAnother = async () => {
+  if (!content.value.trim()) {
+    showToast('Content cannot be empty', 'error')
+    return
+  }
+  await createOrUpdate()
+  showToast('Learning content saved', 'success')
+
   const query: Record<string, string | string[]> = {}
   if (tags.value.length > 0) {
     query.tags = tags.value
@@ -85,22 +102,27 @@ const handleAddAnother = () => {
       v-model:related-flashcards="relatedFlashcards"
       v-model:tags="tags"
       :all-tags="allTags"
-      @blur="handleBlur"
       @create-tag="handleCreateTag"
     />
 
     <div class="flex gap-2 mt-4">
       <button
-        class="btn"
-        @click="handleClose"
+        class="btn btn-primary"
+        @click="handleSave"
       >
-        Close
+        Save
       </button>
       <button
         class="btn"
         @click="handleAddAnother"
       >
-        Add Another
+        Save & Add Another
+      </button>
+      <button
+        class="btn"
+        @click="handleCancel"
+      >
+        Cancel
       </button>
     </div>
   </div>
