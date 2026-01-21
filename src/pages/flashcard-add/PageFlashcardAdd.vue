@@ -55,7 +55,22 @@ const handleSave = async () => {
   }
 }
 
+const handleSaveAndAddAnother = async () => {
+  if (!front.value.trim() || !back.value.trim()) {
+    showToast('Front and back are required', 'error')
+    return
+  }
+
+  await createFlashcard(front.value, back.value, [], tags.value)
+  showToast('Flashcard created', 'success')
+
+  // Reset form for new entry, keeping tags
+  front.value = ''
+  back.value = ''
+}
+
 const handleCancel = () => {
+  showToast('Cancelled', 'info')
   const returnTo = route.query.returnTo as string || '/flashcards'
   router.push(returnTo)
 }
@@ -77,13 +92,19 @@ const handleCancel = () => {
 
     <div class="flex gap-2 mt-4">
       <button
-        class="btn btn-outline"
+        class="btn btn-primary"
         @click="handleSave"
       >
         Save
       </button>
       <button
-        class="btn btn-outline"
+        class="btn"
+        @click="handleSaveAndAddAnother"
+      >
+        Save & Add Another
+      </button>
+      <button
+        class="btn"
         @click="handleCancel"
       >
         Cancel
