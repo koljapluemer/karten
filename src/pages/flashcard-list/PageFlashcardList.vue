@@ -114,26 +114,25 @@ const handleJsonlUpload = async (file: File) => {
       />
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Front</th>
-            <th>Back</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="item in filteredItems"
-            :key="item.id"
-          >
-            <td class="truncate max-w-md">
-              {{ item.front }}
-            </td>
-            <td class="truncate max-w-md">
-              {{ item.back }}
-            </td>
+    <table class="table w-full table-fixed">
+      <thead>
+        <tr>
+          <th class="w-2/5">Front</th>
+          <th class="w-2/5">Back</th>
+          <th class="w-1/5">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in filteredItems"
+          :key="item.id"
+        >
+          <td class="truncate">
+            {{ item.front }}
+          </td>
+          <td class="truncate">
+            {{ item.back }}
+          </td>
             <td>
               <div class="flex gap-2">
                 <button
@@ -158,8 +157,7 @@ const handleJsonlUpload = async (file: File) => {
             </td>
           </tr>
         </tbody>
-      </table>
-    </div>
+    </table>
 
     <dialog
       :open="showViewModal"
