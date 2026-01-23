@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { RouterView, RouterLink } from 'vue-router'
-import { Settings, Play, BookOpen, Layers, ChartBarBig, MessageSquareText } from 'lucide-vue-next'
+import { Settings, Play, BookOpen, Layers, ChartBarBig, MessageSquareText, Tag } from 'lucide-vue-next'
 import { initializeAuth } from '@/entities/auth/authStore'
 import ToastContainer from './toast/ToastContainer.vue'
 
@@ -49,6 +49,13 @@ onMounted(() => {
           >
             <MessageSquareText />
             <span class="hidden sm:inline">Prompts</span>
+          </RouterLink>
+          <RouterLink
+            to="/tags"
+            class="btn btn-ghost"
+          >
+            <Tag />
+            <span class="hidden sm:inline">Tags</span>
           </RouterLink>
         </div>
       </div>

@@ -9,6 +9,7 @@ import PagePractice from '@/pages/practice/PagePractice.vue'
 import PageStats from '@/pages/stats/StatsPage.vue'
 import PageSettings from '@/pages/settings/PageSettings.vue'
 import PagePromptManage from '@/pages/prompt-manage/PagePromptManage.vue'
+import PageTagsList from '@/pages/tags-list/PageTagsList.vue'
 import { pushNavigationHistory } from './navigation/navigationStore'
 
 const router = createRouter({
@@ -67,6 +68,11 @@ const router = createRouter({
       path: '/prompts',
       name: 'prompt-manage',
       component: PagePromptManage
+    },
+    {
+      path: '/tags',
+      name: 'tags-list',
+      component: PageTagsList
     }
   ]
 })

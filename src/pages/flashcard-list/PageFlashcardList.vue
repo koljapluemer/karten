@@ -117,9 +117,15 @@ const handleJsonlUpload = async (file: File) => {
     <table class="table w-full table-fixed">
       <thead>
         <tr>
-          <th class="w-2/5">Front</th>
-          <th class="w-2/5">Back</th>
-          <th class="w-1/5">Actions</th>
+          <th class="w-2/5">
+            Front
+          </th>
+          <th class="w-2/5">
+            Back
+          </th>
+          <th class="w-1/5">
+            Actions
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -133,30 +139,30 @@ const handleJsonlUpload = async (file: File) => {
           <td class="truncate">
             {{ item.back }}
           </td>
-            <td>
-              <div class="flex gap-2">
-                <button
-                  class="btn btn-sm btn-ghost"
-                  @click="handleView(item)"
-                >
-                  <Eye />
-                </button>
-                <router-link
-                  :to="`/flashcards/${item.id}/edit`"
-                  class="btn btn-sm btn-ghost"
-                >
-                  <Pencil />
-                </router-link>
-                <button
-                  class="btn btn-sm btn-ghost"
-                  @click="handleDelete(item.id)"
-                >
-                  <Trash2 />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+          <td>
+            <div class="flex gap-2">
+              <button
+                class="btn btn-sm btn-ghost"
+                @click="handleView(item)"
+              >
+                <Eye />
+              </button>
+              <router-link
+                :to="`/flashcards/${item.id}/edit`"
+                class="btn btn-sm btn-ghost"
+              >
+                <Pencil />
+              </router-link>
+              <button
+                class="btn btn-sm btn-ghost"
+                @click="handleDelete(item.id)"
+              >
+                <Trash2 />
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
     </table>
 
     <dialog
