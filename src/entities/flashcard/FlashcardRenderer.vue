@@ -23,20 +23,12 @@ const props = defineProps<{
 const frontHtml = computed(() => md.render(props.front))
 const backHtml = computed(() => md.render(props.back))
 
-const cardClasses = computed(() => [
-  'card',
-  'shadow',
-  'bg-white',
-  'text-gray-900',
-  'w-full',
-  'text-lg',
-  props.flipped && 'card-flipped'
-])
 </script>
 
 <template>
   <div
-    :class="cardClasses"
+    class="card shadow bg-white text-gray-900 w-full text-lg"
+    :class="{ 'card-flipped': props.flipped }"
     data-theme="light"
   >
     <div class="card-body gap-4">
