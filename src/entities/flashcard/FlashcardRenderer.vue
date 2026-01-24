@@ -27,11 +27,11 @@ const backHtml = computed(() => md.render(props.back))
 
 <template>
   <div
-    class="card shadow bg-white text-gray-900 w-full text-lg"
+    class="card shadow bg-white text-gray-900 w-full max-w-full overflow-x-auto text-lg"
     :class="{ 'card-flipped': props.flipped }"
     data-theme="light"
   >
-    <div class="card-body gap-4">
+    <div class="card-body gap-4 min-w-0">
       <div
         v-if="props.tags && props.tags.length > 0"
         class="flex flex-wrap gap-1 pt-2"
@@ -87,6 +87,9 @@ const backHtml = computed(() => md.render(props.back))
 
 .markdown-body {
   background-color: transparent;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .markdown-body :deep(ul),
