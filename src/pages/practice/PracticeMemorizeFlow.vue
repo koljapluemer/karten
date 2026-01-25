@@ -41,6 +41,13 @@ const startTimer = () => {
   }, 100)
 }
 
+const handleCardClick = () => {
+  if (phase.value === 'memorize') {
+    stopTimer()
+    phase.value = 'recall'
+  }
+}
+
 const handleReveal = () => {
   phase.value = 'reveal'
 }
@@ -59,6 +66,7 @@ onBeforeUnmount(stopTimer)
     :back="props.card.back"
     :show-back="phase !== 'recall'"
     :tags="props.tags"
+    @click="handleCardClick"
   />
 
   <div
