@@ -82,6 +82,22 @@ class KartenDatabase extends Dexie {
         }
       })
     })
+
+    this.version(7).stores({
+      flashcards: 'id, *blockedBy, *tags, owner, realmId',
+      learningContent: 'id, *relatedFlashcards, *tags, owner, realmId',
+      learningProgress: 'id, due, owner, realmId',
+      reviewCounts: 'id, date, owner, realmId',
+      tags: 'id, content, owner, realmId',
+      prompts: 'id, name, owner, realmId',
+      userSettings: 'id, owner, realmId'
+    }).upgrade(tx => {
+      return tx.table('userSettings').toCollection().modify(settings => {
+        if (!('untaggedPriority' in settings)) {
+          settings.untaggedPriority = 5
+        }
+      })
+    })
   }
 }
 

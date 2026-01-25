@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router'
 import { Pencil, Ban, Flag, Trash2 } from 'lucide-vue-next'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadTags } from '@/entities/tag/tagStore'
+import { loadUserSettings } from '@/entities/user-settings/userSettingsStore'
 import { pickRandom, randomInt } from '@/dumb/random'
 import type { Tag } from '@/db/Tag'
+import type { UserSettings } from '@/db/UserSettings'
 import {
   loadLearningProgress,
   initializeNewCard,
@@ -27,6 +29,7 @@ const router = useRouter()
 
 const flashcards = ref<FlashCard[]>([])
 const allTags = ref<Tag[]>([])
+const userSettings = ref<UserSettings | null>(null)
 const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const currentCard = ref<FlashCard | null>(null)
 const recentCardIds = ref<string[]>([])
@@ -57,14 +60,16 @@ function addToRecentCards(cardId: string) {
 }
 
 async function loadData() {
-  const [cards, progressDocs, tags] = await Promise.all([
+  const [cards, progressDocs, tags, settings] = await Promise.all([
     loadFlashcards(),
     loadLearningProgress(),
-    loadTags()
+    loadTags(),
+    loadUserSettings()
   ])
 
   flashcards.value = cards
   allTags.value = tags
+  userSettings.value = settings
 
   const map = new Map<string, LearningProgress>()
   progressDocs.forEach((p) => {
@@ -112,14 +117,25 @@ function selectNextCard(): FlashCard | null {
 
   // Tag-based selection
   const roll = randomInt(0, 9)
+  const untaggedPriorityValue = userSettings.value?.untaggedPriority ?? 5
+
   const eligibleTagIds = new Set(
     allTags.value
       .filter(tag => tag.priority <= roll)
       .map(tag => tag.id)
   )
 
+  const untaggedEligible = untaggedPriorityValue <= roll
+
   const hasEligibleTag = (card: FlashCard): boolean => {
     const cardTags = card.tags ?? []
+
+    // Untagged cards: check untagged priority
+    if (cardTags.length === 0) {
+      return untaggedEligible
+    }
+
+    // Tagged cards: check if any tag is eligible
     return cardTags.some(tagId => eligibleTagIds.has(tagId))
   }
 

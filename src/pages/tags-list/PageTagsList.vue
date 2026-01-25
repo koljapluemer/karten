@@ -5,30 +5,35 @@ import { loadTags, updateTagPriority } from '@/entities/tag/tagStore'
 import { loadFlashcards, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadLearningContent } from '@/entities/learning-content/learningContentStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
+import { loadUserSettings, updateUntaggedPriority } from '@/entities/user-settings/userSettingsStore'
 import FlashcardStatsBar from '@/features/flashcard-stats-bar/FlashcardStatsBar.vue'
 import type { FlashcardCategoryCounts } from '@/features/flashcard-stats-bar/types'
 import type { Tag } from '@/db/Tag'
 import type { FlashCard } from '@/db/Flashcard'
 import type { LearningContent } from '@/db/LearningContent'
 import type { LearningProgress } from '@/db/LearningProgress'
+import type { UserSettings } from '@/db/UserSettings'
 
 const tags = ref<Tag[]>([])
 const flashcards = ref<FlashCard[]>([])
 const learningContent = ref<LearningContent[]>([])
 const learningProgress = ref<LearningProgress[]>([])
+const userSettings = ref<UserSettings | null>(null)
 const isCopying = ref(false)
 
 const loadData = async () => {
-  const [tagsData, flashcardsData, learningContentData, progressData] = await Promise.all([
+  const [tagsData, flashcardsData, learningContentData, progressData, settingsData] = await Promise.all([
     loadTags(),
     loadFlashcards(),
     loadLearningContent(),
-    loadLearningProgress()
+    loadLearningProgress(),
+    loadUserSettings()
   ])
   tags.value = tagsData
   flashcards.value = flashcardsData
   learningContent.value = learningContentData
   learningProgress.value = progressData
+  userSettings.value = settingsData
 }
 
 onMounted(() => {
@@ -104,6 +109,28 @@ const tagsWithCounts = computed<TagWithCounts[]>(() => {
     }
   })
 })
+
+const untaggedFlashcards = computed(() => {
+  return flashcards.value.filter(fc => !fc.tags?.length)
+})
+
+const untaggedStats = computed(() => {
+  return computeStatsForCards(untaggedFlashcards.value)
+})
+
+const untaggedPriority = computed(() => userSettings.value?.untaggedPriority ?? 5)
+
+const decreaseUntaggedPriority = async () => {
+  if (untaggedPriority.value <= 0) return
+  await updateUntaggedPriority(untaggedPriority.value - 1)
+  await loadData()
+}
+
+const increaseUntaggedPriority = async () => {
+  if (untaggedPriority.value >= 10) return
+  await updateUntaggedPriority(untaggedPriority.value + 1)
+  await loadData()
+}
 
 const copyTagsFromLearningContent = async () => {
   isCopying.value = true
@@ -226,6 +253,46 @@ const increasePriority = async (tag: Tag) => {
           <td>{{ item.flashcardCount }}</td>
           <td>
             <FlashcardStatsBar :counts="item.stats" />
+          </td>
+        </tr>
+        <tr class="border-t-2">
+          <td class="italic">
+            Untagged
+          </td>
+          <td>
+            <div class="flex items-center gap-1">
+              <button
+                class="btn btn-ghost btn-xs"
+                :disabled="untaggedPriority <= 0"
+                @click="decreaseUntaggedPriority"
+              >
+                <ChevronDown class="w-4 h-4" />
+              </button>
+              <span
+                v-if="untaggedPriority === 10"
+                class="w-6 text-center"
+              >
+                <Ban class="w-4 h-4 inline" />
+              </span>
+              <span
+                v-else
+                class="w-6 text-center"
+              >
+                {{ untaggedPriority }}
+              </span>
+              <button
+                class="btn btn-ghost btn-xs"
+                :disabled="untaggedPriority >= 10"
+                @click="increaseUntaggedPriority"
+              >
+                <ChevronUp class="w-4 h-4" />
+              </button>
+            </div>
+          </td>
+          <td>-</td>
+          <td>{{ untaggedFlashcards.length }}</td>
+          <td>
+            <FlashcardStatsBar :counts="untaggedStats" />
           </td>
         </tr>
       </tbody>
