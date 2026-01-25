@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { Pencil, Ban, Flag, Trash2 } from 'lucide-vue-next'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadTags } from '@/entities/tag/tagStore'
+import { pickRandom, randomInt } from '@/dumb/random'
 import type { Tag } from '@/db/Tag'
 import {
   loadLearningProgress,
@@ -109,18 +110,45 @@ function selectNextCard(): FlashCard | null {
 
   const preferUnseen = Math.random() < 0.1
 
-  const pickRandom = (items: FlashCard[]): FlashCard | null => {
-    if (items.length === 0) return null
-    return items[Math.floor(Math.random() * items.length)] ?? null
+  // Tag-based selection
+  const roll = randomInt(0, 9)
+  const eligibleTagIds = new Set(
+    allTags.value
+      .filter(tag => tag.priority <= roll)
+      .map(tag => tag.id)
+  )
+
+  const hasEligibleTag = (card: FlashCard): boolean => {
+    const cardTags = card.tags ?? []
+    return cardTags.some(tagId => eligibleTagIds.has(tagId))
   }
 
+  // Determine primary and fallback pools based on preference
+  const primaryPool = preferUnseen && unseen.length > 0 ? unseen : due
+  const fallbackPool = preferUnseen && unseen.length > 0 ? due : unseen
+
+  // Try tag-filtered primary pool
+  if (eligibleTagIds.size > 0) {
+    const tagFilteredPrimary = primaryPool.filter(hasEligibleTag)
+    if (tagFilteredPrimary.length > 0) {
+      return pickRandom(tagFilteredPrimary) ?? null
+    }
+
+    // Try tag-filtered fallback pool
+    const tagFilteredFallback = fallbackPool.filter(hasEligibleTag)
+    if (tagFilteredFallback.length > 0) {
+      return pickRandom(tagFilteredFallback) ?? null
+    }
+  }
+
+  // Fall back to existing flow (ignore tags)
   let nextCard: FlashCard | null = null
   if (preferUnseen && unseen.length > 0) {
-    nextCard = pickRandom(unseen)
+    nextCard = pickRandom(unseen) ?? null
   } else if (due.length > 0) {
-    nextCard = pickRandom(due)
+    nextCard = pickRandom(due) ?? null
   } else if (unseen.length > 0) {
-    nextCard = pickRandom(unseen)
+    nextCard = pickRandom(unseen) ?? null
   }
 
   return nextCard

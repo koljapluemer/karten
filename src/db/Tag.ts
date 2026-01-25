@@ -1,7 +1,7 @@
 export interface Tag {
   id: string
   content: string
-  importance: number
+  priority: number
   owner?: string
   realmId?: string
 }

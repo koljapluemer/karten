@@ -9,18 +9,25 @@ export const loadTags = async (): Promise<Tag[]> => {
 
 export const createTag = async (
   content: string,
-  importance: number = 5
+  priority: number = 5
 ): Promise<Tag> => {
   const id = buildTagId()
 
   const tag: Tag = {
     id,
     content,
-    importance
+    priority
   }
 
   await db.tags.add(tag)
   return tag
+}
+
+export const updateTagPriority = async (
+  id: string,
+  priority: number
+): Promise<void> => {
+  await db.tags.update(id, { priority })
 }
 
 export const getOrCreateTag = async (content: string): Promise<Tag> => {

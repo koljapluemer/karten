@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { format, subDays, startOfDay } from 'date-fns'
 import DailyCountsChart from './DailyCountsChart.vue'
 import StreakVisualization from './StreakVisualization.vue'
+import FlashcardStatsBar from '@/features/flashcard-stats-bar/FlashcardStatsBar.vue'
+import type { FlashcardCategoryCounts } from '@/features/flashcard-stats-bar/types'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import { loadReviewCounts } from '@/entities/review-count/reviewCountStore'
@@ -54,23 +56,59 @@ const flashcardIds = computed(() => new Set(flashcards.value.map(card => card.id
 const progressForExistingCards = computed(() =>
   progress.value.filter(item => flashcardIds.value.has(progressIdToFlashcardId(item.id)))
 )
-const progressFlashcardIds = computed(() =>
-  new Set(progressForExistingCards.value.map(item => progressIdToFlashcardId(item.id)))
-)
 
-const unseenCount = computed(() =>
-  flashcards.value.filter(card => !progressFlashcardIds.value.has(card.id)).length
-)
-
-const dueCount = computed(() => {
-  const now = new Date()
-  return progressForExistingCards.value.filter(item => new Date(item.due) <= now).length
+const progressMap = computed(() => {
+  const map = new Map<string, LearningProgress>()
+  progressForExistingCards.value.forEach(p => {
+    const flashcardId = progressIdToFlashcardId(p.id)
+    map.set(flashcardId, p)
+  })
+  return map
 })
 
-const notDueCount = computed(() => {
+const isCardBlocked = (card: FlashCard): boolean => {
+  for (const blockedId of card.blockedBy) {
+    const blockedProgress = progressMap.value.get(blockedId)
+    if (!blockedProgress) return true
+    const blockedDue = new Date(blockedProgress.due)
+    if (blockedDue <= new Date()) return true
+  }
+  return false
+}
+
+const flashcardStats = computed<FlashcardCategoryCounts>(() => {
   const now = new Date()
-  return progressForExistingCards.value.filter(item => new Date(item.due) > now).length
+  let unseenBlocked = 0
+  let unseenNotBlocked = 0
+  let dueBlocked = 0
+  let dueNotBlocked = 0
+  let seenNotDue = 0
+
+  for (const card of flashcards.value) {
+    const cardProgress = progressMap.value.get(card.id)
+    const blocked = isCardBlocked(card)
+
+    if (!cardProgress) {
+      if (blocked) {
+        unseenBlocked++
+      } else {
+        unseenNotBlocked++
+      }
+    } else if (new Date(cardProgress.due) <= now) {
+      if (blocked) {
+        dueBlocked++
+      } else {
+        dueNotBlocked++
+      }
+    } else {
+      seenNotDue++
+    }
+  }
+
+  return { unseenBlocked, unseenNotBlocked, dueBlocked, dueNotBlocked, seenNotDue }
 })
+
+const totalFlashcards = computed(() => flashcards.value.length)
 
 const learningContentCount = computed(() => learningContent.value.length)
 
@@ -109,32 +147,13 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
     </div>
     <div
       v-else
-      class="stats stats-vertical lg:stats-horizontal shadow"
+      class="card bg-base-200 p-4"
     >
-      <div class="stat">
-        <div class="stat-title text-light">
-          Unseen
-        </div>
-        <div class="stat-value">
-          {{ unseenCount }}
-        </div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-light">Flashcards</span>
+        <span class="font-bold">{{ totalFlashcards }}</span>
       </div>
-      <div class="stat">
-        <div class="stat-title text-light">
-          Due
-        </div>
-        <div class="stat-value">
-          {{ dueCount }}
-        </div>
-      </div>
-      <div class="stat">
-        <div class="stat-title text-light">
-          Not due
-        </div>
-        <div class="stat-value">
-          {{ notDueCount }}
-        </div>
-      </div>
+      <FlashcardStatsBar :counts="flashcardStats" />
     </div>
 
     <div

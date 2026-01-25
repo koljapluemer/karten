@@ -65,6 +65,23 @@ class KartenDatabase extends Dexie {
       prompts: 'id, name, owner, realmId',
       userSettings: 'id, owner, realmId'
     })
+
+    this.version(6).stores({
+      flashcards: 'id, *blockedBy, *tags, owner, realmId',
+      learningContent: 'id, *relatedFlashcards, *tags, owner, realmId',
+      learningProgress: 'id, due, owner, realmId',
+      reviewCounts: 'id, date, owner, realmId',
+      tags: 'id, content, owner, realmId',
+      prompts: 'id, name, owner, realmId',
+      userSettings: 'id, owner, realmId'
+    }).upgrade(tx => {
+      return tx.table('tags').toCollection().modify(tag => {
+        if ('importance' in tag) {
+          tag.priority = tag.importance
+          delete tag.importance
+        }
+      })
+    })
   }
 }
 

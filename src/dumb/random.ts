@@ -21,3 +21,7 @@ export const takeRandom = <T>(items: readonly T[], count: number): T[] => {
   if (count <= 0) return []
   return shuffleArray(items).slice(0, count)
 }
+
+export const randomInt = (min: number, max: number): number => {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
