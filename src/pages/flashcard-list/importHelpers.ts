@@ -2,6 +2,8 @@ export type ParsedFlashcard = {
   front: string
   back: string
   tags?: string[]
+  ref?: string
+  blockedBy?: string[]
 }
 
 export const parseFlashcardsFromJsonl = async (file: File): Promise<ParsedFlashcard[]> => {
@@ -28,6 +30,17 @@ export const parseFlashcardsFromJsonl = async (file: File): Promise<ParsedFlashc
           const parsedTags = parsed.tags.filter((tag: unknown) => typeof tag === 'string')
           if (parsedTags.length > 0) {
             flashcard.tags = parsedTags
+          }
+        }
+
+        if (typeof parsed.ref === 'string') {
+          flashcard.ref = parsed.ref
+        }
+
+        if (Array.isArray(parsed.blockedBy)) {
+          const parsedBlockedBy = parsed.blockedBy.filter((ref: unknown) => typeof ref === 'string')
+          if (parsedBlockedBy.length > 0) {
+            flashcard.blockedBy = parsedBlockedBy
           }
         }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
-import { loadFlashcards, deleteFlashcard, createFlashcard } from '@/entities/flashcard/flashcardStore'
+import { loadFlashcards, deleteFlashcard, createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
@@ -65,6 +65,10 @@ const handleJsonlUpload = async (file: File) => {
   uploading.value = true
   try {
     const parsed = await parseFlashcardsFromJsonl(file)
+    const refToId = new Map<string, string>()
+    const cardsWithBlockedBy: Array<{ id: string; front: string; back: string; tagIds: string[]; blockedByRefs: string[] }> = []
+
+    // Phase 1: Create all cards and build ref map
     for (const item of parsed) {
       const tagIds: string[] = []
       if (item.tags) {
@@ -73,8 +77,34 @@ const handleJsonlUpload = async (file: File) => {
           tagIds.push(tag.id)
         }
       }
-      await createFlashcard(item.front, item.back, [], tagIds)
+      const card = await createFlashcard(item.front, item.back, [], tagIds)
+
+      if (item.ref) {
+        refToId.set(item.ref, card.id)
+      }
+
+      if (item.blockedBy && item.blockedBy.length > 0) {
+        cardsWithBlockedBy.push({
+          id: card.id,
+          front: card.front,
+          back: card.back,
+          tagIds,
+          blockedByRefs: item.blockedBy
+        })
+      }
     }
+
+    // Phase 2: Resolve blockedBy references
+    for (const card of cardsWithBlockedBy) {
+      const resolvedBlockedBy = card.blockedByRefs
+        .map(ref => refToId.get(ref))
+        .filter((id): id is string => id !== undefined)
+
+      if (resolvedBlockedBy.length > 0) {
+        await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.tagIds)
+      }
+    }
+
     items.value = await loadFlashcards()
     allTags.value = await loadTags()
   } finally {
