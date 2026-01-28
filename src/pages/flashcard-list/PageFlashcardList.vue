@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { Eye, Pencil, Trash2, Plus } from 'lucide-vue-next'
+import { Eye, Pencil, Trash2, Plus, CheckSquare, Square } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
@@ -17,6 +17,7 @@ const filterMode = ref<TagFilterMode>('any')
 const viewModalCard = ref<FlashCard | null>(null)
 const showViewModal = ref(false)
 const uploading = ref(false)
+const selectedIds = ref<Set<string>>(new Set())
 
 const viewModalTags = computed(() => {
   if (!viewModalCard.value) return []
@@ -45,6 +46,40 @@ const filteredItems = computed(() => {
     }
   })
 })
+
+const allSelected = computed(() => {
+  return filteredItems.value.length > 0 && filteredItems.value.every(item => selectedIds.value.has(item.id))
+})
+
+const someSelected = computed(() => selectedIds.value.size > 0)
+
+const toggleSelect = (id: string) => {
+  const newSet = new Set(selectedIds.value)
+  if (newSet.has(id)) {
+    newSet.delete(id)
+  } else {
+    newSet.add(id)
+  }
+  selectedIds.value = newSet
+}
+
+const selectAll = () => {
+  selectedIds.value = new Set(filteredItems.value.map(item => item.id))
+}
+
+const deselectAll = () => {
+  selectedIds.value = new Set()
+}
+
+const handleDeleteSelected = async () => {
+  if (selectedIds.value.size === 0) return
+  if (!confirm(`Delete ${selectedIds.value.size} flashcard(s)?`)) return
+  for (const id of selectedIds.value) {
+    await deleteFlashcard(id)
+  }
+  selectedIds.value = new Set()
+  items.value = await loadFlashcards()
+}
 
 const handleView = (card: FlashCard) => {
   viewModalCard.value = card
@@ -133,6 +168,32 @@ const handleJsonlUpload = async (file: File) => {
       />
     </div>
 
+    <div class="flex gap-2 mb-4">
+      <button
+        class="btn btn-sm btn-outline"
+        @click="selectAll"
+      >
+        <CheckSquare class="w-4 h-4" />
+        Select All
+      </button>
+      <button
+        class="btn btn-sm btn-outline"
+        :disabled="!someSelected"
+        @click="deselectAll"
+      >
+        <Square class="w-4 h-4" />
+        Deselect All
+      </button>
+      <button
+        class="btn btn-sm btn-error"
+        :disabled="!someSelected"
+        @click="handleDeleteSelected"
+      >
+        <Trash2 class="w-4 h-4" />
+        Delete Selected ({{ selectedIds.size }})
+      </button>
+    </div>
+
     <div
       v-if="allTags.length > 0"
       class="mb-4"
@@ -147,6 +208,14 @@ const handleJsonlUpload = async (file: File) => {
     <table class="table w-full table-fixed">
       <thead>
         <tr>
+          <th class="w-12">
+            <input
+              type="checkbox"
+              class="checkbox"
+              :checked="allSelected"
+              @change="allSelected ? deselectAll() : selectAll()"
+            >
+          </th>
           <th class="w-2/5">
             Front
           </th>
@@ -163,6 +232,14 @@ const handleJsonlUpload = async (file: File) => {
           v-for="item in filteredItems"
           :key="item.id"
         >
+          <td>
+            <input
+              type="checkbox"
+              class="checkbox"
+              :checked="selectedIds.has(item.id)"
+              @change="toggleSelect(item.id)"
+            >
+          </td>
           <td class="truncate">
             {{ item.front }}
           </td>
