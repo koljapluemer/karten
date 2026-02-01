@@ -7,7 +7,8 @@ type ChartDataPoint = {
 }
 
 const props = defineProps<{
-  data: ChartDataPoint[]
+  data: ChartDataPoint[]      // 14 days for display
+  allData?: ChartDataPoint[]  // All data for streak calc
 }>()
 
 interface DayData {
@@ -23,15 +24,19 @@ const last14Days = computed<DayData[]>(() =>
 )
 
 const streak = computed<number>(() => {
-  const days = last14Days.value
+  // Use allData for streak calculation if provided, otherwise fall back to data
+  const source = props.allData ?? props.data
+
+  // Convert to DayData and sort by date descending
+  const days = source
+    .map(day => ({ date: day.date, practiced: day.count > 0 }))
+    .sort((a, b) => b.date.localeCompare(a.date))
+
   let currentStreak = 0
   let missedOne = false
 
   // Start from the most recent day and go backwards
-  for (let i = days.length - 1; i >= 0; i--) {
-    const day = days[i]
-    if (!day) continue
-
+  for (const day of days) {
     if (day.practiced) {
       currentStreak++
       missedOne = false

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import { Sparkle } from 'lucide-vue-next'
 import type { FlashCard } from '@/db/Flashcard'
 import type { Tag } from '@/db/Tag'
 
@@ -11,14 +12,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'complete'): void
+  (event: 'confused'): void
 }>()
 
-const durationMs = 5000
-const remainingMs = ref(durationMs)
+const durationMs = computed(() => {
+  const text = props.card.front + ' ' + props.card.back
+  const wordCount = text.trim().split(/\s+/).length
+  return Math.min(10000, Math.max(2500, 2500 + wordCount * 100))
+})
+const remainingMs = ref(durationMs.value)
 const phase = ref<'memorize' | 'recall' | 'reveal'>('memorize')
 let timerId: number | null = null
 
-const progressWidth = computed(() => `${(remainingMs.value / durationMs) * 100}%`)
+const progressWidth = computed(() => `${(remainingMs.value / durationMs.value) * 100}%`)
 
 const stopTimer = () => {
   if (timerId) {
@@ -29,7 +35,7 @@ const stopTimer = () => {
 
 const startTimer = () => {
   stopTimer()
-  remainingMs.value = durationMs
+  remainingMs.value = durationMs.value
   phase.value = 'memorize'
 
   timerId = window.setInterval(() => {
@@ -45,6 +51,8 @@ const handleCardClick = () => {
   if (phase.value === 'memorize') {
     stopTimer()
     phase.value = 'recall'
+  } else if (phase.value === 'recall') {
+    phase.value = 'reveal'
   }
 }
 
@@ -55,6 +63,15 @@ const handleReveal = () => {
 const handleDone = () => {
   emit('complete')
 }
+
+const handleConfused = () => {
+  emit('confused')
+}
+
+// Reset state when card changes (e.g., after delete)
+watch(() => props.card, () => {
+  startTimer()
+}, { immediate: false })
 
 onMounted(startTimer)
 onBeforeUnmount(stopTimer)
@@ -93,8 +110,15 @@ onBeforeUnmount(stopTimer)
 
   <div
     v-else-if="phase === 'reveal'"
-    class="flex justify-center mt-2"
+    class="flex justify-center gap-2 mt-2"
   >
+    <button
+      class="btn btn-outline"
+      @click="handleConfused"
+    >
+      <Sparkle :size="12" />
+      Confused
+    </button>
     <button
       class="btn btn-outline"
       @click="handleDone"

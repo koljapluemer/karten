@@ -323,6 +323,7 @@ onMounted(async () => {
       :card="currentCard"
       :tags="currentCardTags"
       @complete="handleNewCardComplete"
+      @confused="handleConfused"
     />
 
     <PracticeRevealFlow

@@ -205,72 +205,74 @@ const handleJsonlUpload = async (file: File) => {
       />
     </div>
 
-    <table class="table w-full table-fixed">
-      <thead>
-        <tr>
-          <th class="w-12">
-            <input
-              type="checkbox"
-              class="checkbox"
-              :checked="allSelected"
-              @change="allSelected ? deselectAll() : selectAll()"
-            >
-          </th>
-          <th class="w-2/5">
-            Front
-          </th>
-          <th class="w-2/5">
-            Back
-          </th>
-          <th class="w-1/5">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="item in filteredItems"
-          :key="item.id"
-        >
-          <td>
-            <input
-              type="checkbox"
-              class="checkbox"
-              :checked="selectedIds.has(item.id)"
-              @change="toggleSelect(item.id)"
-            >
-          </td>
-          <td class="truncate">
-            {{ item.front }}
-          </td>
-          <td class="truncate">
-            {{ item.back }}
-          </td>
-          <td>
-            <div class="flex gap-2">
-              <button
-                class="btn btn-sm btn-ghost"
-                @click="handleView(item)"
+    <div class="overflow-x-auto">
+      <table class="table w-full table-fixed">
+        <thead>
+          <tr>
+            <th class="w-12">
+              <input
+                type="checkbox"
+                class="checkbox"
+                :checked="allSelected"
+                @change="allSelected ? deselectAll() : selectAll()"
               >
-                <Eye />
-              </button>
-              <router-link
-                :to="`/flashcards/${item.id}/edit`"
-                class="btn btn-sm btn-ghost"
+            </th>
+            <th class="w-2/5">
+              Front
+            </th>
+            <th class="w-2/5">
+              Back
+            </th>
+            <th class="w-1/5">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in filteredItems"
+            :key="item.id"
+          >
+            <td>
+              <input
+                type="checkbox"
+                class="checkbox"
+                :checked="selectedIds.has(item.id)"
+                @change="toggleSelect(item.id)"
               >
-                <Pencil />
-              </router-link>
-              <button
-                class="btn btn-sm btn-ghost"
-                @click="handleDelete(item.id)"
-              >
-                <Trash2 />
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+            <td class="truncate">
+              {{ item.front }}
+            </td>
+            <td class="truncate">
+              {{ item.back }}
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <button
+                  class="btn btn-sm btn-ghost"
+                  @click="handleView(item)"
+                >
+                  <Eye />
+                </button>
+                <router-link
+                  :to="`/flashcards/${item.id}/edit`"
+                  class="btn btn-sm btn-ghost"
+                >
+                  <Pencil />
+                </router-link>
+                <button
+                  class="btn btn-sm btn-ghost"
+                  @click="handleDelete(item.id)"
+                >
+                  <Trash2 />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <dialog
       :open="showViewModal"

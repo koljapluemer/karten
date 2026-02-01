@@ -131,6 +131,13 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
 
   return days
 })
+
+const allDailyFlips = computed<ChartDataPoint[]>(() => {
+  return reviewCounts.value.map((item: ReviewCount) => ({
+    date: item.date,
+    count: item.count
+  }))
+})
 </script>
 
 <template>
@@ -182,7 +189,10 @@ const dailyFlips = computed<ChartDataPoint[]>(() => {
       <h2 class="text-xl font-semibold mb-4">
         Streak
       </h2>
-      <StreakVisualization :data="dailyFlips" />
+      <StreakVisualization
+        :data="dailyFlips"
+        :all-data="allDailyFlips"
+      />
     </div>
 
     <div>

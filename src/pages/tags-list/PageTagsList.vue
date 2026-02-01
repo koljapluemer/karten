@@ -198,104 +198,106 @@ const increasePriority = async (tag: Tag) => {
       No tags yet.
     </p>
 
-    <table
+    <div
       v-else
-      class="table w-full"
+      class="overflow-x-auto"
     >
-      <thead>
-        <tr>
-          <th>Tag</th>
-          <th>Priority</th>
-          <th>Learning Content</th>
-          <th>Flashcards</th>
-          <th class="min-w-48">
-            Stats
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="item in tagsWithCounts"
-          :key="item.tag.id"
-        >
-          <td>{{ item.tag.content }}</td>
-          <td>
-            <div class="flex items-center gap-1">
-              <button
-                class="btn btn-ghost btn-xs"
-                :disabled="item.tag.priority <= 0"
-                @click="decreasePriority(item.tag)"
-              >
-                <ChevronDown class="w-4 h-4" />
-              </button>
-              <span
-                v-if="item.tag.priority === 10"
-                class="w-6 text-center"
-              >
-                <Ban class="w-4 h-4 inline" />
-              </span>
-              <span
-                v-else
-                class="w-6 text-center"
-              >
-                {{ item.tag.priority }}
-              </span>
-              <button
-                class="btn btn-ghost btn-xs"
-                :disabled="item.tag.priority >= 10"
-                @click="increasePriority(item.tag)"
-              >
-                <ChevronUp class="w-4 h-4" />
-              </button>
-            </div>
-          </td>
-          <td>{{ item.learningContentCount }}</td>
-          <td>{{ item.flashcardCount }}</td>
-          <td>
-            <FlashcardStatsBar :counts="item.stats" />
-          </td>
-        </tr>
-        <tr class="border-t-2">
-          <td class="italic">
-            Untagged
-          </td>
-          <td>
-            <div class="flex items-center gap-1">
-              <button
-                class="btn btn-ghost btn-xs"
-                :disabled="untaggedPriority <= 0"
-                @click="decreaseUntaggedPriority"
-              >
-                <ChevronDown class="w-4 h-4" />
-              </button>
-              <span
-                v-if="untaggedPriority === 10"
-                class="w-6 text-center"
-              >
-                <Ban class="w-4 h-4 inline" />
-              </span>
-              <span
-                v-else
-                class="w-6 text-center"
-              >
-                {{ untaggedPriority }}
-              </span>
-              <button
-                class="btn btn-ghost btn-xs"
-                :disabled="untaggedPriority >= 10"
-                @click="increaseUntaggedPriority"
-              >
-                <ChevronUp class="w-4 h-4" />
-              </button>
-            </div>
-          </td>
-          <td>-</td>
-          <td>{{ untaggedFlashcards.length }}</td>
-          <td>
-            <FlashcardStatsBar :counts="untaggedStats" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <table class="table w-full">
+        <thead>
+          <tr>
+            <th>Tag</th>
+            <th>Priority</th>
+            <th>Learning Content</th>
+            <th>Flashcards</th>
+            <th class="min-w-48">
+              Stats
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in tagsWithCounts"
+            :key="item.tag.id"
+          >
+            <td>{{ item.tag.content }}</td>
+            <td>
+              <div class="flex items-center gap-1">
+                <button
+                  class="btn btn-ghost btn-xs"
+                  :disabled="item.tag.priority <= 0"
+                  @click="decreasePriority(item.tag)"
+                >
+                  <ChevronDown class="w-4 h-4" />
+                </button>
+                <span
+                  v-if="item.tag.priority === 10"
+                  class="w-6 text-center"
+                >
+                  <Ban class="w-4 h-4 inline" />
+                </span>
+                <span
+                  v-else
+                  class="w-6 text-center"
+                >
+                  {{ item.tag.priority }}
+                </span>
+                <button
+                  class="btn btn-ghost btn-xs"
+                  :disabled="item.tag.priority >= 10"
+                  @click="increasePriority(item.tag)"
+                >
+                  <ChevronUp class="w-4 h-4" />
+                </button>
+              </div>
+            </td>
+            <td>{{ item.learningContentCount }}</td>
+            <td>{{ item.flashcardCount }}</td>
+            <td>
+              <FlashcardStatsBar :counts="item.stats" />
+            </td>
+          </tr>
+          <tr class="border-t-2">
+            <td class="italic">
+              Untagged
+            </td>
+            <td>
+              <div class="flex items-center gap-1">
+                <button
+                  class="btn btn-ghost btn-xs"
+                  :disabled="untaggedPriority <= 0"
+                  @click="decreaseUntaggedPriority"
+                >
+                  <ChevronDown class="w-4 h-4" />
+                </button>
+                <span
+                  v-if="untaggedPriority === 10"
+                  class="w-6 text-center"
+                >
+                  <Ban class="w-4 h-4 inline" />
+                </span>
+                <span
+                  v-else
+                  class="w-6 text-center"
+                >
+                  {{ untaggedPriority }}
+                </span>
+                <button
+                  class="btn btn-ghost btn-xs"
+                  :disabled="untaggedPriority >= 10"
+                  @click="increaseUntaggedPriority"
+                >
+                  <ChevronUp class="w-4 h-4" />
+                </button>
+              </div>
+            </td>
+            <td>-</td>
+            <td>{{ untaggedFlashcards.length }}</td>
+            <td>
+              <FlashcardStatsBar :counts="untaggedStats" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>

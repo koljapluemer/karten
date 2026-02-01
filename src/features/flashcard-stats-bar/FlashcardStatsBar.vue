@@ -70,4 +70,20 @@ const getWidth = (count: number): string => {
     v-else
     class="h-4 w-full bg-base-300 rounded"
   />
+  <div
+    v-if="total > 0"
+    class="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs"
+  >
+    <span
+      v-for="segment in visibleSegments"
+      :key="segment.label"
+      class="flex items-center gap-1"
+    >
+      <span
+        :class="segment.color"
+        class="w-2 h-2 rounded"
+      />
+      {{ segment.label }}: {{ segment.count }}
+    </span>
+  </div>
 </template>

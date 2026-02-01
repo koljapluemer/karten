@@ -34,6 +34,10 @@ const handleRating = (rating: Rating) => {
 const handleConfused = () => {
   emit('confused')
 }
+
+const handleCardClick = () => {
+  if (!isRevealed.value) isRevealed.value = true
+}
 </script>
 
 <template>
@@ -42,6 +46,7 @@ const handleConfused = () => {
     :back="card.back"
     :show-back="isRevealed"
     :tags="props.tags"
+    @click="handleCardClick"
   />
 
   <div
@@ -66,35 +71,45 @@ const handleConfused = () => {
     >
       This card is a leech. Consider adapting it or add previous-knowledge cards.
     </div>
-    <div class="flex flex-col md:flex-row justify-center gap-2">
+    <!-- Mobile: Confused full-width row -->
+    <div class="w-full md:hidden">
       <button
-        class="btn btn-outline"
+        class="btn btn-outline w-full"
         @click="handleConfused"
       >
         <Sparkle :size="12" />
-
+        Confused
+      </button>
+    </div>
+    <!-- SR buttons row (+ desktop Confused) -->
+    <div class="flex justify-center gap-2 w-full">
+      <button
+        class="btn btn-outline hidden md:flex"
+        @click="handleConfused"
+      >
+        <Sparkle :size="12" />
         Confused
       </button>
       <button
-        class="btn btn-outline"
+        class="btn btn-outline flex-1 md:flex-none"
         @click="handleRating(Rating.Again)"
       >
         Again
       </button>
       <button
-        class="btn btn-outline"
+        class="btn btn-outline flex-1 md:flex-none"
         @click="handleRating(Rating.Hard)"
       >
         Hard
       </button>
       <button
-        class="btn btn-outline"
+        class="btn btn-outline flex-1 md:flex-none"
         @click="handleRating(Rating.Good)"
       >
         Good
       </button>
       <button
-        class="btn btn-outline"
+        class="btn btn-outline flex-1 md:flex-none"
         @click="handleRating(Rating.Easy)"
       >
         Easy
