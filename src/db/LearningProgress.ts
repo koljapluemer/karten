@@ -6,4 +6,5 @@ export interface LearningProgress extends Card {
   isArchived?: boolean
   owner?: string
   realmId?: string
+  leechStreakCount?: number
 }

@@ -70,6 +70,12 @@ export const updateCardProgress = async (
     updatedCard = schedulingCards[Rating.Easy].card
   }
 
+  // Leech streak tracking: increment on Again/Hard, reset on Good/Easy
+  const isWrongOrHard = rating === Rating.Again || rating === Rating.Hard
+  const newLeechStreakCount = isWrongOrHard
+    ? (existing.leechStreakCount ?? 0) + 1
+    : 0
+
   // Ensure plain object (not reactive proxy)
   await db.learningProgress.update(progressId, {
     due: updatedCard.due,
@@ -81,7 +87,8 @@ export const updateCardProgress = async (
     reps: updatedCard.reps,
     lapses: updatedCard.lapses,
     state: updatedCard.state,
-    last_review: updatedCard.last_review
+    last_review: updatedCard.last_review,
+    leechStreakCount: newLeechStreakCount
   })
 }
 

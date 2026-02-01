@@ -9,6 +9,7 @@ import { Sparkle } from 'lucide-vue-next'
 const props = defineProps<{
   card: FlashCard
   tags?: Tag[]
+  leechStreakCount?: number
 }>()
 
 const emit = defineEmits<{
@@ -57,39 +58,47 @@ const handleConfused = () => {
 
   <div
     v-else
-    class="flex flex-col md:flex-row justify-center gap-2 mt-2"
+    class="flex flex-col items-center gap-2 mt-2"
   >
-    <button
-      class="btn btn-outline"
-      @click="handleConfused"
+    <div
+      v-if="(props.leechStreakCount ?? 0) > 3"
+      class="alert alert-warning"
     >
-      <Sparkle :size="12" />
+      This card is a leech. Consider adapting it or add previous-knowledge cards.
+    </div>
+    <div class="flex flex-col md:flex-row justify-center gap-2">
+      <button
+        class="btn btn-outline"
+        @click="handleConfused"
+      >
+        <Sparkle :size="12" />
 
-      Confused
-    </button>
-    <button
-      class="btn btn-outline"
-      @click="handleRating(Rating.Again)"
-    >
-      Again
-    </button>
-    <button
-      class="btn btn-outline"
-      @click="handleRating(Rating.Hard)"
-    >
-      Hard
-    </button>
-    <button
-      class="btn btn-outline"
-      @click="handleRating(Rating.Good)"
-    >
-      Good
-    </button>
-    <button
-      class="btn btn-outline"
-      @click="handleRating(Rating.Easy)"
-    >
-      Easy
-    </button>
+        Confused
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Again)"
+      >
+        Again
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Hard)"
+      >
+        Hard
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Good)"
+      >
+        Good
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleRating(Rating.Easy)"
+      >
+        Easy
+      </button>
+    </div>
   </div>
 </template>

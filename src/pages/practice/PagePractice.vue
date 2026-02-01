@@ -31,6 +31,7 @@ const flashcards = ref<FlashCard[]>([])
 const allTags = ref<Tag[]>([])
 const userSettings = ref<UserSettings | null>(null)
 const progressMap = ref<Map<string, LearningProgress>>(new Map())
+const learningProgressByFlashcardId = progressMap
 const currentCard = ref<FlashCard | null>(null)
 const recentCardIds = ref<string[]>([])
 const COOLDOWN_SIZE = 4
@@ -328,6 +329,7 @@ onMounted(async () => {
       v-else
       :card="currentCard"
       :tags="currentCardTags"
+      :leech-streak-count="learningProgressByFlashcardId.get(currentCard.id)?.leechStreakCount"
       @complete="handleKnownCardComplete"
       @confused="handleConfused"
     />
