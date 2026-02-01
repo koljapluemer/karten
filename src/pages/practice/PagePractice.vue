@@ -320,6 +320,7 @@ onMounted(async () => {
 
     <PracticeMemorizeFlow
       v-else-if="isCurrentCardNew"
+      class="flex-1 w-full"
       :card="currentCard"
       :tags="currentCardTags"
       @complete="handleNewCardComplete"
@@ -328,6 +329,7 @@ onMounted(async () => {
 
     <PracticeRevealFlow
       v-else
+      class="flex-1 w-full"
       :card="currentCard"
       :tags="currentCardTags"
       :leech-streak-count="learningProgressByFlashcardId.get(currentCard.id)?.leechStreakCount"

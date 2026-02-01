@@ -78,52 +78,54 @@ onBeforeUnmount(stopTimer)
 </script>
 
 <template>
-  <FlashcardRenderer
-    :front="props.card.front"
-    :back="props.card.back"
-    :show-back="phase !== 'recall'"
-    :tags="props.tags"
-    @click="handleCardClick"
-  />
-
-  <div
-    v-if="phase === 'memorize'"
-    class="w-full mt-2 bg-base-200 h-2 rounded"
-  >
-    <div
-      class="h-full bg-primary transition-[width] duration-100"
-      :style="{ width: progressWidth }"
+  <div class="flex-1 flex flex-col w-full">
+    <FlashcardRenderer
+      :front="props.card.front"
+      :back="props.card.back"
+      :show-back="phase !== 'recall'"
+      :tags="props.tags"
+      @click="handleCardClick"
     />
-  </div>
 
-  <div
-    v-if="phase === 'recall'"
-    class=" mt-2 flex justify-center"
-  >
-    <button
-      class="btn btn-outline"
-      @click="handleReveal"
+    <div
+      v-if="phase === 'memorize'"
+      class="w-full mt-2 bg-base-200 h-2 rounded"
     >
-      Reveal
-    </button>
-  </div>
+      <div
+        class="h-full bg-primary transition-[width] duration-100"
+        :style="{ width: progressWidth }"
+      />
+    </div>
 
-  <div
-    v-else-if="phase === 'reveal'"
-    class="flex justify-center gap-2 mt-2"
-  >
-    <button
-      class="btn btn-outline"
-      @click="handleConfused"
+    <div
+      v-if="phase === 'recall'"
+      class="mt-auto pb-4 flex justify-center"
     >
-      <Sparkle :size="12" />
-      Confused
-    </button>
-    <button
-      class="btn btn-outline"
-      @click="handleDone"
+      <button
+        class="btn btn-outline"
+        @click="handleReveal"
+      >
+        Reveal
+      </button>
+    </div>
+
+    <div
+      v-else-if="phase === 'reveal'"
+      class="mt-auto pb-4 flex justify-center gap-2"
     >
-      Done
-    </button>
+      <button
+        class="btn btn-outline"
+        @click="handleConfused"
+      >
+        <Sparkle :size="12" />
+        Confused
+      </button>
+      <button
+        class="btn btn-outline"
+        @click="handleDone"
+      >
+        Done
+      </button>
+    </div>
   </div>
 </template>

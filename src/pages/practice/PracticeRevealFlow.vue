@@ -41,79 +41,81 @@ const handleCardClick = () => {
 </script>
 
 <template>
-  <FlashcardRenderer
-    :front="card.front"
-    :back="card.back"
-    :show-back="isRevealed"
-    :tags="props.tags"
-    @click="handleCardClick"
-  />
+  <div class="flex-1 flex flex-col w-full">
+    <FlashcardRenderer
+      :front="card.front"
+      :back="card.back"
+      :show-back="isRevealed"
+      :tags="props.tags"
+      @click="handleCardClick"
+    />
 
-  <div
-    v-if="!isRevealed"
-    class="flex justify-center mt-2"
-  >
-    <button
-      class="btn btn-outline"
-      @click="handleReveal"
-    >
-      Reveal
-    </button>
-  </div>
-
-  <div
-    v-else
-    class="flex flex-col items-center gap-2 mt-2"
-  >
     <div
-      v-if="(props.leechStreakCount ?? 0) > 3"
-      class="alert alert-warning"
+      v-if="!isRevealed"
+      class="mt-auto pb-4 flex justify-center"
     >
-      This card is a leech. Consider adapting it or add previous-knowledge cards.
-    </div>
-    <!-- Mobile: Confused full-width row -->
-    <div class="w-full md:hidden">
       <button
-        class="btn btn-outline w-full"
-        @click="handleConfused"
+        class="btn btn-outline"
+        @click="handleReveal"
       >
-        <Sparkle :size="12" />
-        Confused
+        Reveal
       </button>
     </div>
-    <!-- SR buttons row (+ desktop Confused) -->
-    <div class="flex justify-center gap-2 w-full">
-      <button
-        class="btn btn-outline hidden md:flex"
-        @click="handleConfused"
+
+    <div
+      v-else
+      class="mt-auto pb-4 flex flex-col items-center gap-2"
+    >
+      <div
+        v-if="(props.leechStreakCount ?? 0) > 3"
+        class="alert alert-warning"
       >
-        <Sparkle :size="12" />
-        Confused
-      </button>
-      <button
-        class="btn btn-outline flex-1 md:flex-none"
-        @click="handleRating(Rating.Again)"
-      >
-        Again
-      </button>
-      <button
-        class="btn btn-outline flex-1 md:flex-none"
-        @click="handleRating(Rating.Hard)"
-      >
-        Hard
-      </button>
-      <button
-        class="btn btn-outline flex-1 md:flex-none"
-        @click="handleRating(Rating.Good)"
-      >
-        Good
-      </button>
-      <button
-        class="btn btn-outline flex-1 md:flex-none"
-        @click="handleRating(Rating.Easy)"
-      >
-        Easy
-      </button>
+        This card is a leech. Consider adapting it or add previous-knowledge cards.
+      </div>
+      <!-- Mobile: Confused full-width row -->
+      <div class="w-full md:hidden">
+        <button
+          class="btn btn-outline w-full"
+          @click="handleConfused"
+        >
+          <Sparkle :size="12" />
+          Confused
+        </button>
+      </div>
+      <!-- SR buttons row (+ desktop Confused) -->
+      <div class="flex justify-center gap-2 w-full">
+        <button
+          class="btn btn-outline hidden md:flex"
+          @click="handleConfused"
+        >
+          <Sparkle :size="12" />
+          Confused
+        </button>
+        <button
+          class="btn btn-outline flex-1 md:flex-none"
+          @click="handleRating(Rating.Again)"
+        >
+          Again
+        </button>
+        <button
+          class="btn btn-outline flex-1 md:flex-none"
+          @click="handleRating(Rating.Hard)"
+        >
+          Hard
+        </button>
+        <button
+          class="btn btn-outline flex-1 md:flex-none"
+          @click="handleRating(Rating.Good)"
+        >
+          Good
+        </button>
+        <button
+          class="btn btn-outline flex-1 md:flex-none"
+          @click="handleRating(Rating.Easy)"
+        >
+          Easy
+        </button>
+      </div>
     </div>
   </div>
 </template>
