@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Pencil, Ban, Flag, Trash2 } from 'lucide-vue-next'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
@@ -20,12 +20,16 @@ import { getOpenAIKey } from '@/app/storage/openAIKey'
 import { showToast } from '@/app/toast/toastStore'
 import type { FlashCard } from '@/db/Flashcard'
 import type { LearningProgress } from '@/db/LearningProgress'
-import type { Rating } from 'ts-fsrs'
+import { Rating } from 'ts-fsrs'
 import PracticeMemorizeFlow from './PracticeMemorizeFlow.vue'
 import PracticeRevealFlow from './PracticeRevealFlow.vue'
 import PreviousKnowledgeGeneratorModal from './PreviousKnowledgeGeneratorModal.vue'
 
 const router = useRouter()
+
+const memorizeFlowRef = ref<InstanceType<typeof PracticeMemorizeFlow> | null>(null)
+const revealFlowRef = ref<InstanceType<typeof PracticeRevealFlow> | null>(null)
+const showShortcuts = ref(false)
 
 const flashcards = ref<FlashCard[]>([])
 const allTags = ref<Tag[]>([])
@@ -270,10 +274,79 @@ async function handleDelete() {
   currentCard.value = selectNextCard()
 }
 
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Control' || e.key === 'Meta') {
+    showShortcuts.value = true
+    return
+  }
+
+  if (showPreviousKnowledgeModal.value) return
+
+  const target = e.target as HTMLElement
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+
+  if (!currentCard.value) return
+
+  const key = e.key.toLowerCase()
+
+  if (key === 'e') {
+    e.preventDefault()
+    router.push(`/flashcards/${currentCard.value.id}/edit?returnTo=/practice`)
+    return
+  }
+
+  if (key === 'd') {
+    e.preventDefault()
+    handleDelete()
+    return
+  }
+
+  if (memorizeFlowRef.value) {
+    const flow = memorizeFlowRef.value
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (flow.phase === 'memorize') flow.skipToRecall()
+      else if (flow.phase === 'recall') flow.reveal()
+      else if (flow.phase === 'reveal') flow.done()
+    } else if (key === 'c' && flow.phase === 'reveal') {
+      e.preventDefault()
+      flow.confused()
+    }
+    return
+  }
+
+  if (revealFlowRef.value) {
+    const flow = revealFlowRef.value
+    if (e.key === 'Enter' && !flow.isRevealed) {
+      e.preventDefault()
+      flow.reveal()
+    } else if (flow.isRevealed) {
+      if (key === '1') { e.preventDefault(); flow.rate(Rating.Again) }
+      else if (key === '2') { e.preventDefault(); flow.rate(Rating.Hard) }
+      else if (key === '3') { e.preventDefault(); flow.rate(Rating.Good) }
+      else if (key === '4') { e.preventDefault(); flow.rate(Rating.Easy) }
+      else if (key === 'c') { e.preventDefault(); flow.confused() }
+    }
+  }
+}
+
+function onKeyup(e: KeyboardEvent) {
+  if (e.key === 'Control' || e.key === 'Meta') {
+    showShortcuts.value = false
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener('keyup', onKeyup)
   await loadData()
   currentCard.value = selectNextCard()
   isLoading.value = false
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('keyup', onKeyup)
 })
 </script>
 
@@ -320,19 +393,23 @@ onMounted(async () => {
 
     <PracticeMemorizeFlow
       v-else-if="isCurrentCardNew"
+      ref="memorizeFlowRef"
       class="flex-1 w-full"
       :card="currentCard"
       :tags="currentCardTags"
+      :show-shortcuts="showShortcuts"
       @complete="handleNewCardComplete"
       @confused="handleConfused"
     />
 
     <PracticeRevealFlow
       v-else
+      ref="revealFlowRef"
       class="flex-1 w-full"
       :card="currentCard"
       :tags="currentCardTags"
       :leech-streak-count="learningProgressByFlashcardId.get(currentCard.id)?.leechStreakCount"
+      :show-shortcuts="showShortcuts"
       @complete="handleKnownCardComplete"
       @confused="handleConfused"
     />

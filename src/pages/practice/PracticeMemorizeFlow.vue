@@ -8,6 +8,7 @@ import type { Tag } from '@/db/Tag'
 const props = defineProps<{
   card: FlashCard
   tags?: Tag[]
+  showShortcuts?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -68,6 +69,11 @@ const handleConfused = () => {
   emit('confused')
 }
 
+const skipToRecall = () => {
+  stopTimer()
+  phase.value = 'recall'
+}
+
 // Reset state when card changes (e.g., after delete)
 watch(() => props.card, () => {
   startTimer()
@@ -75,6 +81,8 @@ watch(() => props.card, () => {
 
 onMounted(startTimer)
 onBeforeUnmount(stopTimer)
+
+defineExpose({ phase, skipToRecall, reveal: handleReveal, done: handleDone, confused: handleConfused })
 </script>
 
 <template>
@@ -106,6 +114,10 @@ onBeforeUnmount(stopTimer)
         @click="handleReveal"
       >
         Reveal
+        <kbd
+          v-if="showShortcuts"
+          class="kbd kbd-sm"
+        >Enter</kbd>
       </button>
     </div>
 
@@ -119,12 +131,20 @@ onBeforeUnmount(stopTimer)
       >
         <Sparkle :size="12" />
         Confused
+        <kbd
+          v-if="showShortcuts"
+          class="kbd kbd-sm"
+        >C</kbd>
       </button>
       <button
         class="btn btn-outline"
         @click="handleDone"
       >
         Done
+        <kbd
+          v-if="showShortcuts"
+          class="kbd kbd-sm"
+        >Enter</kbd>
       </button>
     </div>
   </div>

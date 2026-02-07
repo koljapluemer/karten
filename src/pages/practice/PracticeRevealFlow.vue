@@ -10,6 +10,7 @@ const props = defineProps<{
   card: FlashCard
   tags?: Tag[]
   leechStreakCount?: number
+  showShortcuts?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -38,6 +39,8 @@ const handleConfused = () => {
 const handleCardClick = () => {
   if (!isRevealed.value) isRevealed.value = true
 }
+
+defineExpose({ isRevealed, reveal: handleReveal, rate: handleRating, confused: handleConfused })
 </script>
 
 <template>
@@ -59,6 +62,10 @@ const handleCardClick = () => {
         @click="handleReveal"
       >
         Reveal
+        <kbd
+          v-if="showShortcuts"
+          class="kbd kbd-sm"
+        >Enter</kbd>
       </button>
     </div>
 
@@ -80,6 +87,10 @@ const handleCardClick = () => {
         >
           <Sparkle :size="12" />
           Confused
+          <kbd
+            v-if="showShortcuts"
+            class="kbd kbd-sm"
+          >C</kbd>
         </button>
       </div>
       <!-- SR buttons row (+ desktop Confused) -->
@@ -90,30 +101,50 @@ const handleCardClick = () => {
         >
           <Sparkle :size="12" />
           Confused
+          <kbd
+            v-if="showShortcuts"
+            class="kbd kbd-sm"
+          >C</kbd>
         </button>
         <button
           class="btn btn-outline flex-1 md:flex-none"
           @click="handleRating(Rating.Again)"
         >
           Again
+          <kbd
+            v-if="showShortcuts"
+            class="kbd kbd-sm"
+          >1</kbd>
         </button>
         <button
           class="btn btn-outline flex-1 md:flex-none"
           @click="handleRating(Rating.Hard)"
         >
           Hard
+          <kbd
+            v-if="showShortcuts"
+            class="kbd kbd-sm"
+          >2</kbd>
         </button>
         <button
           class="btn btn-outline flex-1 md:flex-none"
           @click="handleRating(Rating.Good)"
         >
           Good
+          <kbd
+            v-if="showShortcuts"
+            class="kbd kbd-sm"
+          >3</kbd>
         </button>
         <button
           class="btn btn-outline flex-1 md:flex-none"
           @click="handleRating(Rating.Easy)"
         >
           Easy
+          <kbd
+            v-if="showShortcuts"
+            class="kbd kbd-sm"
+          >4</kbd>
         </button>
       </div>
     </div>

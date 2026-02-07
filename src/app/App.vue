@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { RouterView, RouterLink } from 'vue-router'
-import { Settings, Play, BookOpen, Layers, ChartBarBig, MessageSquareText, Tag } from 'lucide-vue-next'
+import { onMounted, computed } from 'vue'
+import { RouterView, RouterLink, useRoute } from 'vue-router'
+import { Settings, Play, BookOpen, Layers, ChartBarBig, MessageSquareText, Tag, Wind } from 'lucide-vue-next'
 import { initializeAuth } from '@/entities/auth/authStore'
 import ToastContainer from './toast/ToastContainer.vue'
+
+const route = useRoute()
+const isFloatPage = computed(() => route.name === 'float')
 
 onMounted(() => {
   initializeAuth()
@@ -57,6 +60,13 @@ onMounted(() => {
             <Tag />
             <span class="hidden sm:inline">Tags</span>
           </RouterLink>
+          <RouterLink
+            to="/float"
+            class="btn btn-ghost"
+          >
+            <Wind />
+            <span class="hidden sm:inline">Float</span>
+          </RouterLink>
         </div>
       </div>
       <div class="flex-none">
@@ -69,7 +79,10 @@ onMounted(() => {
         </RouterLink>
       </div>
     </nav>
-    <main class="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto px-4">
+    <main
+      class="flex-1 flex flex-col justify-center w-full mx-auto"
+      :class="isFloatPage ? 'relative' : 'max-w-4xl px-4'"
+    >
       <RouterView />
     </main>
     <ToastContainer />
