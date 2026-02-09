@@ -287,7 +287,11 @@ function onKeydown(e: KeyboardEvent) {
 
   if (!currentCard.value) return
 
+  // Ignore key presses with modifiers to avoid capturing Ctrl+C as "C", etc.
+  if (e.ctrlKey || e.metaKey || e.altKey) return
+
   const key = e.key.toLowerCase()
+  const isAction = e.key === 'Enter' || e.key === ' '
 
   if (key === 'e') {
     e.preventDefault()
@@ -303,7 +307,7 @@ function onKeydown(e: KeyboardEvent) {
 
   if (memorizeFlowRef.value) {
     const flow = memorizeFlowRef.value
-    if (e.key === 'Enter') {
+    if (isAction) {
       e.preventDefault()
       if (flow.phase === 'memorize') flow.skipToRecall()
       else if (flow.phase === 'recall') flow.reveal()
@@ -317,7 +321,7 @@ function onKeydown(e: KeyboardEvent) {
 
   if (revealFlowRef.value) {
     const flow = revealFlowRef.value
-    if (e.key === 'Enter' && !flow.isRevealed) {
+    if (isAction && !flow.isRevealed) {
       e.preventDefault()
       flow.reveal()
     } else if (flow.isRevealed) {
