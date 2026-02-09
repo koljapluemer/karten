@@ -7,6 +7,7 @@ import type { ReviewCount } from './ReviewCount'
 import type { Tag } from './Tag'
 import type { Prompt } from './Prompt'
 import type { UserSettings } from './UserSettings'
+import type { Media } from './Media'
 
 
 
@@ -22,6 +23,7 @@ class KartenDatabase extends Dexie {
   declare tags: EntityTable<Tag, 'id'>
   declare prompts: EntityTable<Prompt, 'id'>
   declare userSettings: EntityTable<UserSettings, 'id'>
+  declare media: EntityTable<Media, 'id'>
 
   constructor() {
     super('karten', { addons: [dexieCloud] })
@@ -97,6 +99,17 @@ class KartenDatabase extends Dexie {
           settings.untaggedPriority = 5
         }
       })
+    })
+
+    this.version(8).stores({
+      flashcards: 'id, *blockedBy, *tags, owner, realmId',
+      learningContent: 'id, *relatedFlashcards, *tags, owner, realmId',
+      learningProgress: 'id, due, owner, realmId',
+      reviewCounts: 'id, date, owner, realmId',
+      tags: 'id, content, owner, realmId',
+      prompts: 'id, name, owner, realmId',
+      userSettings: 'id, owner, realmId',
+      media: 'id, mediaType, owner, realmId'
     })
   }
 }

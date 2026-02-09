@@ -92,6 +92,8 @@ defineExpose({ phase, skipToRecall, reveal: handleReveal, done: handleDone, conf
       :back="props.card.back"
       :show-back="phase !== 'recall'"
       :tags="props.tags"
+      :front-media-ids="props.card.frontMediaIds"
+      :back-media-ids="props.card.backMediaIds"
       @click="handleCardClick"
     />
 

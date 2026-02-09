@@ -4,6 +4,7 @@ import MarkdownIt from 'markdown-it'
 import highlightjs from 'markdown-it-highlightjs'
 import 'github-markdown-css/github-markdown-light.css'
 import 'highlight.js/styles/github.css'
+import MediaAttachmentList from '@/entities/media/MediaAttachmentList.vue'
 import type { Tag } from '@/db/Tag'
 
 const md = new MarkdownIt({
@@ -18,6 +19,8 @@ const props = defineProps<{
   showBack?: boolean
   flipped?: boolean
   tags?: Tag[]
+  frontMediaIds?: string[]
+  backMediaIds?: string[]
 }>()
 
 const frontHtml = computed(() => md.render(props.front))
@@ -48,6 +51,11 @@ const backHtml = computed(() => md.render(props.back))
         class="markdown-body"
         v-html="frontHtml"
       />
+      <MediaAttachmentList
+        v-if="props.frontMediaIds && props.frontMediaIds.length > 0"
+        :media-ids="props.frontMediaIds"
+        readonly
+      />
       <div
         v-if="props.showBack"
         class="w-full border-t-2 border-dotted border-base-300 pt-4"
@@ -55,6 +63,11 @@ const backHtml = computed(() => md.render(props.back))
         <div
           class="markdown-body"
           v-html="backHtml"
+        />
+        <MediaAttachmentList
+          v-if="props.backMediaIds && props.backMediaIds.length > 0"
+          :media-ids="props.backMediaIds"
+          readonly
         />
       </div>
     </div>

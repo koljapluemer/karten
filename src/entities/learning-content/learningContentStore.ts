@@ -10,7 +10,8 @@ export const loadLearningContent = async (): Promise<LearningContent[]> => {
 export const createLearningContent = async (
   content: string,
   relatedFlashcards: string[] = [],
-  tags: string[] = []
+  tags: string[] = [],
+  mediaIds: string[] = []
 ): Promise<LearningContent> => {
   const id = buildLearningContentId()
 
@@ -18,7 +19,8 @@ export const createLearningContent = async (
     id,
     content,
     relatedFlashcards: [...relatedFlashcards],
-    tags: [...tags]
+    tags: [...tags],
+    mediaIds: [...mediaIds]
   }
 
   await db.learningContent.add(entity)
@@ -29,12 +31,14 @@ export const updateLearningContent = async (
   id: string,
   content: string,
   relatedFlashcards: string[] = [],
-  tags: string[] = []
+  tags: string[] = [],
+  mediaIds: string[] = []
 ): Promise<void> => {
   await db.learningContent.update(id, {
     content,
     relatedFlashcards: [...relatedFlashcards],
-    tags: [...tags]
+    tags: [...tags],
+    mediaIds: [...mediaIds]
   })
 }
 

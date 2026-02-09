@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Shuffle, Trash2 } from 'lucide-vue-next'
 import { useRouter, useRoute } from 'vue-router'
-import { loadLearningContent, deleteLearningContent } from '@/entities/learning-content/learningContentStore'
+import { loadLearningContent, deleteLearningContent, getLearningContentById } from '@/entities/learning-content/learningContentStore'
+import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { showToast } from '@/app/toast/toastStore'
 import { pickRandom } from '@/dumb/random'
 
@@ -18,7 +19,15 @@ const handleClose = () => {
 
 const handleDelete = async () => {
   if (!confirm('Delete this learning content?')) return
+  let mediaToCleanup: string[] = []
+  try {
+    const item = await getLearningContentById(props.currentId)
+    mediaToCleanup = item.mediaIds ?? []
+  } catch {
+    // Item may already be gone
+  }
   await deleteLearningContent(props.currentId)
+  await cleanupOrphanedMedia(mediaToCleanup)
   showToast('Learning content deleted', 'info')
   router.push({ path: '/learning-content', query: route.query })
 }

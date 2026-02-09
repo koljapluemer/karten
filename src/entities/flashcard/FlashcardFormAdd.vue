@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import TagInput from '@/dumb/TagInput.vue'
+import MediaSection from '@/entities/media/MediaSection.vue'
 import type { Tag } from '@/db/Tag'
 
 const props = defineProps<{
   front: string
   back: string
   tags: string[]
+  frontMediaIds: string[]
+  backMediaIds: string[]
   allTags: Tag[]
 }>()
 
@@ -14,6 +17,8 @@ const emit = defineEmits<{
   'update:front': [value: string]
   'update:back': [value: string]
   'update:tags': [value: string[]]
+  'update:frontMediaIds': [value: string[]]
+  'update:backMediaIds': [value: string[]]
   'create-tag': [content: string]
 }>()
 
@@ -49,6 +54,12 @@ const tagsValue = computed({
       />
     </fieldset>
 
+    <MediaSection
+      :media-ids="props.frontMediaIds"
+      label="Front Media"
+      @update:media-ids="(v) => emit('update:frontMediaIds', v)"
+    />
+
     <fieldset class="fieldset">
       <label
         for="back"
@@ -62,6 +73,12 @@ const tagsValue = computed({
         rows="6"
       />
     </fieldset>
+
+    <MediaSection
+      :media-ids="props.backMediaIds"
+      label="Back Media"
+      @update:media-ids="(v) => emit('update:backMediaIds', v)"
+    />
 
     <fieldset class="fieldset">
       <label class="label">Tags</label>

@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
+import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { loadTags } from '@/entities/tag/tagStore'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import ZipUploadButton from './ZipUploadButton.vue'
@@ -171,8 +172,11 @@ const handleEdit = (id: string) => {
 
 const handleDelete = async (id: string) => {
   if (!confirm('Delete this learning content?')) return
+  const item = items.value.find(i => i.id === id)
+  const mediaToCleanup = item?.mediaIds ?? []
   await deleteLearningContent(id)
   items.value = await loadLearningContent()
+  await cleanupOrphanedMedia(mediaToCleanup)
 }
 
 const handleZipUpload = async (file: File) => {

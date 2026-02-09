@@ -16,6 +16,7 @@ const route = useRoute()
 const content = ref('')
 const relatedFlashcards = ref<string[]>([])
 const tags = ref<string[]>([])
+const mediaIds = ref<string[]>([])
 const allTags = ref<Tag[]>([])
 const notFound = ref(false)
 
@@ -27,6 +28,7 @@ const loadContent = async (id: string) => {
     content.value = item.content
     relatedFlashcards.value = item.relatedFlashcards ?? []
     tags.value = item.tags ?? []
+    mediaIds.value = item.mediaIds ?? []
 
     // Handle auto-attach of newly created flashcard
     const createdId = route.query.createdId as string
@@ -67,10 +69,10 @@ watch(
 
 const save = async () => {
   const id = route.params.id as string
-  await updateLearningContent(id, content.value, relatedFlashcards.value, tags.value)
+  await updateLearningContent(id, content.value, relatedFlashcards.value, tags.value, mediaIds.value)
 }
 
-const { status } = useAutoSave([content, relatedFlashcards, tags], save)
+const { status } = useAutoSave([content, relatedFlashcards, tags, mediaIds], save)
 
 const handleCreateTag = async (tagContent: string) => {
   const tag = await getOrCreateTag(tagContent)
@@ -106,6 +108,7 @@ const handleCreateTag = async (tagContent: string) => {
         v-model:content="content"
         v-model:related-flashcards="relatedFlashcards"
         v-model:tags="tags"
+        v-model:media-ids="mediaIds"
         :all-tags="allTags"
         @create-tag="handleCreateTag"
       />

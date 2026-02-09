@@ -14,6 +14,7 @@ const route = useRoute()
 const content = ref('')
 const relatedFlashcards = ref<string[]>([])
 const tags = ref<string[]>([])
+const mediaIds = ref<string[]>([])
 const allTags = ref<Tag[]>([])
 const createdId = ref<string | null>(null)
 
@@ -34,14 +35,14 @@ onMounted(async () => {
 const createOrUpdate = async () => {
   if (!createdId.value) {
     if (!content.value.trim()) return
-    const item = await createLearningContent(content.value, relatedFlashcards.value, tags.value)
+    const item = await createLearningContent(content.value, relatedFlashcards.value, tags.value, mediaIds.value)
     createdId.value = item.id
   } else {
-    await updateLearningContent(createdId.value, content.value, relatedFlashcards.value, tags.value)
+    await updateLearningContent(createdId.value, content.value, relatedFlashcards.value, tags.value, mediaIds.value)
   }
 }
 
-const { status } = useAutoSave([content, relatedFlashcards, tags], createOrUpdate)
+const { status } = useAutoSave([content, relatedFlashcards, tags, mediaIds], createOrUpdate)
 
 const handleCreateTag = async (tagContent: string) => {
   const tag = await getOrCreateTag(tagContent)
@@ -80,6 +81,7 @@ const handleAddAnother = async () => {
   // Reset form state for the new entry
   content.value = ''
   relatedFlashcards.value = []
+  mediaIds.value = []
   createdId.value = null
 }
 
@@ -101,6 +103,7 @@ const handleAddAnother = async () => {
       v-model:content="content"
       v-model:related-flashcards="relatedFlashcards"
       v-model:tags="tags"
+      v-model:media-ids="mediaIds"
       :all-tags="allTags"
       @create-tag="handleCreateTag"
     />

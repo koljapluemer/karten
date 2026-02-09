@@ -11,7 +11,9 @@ export const createFlashcard = async (
   front: string,
   back: string,
   blockedBy: string[] = [],
-  tags: string[] = []
+  tags: string[] = [],
+  frontMediaIds: string[] = [],
+  backMediaIds: string[] = []
 ): Promise<FlashCard> => {
   const id = buildFlashcardId()
 
@@ -20,7 +22,9 @@ export const createFlashcard = async (
     front,
     back,
     blockedBy: [...blockedBy],
-    tags: [...tags]
+    tags: [...tags],
+    frontMediaIds: [...frontMediaIds],
+    backMediaIds: [...backMediaIds]
   }
 
   await db.flashcards.add(card)
@@ -32,13 +36,17 @@ export const updateFlashcard = async (
   front: string,
   back: string,
   blockedBy: string[] = [],
-  tags: string[] = []
+  tags: string[] = [],
+  frontMediaIds: string[] = [],
+  backMediaIds: string[] = []
 ): Promise<void> => {
   await db.flashcards.update(id, {
     front,
     back,
     blockedBy: [...blockedBy],
-    tags: [...tags]
+    tags: [...tags],
+    frontMediaIds: [...frontMediaIds],
+    backMediaIds: [...backMediaIds]
   })
 }
 

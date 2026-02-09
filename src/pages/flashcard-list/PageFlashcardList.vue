@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { Eye, Pencil, Trash2, Plus, CheckSquare, Square } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
+import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
@@ -74,11 +75,17 @@ const deselectAll = () => {
 const handleDeleteSelected = async () => {
   if (selectedIds.value.size === 0) return
   if (!confirm(`Delete ${selectedIds.value.size} flashcard(s)?`)) return
+  const mediaToCleanup: string[] = []
   for (const id of selectedIds.value) {
+    const card = items.value.find(c => c.id === id)
+    if (card) {
+      mediaToCleanup.push(...(card.frontMediaIds ?? []), ...(card.backMediaIds ?? []))
+    }
     await deleteFlashcard(id)
   }
   selectedIds.value = new Set()
   items.value = await loadFlashcards()
+  await cleanupOrphanedMedia(mediaToCleanup)
 }
 
 const handleView = (card: FlashCard) => {
@@ -88,8 +95,11 @@ const handleView = (card: FlashCard) => {
 
 const handleDelete = async (id: string) => {
   if (!confirm('Delete this flashcard?')) return
+  const card = items.value.find(c => c.id === id)
+  const mediaToCleanup = [...(card?.frontMediaIds ?? []), ...(card?.backMediaIds ?? [])]
   await deleteFlashcard(id)
   items.value = await loadFlashcards()
+  await cleanupOrphanedMedia(mediaToCleanup)
 }
 
 const closeViewModal = () => {
@@ -285,6 +295,8 @@ const handleJsonlUpload = async (file: File) => {
           :back="viewModalCard.back"
           :show-back="true"
           :tags="viewModalTags"
+          :front-media-ids="viewModalCard.frontMediaIds"
+          :back-media-ids="viewModalCard.backMediaIds"
         />
         <div class="modal-action">
           <button

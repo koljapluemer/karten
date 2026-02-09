@@ -154,6 +154,8 @@ onUnmounted(() => {
         :back="fc.card.back"
         :show-back="true"
         :tags="fc.tags"
+        :front-media-ids="fc.card.frontMediaIds"
+        :back-media-ids="fc.card.backMediaIds"
       />
     </div>
   </div>

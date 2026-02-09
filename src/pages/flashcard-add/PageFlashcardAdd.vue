@@ -13,6 +13,8 @@ const route = useRoute()
 const front = ref('')
 const back = ref('')
 const tags = ref<string[]>([])
+const frontMediaIds = ref<string[]>([])
+const backMediaIds = ref<string[]>([])
 const allTags = ref<Tag[]>([])
 
 onMounted(async () => {
@@ -31,7 +33,7 @@ const handleSave = async () => {
     return
   }
 
-  const flashcard = await createFlashcard(front.value, back.value, [], tags.value)
+  const flashcard = await createFlashcard(front.value, back.value, [], tags.value, frontMediaIds.value, backMediaIds.value)
 
   showToast('Flashcard created', 'success')
 
@@ -61,12 +63,14 @@ const handleSaveAndAddAnother = async () => {
     return
   }
 
-  await createFlashcard(front.value, back.value, [], tags.value)
+  await createFlashcard(front.value, back.value, [], tags.value, frontMediaIds.value, backMediaIds.value)
   showToast('Flashcard created', 'success')
 
   // Reset form for new entry, keeping tags
   front.value = ''
   back.value = ''
+  frontMediaIds.value = []
+  backMediaIds.value = []
 }
 
 const handleCancel = () => {
@@ -86,6 +90,8 @@ const handleCancel = () => {
       v-model:front="front"
       v-model:back="back"
       v-model:tags="tags"
+      v-model:front-media-ids="frontMediaIds"
+      v-model:back-media-ids="backMediaIds"
       :all-tags="allTags"
       @create-tag="handleCreateTag"
     />

@@ -50,6 +50,8 @@ const depthClass = computed(() => {
         :back="node.card.back"
         :show-back="true"
         :tags="cardTags"
+        :front-media-ids="node.card.frontMediaIds"
+        :back-media-ids="node.card.backMediaIds"
       />
       <div class="flex gap-1 justify-center">
         <button

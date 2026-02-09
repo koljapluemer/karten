@@ -6,8 +6,10 @@ import GradualClozeDeletionWizard from './GradualClozeDeletionWizard.vue'
 import AIFlashcardGeneratorModal from './AIFlashcardGeneratorModal.vue'
 import RelatedFlashcardNode from './RelatedFlashcardNode.vue'
 import TagInput from '@/dumb/TagInput.vue'
+import MediaSection from '@/entities/media/MediaSection.vue'
 import { showToast } from '@/app/toast/toastStore'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
+import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { getOpenAIKey } from '@/app/storage/openAIKey'
 import type { Tag } from '@/db/Tag'
 import type { FlashCard } from '@/db/Flashcard'
@@ -17,6 +19,7 @@ const props = defineProps<{
   content: string
   relatedFlashcards: string[]
   tags: string[]
+  mediaIds: string[]
   allTags: Tag[]
 }>()
 
@@ -24,6 +27,7 @@ const emit = defineEmits<{
   'update:content': [value: string]
   'update:related-flashcards': [value: string[]]
   'update:tags': [value: string[]]
+  'update:mediaIds': [value: string[]]
   'create-tag': [content: string]
 }>()
 
@@ -195,6 +199,8 @@ const handleEditFlashcard = (id: string) => {
 
 const handleDeleteFlashcard = async (id: string) => {
   if (!confirm('Delete this flashcard?')) return
+  const card = getCardById(id)
+  const mediaToCleanup = [...(card?.frontMediaIds ?? []), ...(card?.backMediaIds ?? [])]
   await deleteFlashcard(id)
 
   relatedFlashcardsValue.value = relatedFlashcardsValue.value.filter((relatedId) => relatedId !== id)
@@ -209,6 +215,7 @@ const handleDeleteFlashcard = async (id: string) => {
   }
 
   allFlashcards.value = remaining
+  await cleanupOrphanedMedia(mediaToCleanup)
   showToast('Flashcard deleted', 'info')
 }
 
@@ -277,6 +284,12 @@ const handleWizardComplete = (lastCardId: string) => {
             @create-tag="(content) => emit('create-tag', content)"
           />
         </fieldset>
+
+        <MediaSection
+          :media-ids="props.mediaIds"
+          label="Media"
+          @update:media-ids="(v) => emit('update:mediaIds', v)"
+        />
       </div>
     </div>
 

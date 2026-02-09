@@ -50,6 +50,8 @@ defineExpose({ isRevealed, reveal: handleReveal, rate: handleRating, confused: h
       :back="card.back"
       :show-back="isRevealed"
       :tags="props.tags"
+      :front-media-ids="card.frontMediaIds"
+      :back-media-ids="card.backMediaIds"
       @click="handleCardClick"
     />
 

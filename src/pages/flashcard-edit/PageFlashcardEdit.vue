@@ -7,6 +7,7 @@ import SaveIndicator from '@/dumb/SaveIndicator.vue'
 import { useAutoSave } from '@/dumb/useAutoSave'
 import { getFlashcardById, updateFlashcard, deleteFlashcard, loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningContent, updateLearningContent } from '@/entities/learning-content/learningContentStore'
+import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import { db } from '@/db/db'
 import type { LearningProgress } from '@/db/LearningProgress'
@@ -21,6 +22,8 @@ const front = ref('')
 const back = ref('')
 const blockedBy = ref<string[]>([])
 const tags = ref<string[]>([])
+const frontMediaIds = ref<string[]>([])
+const backMediaIds = ref<string[]>([])
 const allTags = ref<Tag[]>([])
 const notFound = ref(false)
 const learningProgress = ref<LearningProgress | null>(null)
@@ -55,6 +58,8 @@ onMounted(async () => {
     back.value = flashcard.back
     blockedBy.value = flashcard.blockedBy ?? []
     tags.value = flashcard.tags ?? []
+    frontMediaIds.value = flashcard.frontMediaIds ?? []
+    backMediaIds.value = flashcard.backMediaIds ?? []
     notFound.value = false
 
     const progressId = id.replace('flashcard:', 'learning-progress:')
@@ -70,7 +75,7 @@ onMounted(async () => {
     const createdId = route.query.createdId as string
     if (createdId && !blockedBy.value.includes(createdId)) {
       blockedBy.value = [...blockedBy.value, createdId]
-      await updateFlashcard(id, front.value, back.value, blockedBy.value, tags.value)
+      await updateFlashcard(id, front.value, back.value, blockedBy.value, tags.value, frontMediaIds.value, backMediaIds.value)
       showToast('Prerequisite flashcard attached', 'success')
 
       // Clean URL by removing createdId param
@@ -86,10 +91,10 @@ onMounted(async () => {
 const save = async () => {
   const id = route.params.id as string
   if (!id) return
-  await updateFlashcard(id, front.value, back.value, blockedBy.value, tags.value)
+  await updateFlashcard(id, front.value, back.value, blockedBy.value, tags.value, frontMediaIds.value, backMediaIds.value)
 }
 
-const { status } = useAutoSave([front, back, blockedBy, tags], save)
+const { status } = useAutoSave([front, back, blockedBy, tags, frontMediaIds, backMediaIds], save)
 
 const handleCreateTag = async (content: string) => {
   const tag = await getOrCreateTag(content)
@@ -121,8 +126,14 @@ const handleDelete = async () => {
     }
   }
 
+  // Collect media IDs for cleanup
+  const mediaToCleanup = [...frontMediaIds.value, ...backMediaIds.value]
+
   // Delete the flashcard
   await deleteFlashcard(id)
+
+  // Cleanup orphaned media
+  await cleanupOrphanedMedia(mediaToCleanup)
   showToast('Flashcard deleted', 'success')
 
   // Navigate back
@@ -156,6 +167,8 @@ const handleDelete = async () => {
         v-model:back="back"
         v-model:blocked-by="blockedBy"
         v-model:tags="tags"
+        v-model:front-media-ids="frontMediaIds"
+        v-model:back-media-ids="backMediaIds"
         :all-tags="allTags"
         @create-tag="handleCreateTag"
       />
