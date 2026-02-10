@@ -22,6 +22,26 @@ export const createMedia = async (
   return media
 }
 
+export const createMediaFromBlob = async (
+  blob: Blob,
+  filename: string,
+  mimeType: string,
+  mediaType: MediaType
+): Promise<Media> => {
+  const id = buildMediaId()
+
+  const media: Media = {
+    id,
+    filename,
+    mimeType,
+    mediaType,
+    blob
+  }
+
+  await db.media.add(media)
+  return media
+}
+
 export const getMediaById = async (id: string): Promise<Media | undefined> => {
   return await db.media.get(id)
 }

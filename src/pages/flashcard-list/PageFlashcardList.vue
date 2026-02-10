@@ -9,7 +9,8 @@ import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.v
 import type { FlashCard } from '@/db/Flashcard'
 import type { Tag } from '@/db/Tag'
 import JsonlUploadButton from './JsonlUploadButton.vue'
-import { parseFlashcardsFromJsonl } from './importHelpers'
+import { parseFlashcardsFromJsonl, parseFlashcardsFromZip } from './importHelpers'
+import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 
 const items = ref<FlashCard[]>([])
 const allTags = ref<Tag[]>([])
@@ -109,51 +110,88 @@ const closeViewModal = () => {
 const handleJsonlUpload = async (file: File) => {
   uploading.value = true
   try {
-    const parsed = await parseFlashcardsFromJsonl(file)
-    const refToId = new Map<string, string>()
-    const cardsWithBlockedBy: Array<{ id: string; front: string; back: string; tagIds: string[]; blockedByRefs: string[] }> = []
-
-    // Phase 1: Create all cards and build ref map
-    for (const item of parsed) {
-      const tagIds: string[] = []
-      if (item.tags) {
-        for (const tagContent of item.tags) {
-          const tag = await getOrCreateTag(tagContent)
-          tagIds.push(tag.id)
-        }
-      }
-      const card = await createFlashcard(item.front, item.back, [], tagIds)
-
-      if (item.ref) {
-        refToId.set(item.ref, card.id)
-      }
-
-      if (item.blockedBy && item.blockedBy.length > 0) {
-        cardsWithBlockedBy.push({
-          id: card.id,
-          front: card.front,
-          back: card.back,
-          tagIds,
-          blockedByRefs: item.blockedBy
-        })
-      }
+    if (file.name.toLowerCase().endsWith('.zip')) {
+      await handleZipUpload(file)
+    } else {
+      await handleJsonlFileUpload(file)
     }
-
-    // Phase 2: Resolve blockedBy references
-    for (const card of cardsWithBlockedBy) {
-      const resolvedBlockedBy = card.blockedByRefs
-        .map(ref => refToId.get(ref))
-        .filter((id): id is string => id !== undefined)
-
-      if (resolvedBlockedBy.length > 0) {
-        await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.tagIds)
-      }
-    }
-
     items.value = await loadFlashcards()
     allTags.value = await loadTags()
   } finally {
     uploading.value = false
+  }
+}
+
+const handleJsonlFileUpload = async (file: File) => {
+  const parsed = await parseFlashcardsFromJsonl(file)
+  await importParsedFlashcards(parsed, new Map())
+}
+
+const handleZipUpload = async (file: File) => {
+  const { cards, zip } = await parseFlashcardsFromZip(file)
+
+  const allMediaPaths: string[] = []
+  for (const card of cards) {
+    if (card.frontMedia) allMediaPaths.push(...card.frontMedia)
+    if (card.backMedia) allMediaPaths.push(...card.backMedia)
+  }
+
+  const pathToMediaId = allMediaPaths.length > 0
+    ? await extractMediaFromZip(zip, allMediaPaths)
+    : new Map<string, string>()
+
+  await importParsedFlashcards(cards, pathToMediaId)
+}
+
+const importParsedFlashcards = async (
+  parsed: import('./importHelpers').ParsedFlashcard[],
+  pathToMediaId: Map<string, string>
+) => {
+  const refToId = new Map<string, string>()
+  const cardsWithBlockedBy: Array<{ id: string; front: string; back: string; tagIds: string[]; blockedByRefs: string[] }> = []
+
+  for (const item of parsed) {
+    const tagIds: string[] = []
+    if (item.tags) {
+      for (const tagContent of item.tags) {
+        const tag = await getOrCreateTag(tagContent)
+        tagIds.push(tag.id)
+      }
+    }
+
+    const frontMediaIds = (item.frontMedia ?? [])
+      .map(p => pathToMediaId.get(p))
+      .filter((id): id is string => id !== undefined)
+
+    const backMediaIds = (item.backMedia ?? [])
+      .map(p => pathToMediaId.get(p))
+      .filter((id): id is string => id !== undefined)
+
+    const card = await createFlashcard(item.front, item.back, [], tagIds, frontMediaIds, backMediaIds)
+
+    if (item.ref) {
+      refToId.set(item.ref, card.id)
+    }
+
+    if (item.blockedBy && item.blockedBy.length > 0) {
+      cardsWithBlockedBy.push({
+        id: card.id,
+        front: card.front,
+        back: card.back,
+        tagIds,
+        blockedByRefs: item.blockedBy
+      })
+    }
+  }
+
+  for (const card of cardsWithBlockedBy) {
+    const resolvedBlockedBy = card.blockedByRefs
+      .map(ref => refToId.get(ref))
+      .filter((id): id is string => id !== undefined)
+
+    if (resolvedBlockedBy.length > 0) {
+      await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.tagIds)
+    }
   }
 }
 </script>

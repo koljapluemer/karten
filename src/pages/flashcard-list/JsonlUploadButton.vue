@@ -34,7 +34,7 @@ const openFilePicker = () => {
     <input
       ref="fileInput"
       type="file"
-      accept=".jsonl"
+      accept=".jsonl,.zip"
       class="hidden"
       @change="handleFileChange"
     >
@@ -44,7 +44,7 @@ const openFilePicker = () => {
       @click="openFilePicker"
     >
       <Upload />
-      {{ label || 'Upload JSONL' }}
+      {{ label || 'Import' }}
     </button>
   </div>
 </template>

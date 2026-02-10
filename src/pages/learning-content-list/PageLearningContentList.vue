@@ -4,10 +4,11 @@ import { useRouter, useRoute } from 'vue-router'
 import { Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
-import { loadTags } from '@/entities/tag/tagStore'
+import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import ZipUploadButton from './ZipUploadButton.vue'
 import { parseLearningContentFromZip } from './importHelpers'
+import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 import { showToast } from '@/app/toast/toastStore'
 import { pickRandom } from '@/dumb/random'
 import type { LearningContent } from '@/db/LearningContent'
@@ -182,11 +183,43 @@ const handleDelete = async (id: string) => {
 const handleZipUpload = async (file: File) => {
   uploading.value = true
   try {
-    const parsed = await parseLearningContentFromZip(file)
-    for (const { content } of parsed) {
-      await createLearningContent(content)
+    const { items: parsed, zip } = await parseLearningContentFromZip(file)
+
+    if (zip) {
+      // Manifest mode: extract media and resolve tags
+      const allMediaPaths: string[] = []
+      for (const item of parsed) {
+        if (item.media) allMediaPaths.push(...item.media)
+      }
+
+      const pathToMediaId = allMediaPaths.length > 0
+        ? await extractMediaFromZip(zip, allMediaPaths)
+        : new Map<string, string>()
+
+      for (const item of parsed) {
+        const mediaIds = (item.media ?? [])
+          .map(p => pathToMediaId.get(p))
+          .filter((id): id is string => id !== undefined)
+
+        const tagIds: string[] = []
+        if (item.tags) {
+          for (const tagContent of item.tags) {
+            const tag = await getOrCreateTag(tagContent)
+            tagIds.push(tag.id)
+          }
+        }
+
+        await createLearningContent(item.content, [], tagIds, mediaIds)
+      }
+    } else {
+      // Legacy mode: text files only
+      for (const { content } of parsed) {
+        await createLearningContent(content)
+      }
     }
+
     items.value = await loadLearningContent()
+    allTags.value = await loadTags()
   } finally {
     uploading.value = false
   }
