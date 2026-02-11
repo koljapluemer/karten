@@ -150,7 +150,7 @@ onUnmounted(() => {
         transform: 'scale(' + fc.scale + ')',
       }"
       @animationend="onAnimationEnd(fc.instanceId)"
-      @click="router.push({ name: 'flashcard-edit', params: { id: fc.card.id } })"
+      @click="router.push(`/flashcards/${fc.card.id}/edit?returnTo=/float`)"
     >
       <FlashcardRenderer
         :front="fc.card.front"
