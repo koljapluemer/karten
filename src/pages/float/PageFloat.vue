@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import { loadTags } from '@/entities/tag/tagStore'
@@ -17,6 +18,7 @@ interface FloatingCard {
   scale: number
 }
 
+const router = useRouter()
 let nextInstanceId = 0
 
 const flashcards = ref<FlashCard[]>([])
@@ -148,6 +150,7 @@ onUnmounted(() => {
         transform: 'scale(' + fc.scale + ')',
       }"
       @animationend="onAnimationEnd(fc.instanceId)"
+      @click="router.push({ name: 'flashcard-edit', params: { id: fc.card.id } })"
     >
       <FlashcardRenderer
         :front="fc.card.front"
@@ -196,10 +199,17 @@ onUnmounted(() => {
   max-height: 400px;
   overflow: hidden;
   opacity: 0.85;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 0.2s, filter 0.2s;
   animation-name: floatAcross;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
+}
+
+.floating-card:hover {
+  opacity: 1;
+  filter: brightness(1.1);
 }
 
 @media (min-width: 640px) {
