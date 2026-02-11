@@ -6,8 +6,8 @@ import { loadLearningContent, deleteLearningContent, createLearningContent } fro
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
-import ZipUploadButton from './ZipUploadButton.vue'
-import { parseLearningContentFromZip } from './importHelpers'
+import FileUploadButton from '@/dumb/FileUploadButton.vue'
+import { parseLearningContentFromJsonl, parseLearningContentFromZip } from './importHelpers'
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 import { showToast } from '@/app/toast/toastStore'
 import { pickRandom } from '@/dumb/random'
@@ -180,6 +180,27 @@ const handleDelete = async (id: string) => {
   await cleanupOrphanedMedia(mediaToCleanup)
 }
 
+const handleJsonlUpload = async (file: File) => {
+  uploading.value = true
+  try {
+    const parsed = await parseLearningContentFromJsonl(file)
+    for (const item of parsed) {
+      const tagIds: string[] = []
+      if (item.tags) {
+        for (const tagContent of item.tags) {
+          const tag = await getOrCreateTag(tagContent)
+          tagIds.push(tag.id)
+        }
+      }
+      await createLearningContent(item.content, [], tagIds)
+    }
+    items.value = await loadLearningContent()
+    allTags.value = await loadTags()
+  } finally {
+    uploading.value = false
+  }
+}
+
 const handleZipUpload = async (file: File) => {
   uploading.value = true
   try {
@@ -297,10 +318,112 @@ const handleOpenRandom = () => {
       <Plus />
       Add Learning Content
     </button>
-    <ZipUploadButton
+    <FileUploadButton
+      label="Import JSONL"
+      accept=".jsonl"
+      :loading="uploading"
+      @file="handleJsonlUpload"
+    >
+      <template #info>
+        <h3 class="font-bold text-lg mb-2">
+          JSONL Format
+        </h3>
+        <p class="mb-2">
+          One JSON object per line. Each line represents a learning content item.
+        </p>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>content</code></td>
+                <td>string, required</td>
+                <td>Markdown content</td>
+              </tr>
+              <tr>
+                <td><code>tags</code></td>
+                <td>string[], optional</td>
+                <td>Tags (auto-created if new)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-sm opacity-70">
+          Example:
+        </p>
+        <pre class="bg-base-200 p-2 rounded text-xs mt-1">{"content": "# Topic\n\nSome markdown...", "tags": ["science"]}
+{"content": "# Another\n\nMore content..."}</pre>
+      </template>
+    </FileUploadButton>
+    <FileUploadButton
+      label="Import ZIP"
+      accept=".zip"
       :loading="uploading"
       @file="handleZipUpload"
-    />
+    >
+      <template #info>
+        <h3 class="font-bold text-lg mb-2">
+          ZIP Format
+        </h3>
+        <p class="mb-2">
+          Two modes, auto-detected:
+        </p>
+        <h4 class="font-semibold mt-3 mb-1">
+          Legacy mode
+        </h4>
+        <p class="mb-2">
+          ZIP contains <code>.md</code> or <code>.txt</code> files. Each file becomes a learning content item, with the filename as heading.
+        </p>
+        <h4 class="font-semibold mt-3 mb-1">
+          Manifest mode
+        </h4>
+        <p class="mb-2">
+          ZIP contains a <code>content.jsonl</code> file and a <code>media/</code> folder. Activated automatically when <code>content.jsonl</code> is present.
+        </p>
+        <pre class="bg-base-200 p-2 rounded text-xs mb-3">content.zip
+├── content.jsonl
+└── media/
+    ├── diagram.png
+    └── photo.jpg</pre>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>content</code></td>
+                <td>string, required</td>
+                <td>Markdown content</td>
+              </tr>
+              <tr>
+                <td><code>tags</code></td>
+                <td>string[], optional</td>
+                <td>Tags (auto-created if new)</td>
+              </tr>
+              <tr>
+                <td><code>media</code></td>
+                <td>string[], optional</td>
+                <td>Paths to media files (e.g. <code>"media/diagram.png"</code>)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-sm opacity-70">
+          Supported media: PNG, JPG, GIF, WebP, SVG, MP3, WAV, OGG, M4A, AAC. Images are compressed to max 1000px width. Audio files must be under 10 MB.
+        </p>
+      </template>
+    </FileUploadButton>
     <button
       class="btn btn-sm"
       @click="handleOpenRandom"

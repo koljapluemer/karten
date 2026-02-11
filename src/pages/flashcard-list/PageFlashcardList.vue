@@ -8,7 +8,7 @@ import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import type { FlashCard } from '@/db/Flashcard'
 import type { Tag } from '@/db/Tag'
-import JsonlUploadButton from './JsonlUploadButton.vue'
+import FileUploadButton from '@/dumb/FileUploadButton.vue'
 import { parseFlashcardsFromJsonl, parseFlashcardsFromZip } from './importHelpers'
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 
@@ -110,11 +110,8 @@ const closeViewModal = () => {
 const handleJsonlUpload = async (file: File) => {
   uploading.value = true
   try {
-    if (file.name.toLowerCase().endsWith('.zip')) {
-      await handleZipUpload(file)
-    } else {
-      await handleJsonlFileUpload(file)
-    }
+    const parsed = await parseFlashcardsFromJsonl(file)
+    await importParsedFlashcards(parsed, new Map())
     items.value = await loadFlashcards()
     allTags.value = await loadTags()
   } finally {
@@ -122,25 +119,27 @@ const handleJsonlUpload = async (file: File) => {
   }
 }
 
-const handleJsonlFileUpload = async (file: File) => {
-  const parsed = await parseFlashcardsFromJsonl(file)
-  await importParsedFlashcards(parsed, new Map())
-}
-
 const handleZipUpload = async (file: File) => {
-  const { cards, zip } = await parseFlashcardsFromZip(file)
+  uploading.value = true
+  try {
+    const { cards, zip } = await parseFlashcardsFromZip(file)
 
-  const allMediaPaths: string[] = []
-  for (const card of cards) {
-    if (card.frontMedia) allMediaPaths.push(...card.frontMedia)
-    if (card.backMedia) allMediaPaths.push(...card.backMedia)
+    const allMediaPaths: string[] = []
+    for (const card of cards) {
+      if (card.frontMedia) allMediaPaths.push(...card.frontMedia)
+      if (card.backMedia) allMediaPaths.push(...card.backMedia)
+    }
+
+    const pathToMediaId = allMediaPaths.length > 0
+      ? await extractMediaFromZip(zip, allMediaPaths)
+      : new Map<string, string>()
+
+    await importParsedFlashcards(cards, pathToMediaId)
+    items.value = await loadFlashcards()
+    allTags.value = await loadTags()
+  } finally {
+    uploading.value = false
   }
-
-  const pathToMediaId = allMediaPaths.length > 0
-    ? await extractMediaFromZip(zip, allMediaPaths)
-    : new Map<string, string>()
-
-  await importParsedFlashcards(cards, pathToMediaId)
 }
 
 const importParsedFlashcards = async (
@@ -210,10 +209,138 @@ const importParsedFlashcards = async (
         <Plus />
         Add Flashcard
       </router-link>
-      <JsonlUploadButton
+      <FileUploadButton
+        label="Import JSONL"
+        accept=".jsonl"
         :loading="uploading"
         @file="handleJsonlUpload"
-      />
+      >
+        <template #info>
+          <h3 class="font-bold text-lg mb-2">
+            JSONL Format
+          </h3>
+          <p class="mb-2">
+            One JSON object per line. Each line represents a flashcard.
+          </p>
+          <div class="overflow-x-auto">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>front</code></td>
+                  <td>string, required</td>
+                  <td>Front side text</td>
+                </tr>
+                <tr>
+                  <td><code>back</code></td>
+                  <td>string, required</td>
+                  <td>Back side text</td>
+                </tr>
+                <tr>
+                  <td><code>tags</code></td>
+                  <td>string[], optional</td>
+                  <td>Tags (auto-created if new)</td>
+                </tr>
+                <tr>
+                  <td><code>ref</code></td>
+                  <td>string, optional</td>
+                  <td>Reference ID for blockedBy links</td>
+                </tr>
+                <tr>
+                  <td><code>blockedBy</code></td>
+                  <td>string[], optional</td>
+                  <td>Refs of cards that must be learned first</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-sm opacity-70">
+            Example:
+          </p>
+          <pre class="bg-base-200 p-2 rounded text-xs mt-1">{"front": "What is 2+2?", "back": "4", "tags": ["math"], "ref": "q1"}
+{"front": "What is 3+3?", "back": "6", "blockedBy": ["q1"]}</pre>
+        </template>
+      </FileUploadButton>
+      <FileUploadButton
+        label="Import ZIP"
+        accept=".zip"
+        :loading="uploading"
+        @file="handleZipUpload"
+      >
+        <template #info>
+          <h3 class="font-bold text-lg mb-2">
+            ZIP Format
+          </h3>
+          <p class="mb-2">
+            A ZIP file containing a <code>cards.jsonl</code> manifest and a <code>media/</code> folder with images and audio.
+          </p>
+          <pre class="bg-base-200 p-2 rounded text-xs mb-3">flashcards.zip
+├── cards.jsonl
+└── media/
+    ├── image.png
+    └── audio.mp3</pre>
+          <p class="mb-2">
+            <code>cards.jsonl</code> uses the same fields as JSONL import, plus media paths:
+          </p>
+          <div class="overflow-x-auto">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>front</code></td>
+                  <td>string, required</td>
+                  <td>Front side text</td>
+                </tr>
+                <tr>
+                  <td><code>back</code></td>
+                  <td>string, required</td>
+                  <td>Back side text</td>
+                </tr>
+                <tr>
+                  <td><code>tags</code></td>
+                  <td>string[], optional</td>
+                  <td>Tags (auto-created if new)</td>
+                </tr>
+                <tr>
+                  <td><code>ref</code></td>
+                  <td>string, optional</td>
+                  <td>Reference ID for blockedBy links</td>
+                </tr>
+                <tr>
+                  <td><code>blockedBy</code></td>
+                  <td>string[], optional</td>
+                  <td>Refs of cards that must be learned first</td>
+                </tr>
+                <tr>
+                  <td><code>frontMedia</code></td>
+                  <td>string[], optional</td>
+                  <td>Paths to media files shown on front (e.g. <code>"media/img.png"</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>backMedia</code></td>
+                  <td>string[], optional</td>
+                  <td>Paths to media files shown on back</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-sm opacity-70">
+            Supported media: PNG, JPG, GIF, WebP, SVG, MP3, WAV, OGG, M4A, AAC. Images are compressed to max 1000px width. Audio files must be under 10 MB.
+          </p>
+        </template>
+      </FileUploadButton>
     </div>
 
     <div class="flex gap-2 mb-4">

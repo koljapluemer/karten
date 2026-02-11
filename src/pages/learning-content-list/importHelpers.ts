@@ -7,6 +7,52 @@ export type ParsedLearningContent = {
   tags?: string[]
 }
 
+const parseLearningContentLine = (trimmed: string): ParsedLearningContent | null => {
+  try {
+    const parsed = JSON.parse(trimmed)
+    if (typeof parsed.content === 'string') {
+      const item: ParsedLearningContent = {
+        content: parsed.content,
+        filename: ''
+      }
+
+      if (Array.isArray(parsed.media)) {
+        const paths = parsed.media.filter((p: unknown) => typeof p === 'string')
+        if (paths.length > 0) {
+          item.media = paths
+        }
+      }
+
+      if (Array.isArray(parsed.tags)) {
+        const tags = parsed.tags.filter((t: unknown) => typeof t === 'string')
+        if (tags.length > 0) {
+          item.tags = tags
+        }
+      }
+
+      return item
+    }
+  } catch {
+    // Skip invalid JSON lines
+  }
+  return null
+}
+
+export const parseLearningContentFromJsonl = async (file: File): Promise<ParsedLearningContent[]> => {
+  const text = await file.text()
+  const lines = text.split('\n')
+  const items: ParsedLearningContent[] = []
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+    const item = parseLearningContentLine(trimmed)
+    if (item) items.push(item)
+  }
+
+  return items
+}
+
 export const parseLearningContentFromZip = async (
   file: File
 ): Promise<{ items: ParsedLearningContent[], zip: JSZip | null }> => {
@@ -31,34 +77,8 @@ const parseManifestMode = async (
   for (const line of lines) {
     const trimmed = line.trim()
     if (!trimmed) continue
-
-    try {
-      const parsed = JSON.parse(trimmed)
-      if (typeof parsed.content === 'string') {
-        const item: ParsedLearningContent = {
-          content: parsed.content,
-          filename: ''
-        }
-
-        if (Array.isArray(parsed.media)) {
-          const paths = parsed.media.filter((p: unknown) => typeof p === 'string')
-          if (paths.length > 0) {
-            item.media = paths
-          }
-        }
-
-        if (Array.isArray(parsed.tags)) {
-          const tags = parsed.tags.filter((t: unknown) => typeof t === 'string')
-          if (tags.length > 0) {
-            item.tags = tags
-          }
-        }
-
-        items.push(item)
-      }
-    } catch {
-      // Skip invalid JSON lines
-    }
+    const item = parseLearningContentLine(trimmed)
+    if (item) items.push(item)
   }
 
   return { items, zip }
