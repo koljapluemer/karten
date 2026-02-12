@@ -41,7 +41,7 @@ const backHtml = computed(() => md.render(props.back))
         <span
           v-for="tag in props.tags"
           :key="tag.id"
-          class="badge badge-soft badge-sm"
+          class="badge badge-outline badge-sm"
         >
           {{ tag.content }}
         </span>

@@ -102,7 +102,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       <span
         v-for="tag in selectedTags"
         :key="tag.id"
-        class="badge badge-primary gap-1"
+        class="badge badge-outline gap-1"
       >
         {{ tag.content }}
         <button
