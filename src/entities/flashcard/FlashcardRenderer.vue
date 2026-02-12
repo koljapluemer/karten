@@ -32,7 +32,6 @@ const backHtml = computed(() => md.render(props.back))
   <div
     class="card shadow bg-white text-gray-900 w-full max-w-full overflow-x-auto text-lg"
     :class="{ 'card-flipped': props.flipped }"
-    data-theme="light"
   >
     <div class="card-body gap-4 min-w-0">
       <div

@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { Link2, Plus } from 'lucide-vue-next'
 import GradualClozeDeletionWizard from './GradualClozeDeletionWizard.vue'
 import AIFlashcardGeneratorModal from './AIFlashcardGeneratorModal.vue'
+import ListClozeWizard from './ListClozeWizard.vue'
 import RelatedFlashcardNode from './RelatedFlashcardNode.vue'
 import TagInput from '@/dumb/TagInput.vue'
 import MediaSection from '@/entities/media/MediaSection.vue'
@@ -221,6 +222,7 @@ const handleDeleteFlashcard = async (id: string) => {
 
 const wizardOpen = ref(false)
 const aiModalOpen = ref(false)
+const listClozeOpen = ref(false)
 
 const openWizard = () => {
   wizardOpen.value = true
@@ -252,6 +254,13 @@ const handleWizardComplete = (lastCardId: string) => {
     relatedFlashcardsValue.value = [...relatedFlashcardsValue.value, lastCardId]
   }
   showToast('Gradual cloze deletion created', 'success')
+}
+
+const handleListClozeComplete = async (topCardId: string) => {
+  if (!relatedFlashcardsValue.value.includes(topCardId)) {
+    relatedFlashcardsValue.value = [...relatedFlashcardsValue.value, topCardId]
+  }
+  allFlashcards.value = await loadFlashcards()
 }
 </script>
 
@@ -311,7 +320,12 @@ const handleWizardComplete = (lastCardId: string) => {
           >
             Establish gradual cloze deletion
           </button>
-
+          <button
+            class="btn btn-sm"
+            @click="listClozeOpen = true"
+          >
+            Generate list cloze
+          </button>
 
           <button
             class="btn btn-sm"
@@ -425,5 +439,11 @@ const handleWizardComplete = (lastCardId: string) => {
     :content="contentValue"
     @close="aiModalOpen = false"
     @accept="handleAIModalAccept"
+  />
+
+  <ListClozeWizard
+    v-model:open="listClozeOpen"
+    :initial-content="contentValue"
+    @complete="handleListClozeComplete"
   />
 </template>
