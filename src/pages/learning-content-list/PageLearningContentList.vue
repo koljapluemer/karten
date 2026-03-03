@@ -7,6 +7,8 @@ import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import FileUploadButton from '@/dumb/FileUploadButton.vue'
+import PaginationNav from '@/dumb/PaginationNav.vue'
+import { usePagination } from '@/dumb/usePagination'
 import { parseLearningContentFromJsonl, parseLearningContentFromZip } from './importHelpers'
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 import { showToast } from '@/app/toast/toastStore'
@@ -48,6 +50,14 @@ const parseFlashcardFilter = (value: unknown): 'all' | 'with' | 'without' => {
   return 'all'
 }
 
+const parsePageQuery = (value: unknown): number => {
+  if (typeof value === 'string') {
+    const n = parseInt(value, 10)
+    return Number.isNaN(n) || n < 1 ? 1 : n
+  }
+  return 1
+}
+
 const buildQueryFromState = () => {
   const query: Record<string, string | string[]> = {}
   const trimmedSearch = searchQuery.value.trim()
@@ -63,14 +73,22 @@ const buildQueryFromState = () => {
   if (filterTags.value.length > 0) {
     query.tags = filterTags.value
   }
+  if (currentPage.value > 1) {
+    query.page = String(currentPage.value)
+  }
   return query
 }
 
-const parseQueryToState = (query: typeof route.query) => {
+const parseQueryToState = (
+  query: typeof route.query,
+  options?: { setPage: (n: number) => void }
+) => {
   searchQuery.value = typeof query.q === 'string' ? query.q : ''
   flashcardFilter.value = parseFlashcardFilter(query.flash)
   filterMode.value = parseFilterMode(query.mode)
   filterTags.value = parseTagsQuery(query.tags)
+  const page = parsePageQuery(query.page)
+  options?.setPage(page)
 }
 
 const isQueryEqual = (left: typeof route.query, right: Record<string, string | string[]>) => {
@@ -89,6 +107,7 @@ const isQueryEqual = (left: typeof route.query, right: Record<string, string | s
     flash: parseFlashcardFilter(query.flash),
     mode: parseFilterMode(query.mode),
     tags: normalizeTags(query.tags),
+    page: parsePageQuery(query.page),
   })
 
   const leftNormalized = normalize(left)
@@ -98,6 +117,7 @@ const isQueryEqual = (left: typeof route.query, right: Record<string, string | s
   if (leftNormalized.flash !== rightNormalized.flash) return false
   if (leftNormalized.mode !== rightNormalized.mode) return false
   if (leftNormalized.tags.length !== rightNormalized.tags.length) return false
+  if (leftNormalized.page !== rightNormalized.page) return false
 
   return leftNormalized.tags.every((tag, index) => tag === rightNormalized.tags[index])
 }
@@ -105,26 +125,8 @@ const isQueryEqual = (left: typeof route.query, right: Record<string, string | s
 onMounted(async () => {
   items.value = await loadLearningContent()
   allTags.value = await loadTags()
+  setPage(parsePageQuery(route.query.page))
 })
-
-watch(
-  () => route.query,
-  (query) => {
-    parseQueryToState(query)
-  },
-  { immediate: true }
-)
-
-watch(
-  [searchQuery, flashcardFilter, filterMode, filterTags],
-  () => {
-    const query = buildQueryFromState()
-    if (!isQueryEqual(route.query, query)) {
-      router.replace({ query })
-    }
-  },
-  { deep: true }
-)
 
 const filteredItems = computed(() => {
   let result = items.value
@@ -161,7 +163,37 @@ const filteredItems = computed(() => {
   return result
 })
 
-const filteredItemCount = computed(() => filteredItems.value.length)
+const PAGE_SIZE = 25
+const { currentPage, startIndex, endIndex, pageSize } = usePagination(
+  () => filteredItems.value.length,
+  PAGE_SIZE
+)
+const paginatedItems = computed(() =>
+  filteredItems.value.slice(startIndex.value, endIndex.value)
+)
+
+const setPage = (n: number) => {
+  currentPage.value = n
+}
+
+watch(
+  () => route.query,
+  (query) => {
+    parseQueryToState(query, { setPage })
+  },
+  { immediate: true }
+)
+
+watch(
+  [searchQuery, flashcardFilter, filterMode, filterTags, currentPage],
+  () => {
+    const query = buildQueryFromState()
+    if (!isQueryEqual(route.query, query)) {
+      router.replace({ query })
+    }
+  },
+  { deep: true }
+)
 
 const handleAdd = () => {
   router.push({ path: '/learning-content/add', query: route.query })
@@ -433,10 +465,6 @@ const handleOpenRandom = () => {
     </button>
   </div>
 
-  <div class="text-sm text-gray-500 mb-2">
-    Showing {{ filteredItemCount }} learning content items
-  </div>
-
   <div class="overflow-x-auto">
     <table class="table">
       <thead>
@@ -447,7 +475,7 @@ const handleOpenRandom = () => {
       </thead>
       <tbody>
         <tr
-          v-for="item in filteredItems"
+          v-for="item in paginatedItems"
           :key="item.id"
         >
           <td class="truncate max-w-md">
@@ -473,4 +501,11 @@ const handleOpenRandom = () => {
       </tbody>
     </table>
   </div>
+
+  <PaginationNav
+    :total-items="filteredItems.length"
+    :page-size="pageSize"
+    :current-page="currentPage"
+    @update:current-page="setPage"
+  />
 </template>

@@ -9,6 +9,8 @@ import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.v
 import type { FlashCard } from '@/db/Flashcard'
 import type { Tag } from '@/db/Tag'
 import FileUploadButton from '@/dumb/FileUploadButton.vue'
+import PaginationNav from '@/dumb/PaginationNav.vue'
+import { usePagination } from '@/dumb/usePagination'
 import { parseFlashcardsFromJsonl, parseFlashcardsFromZip } from './importHelpers'
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 
@@ -48,6 +50,15 @@ const filteredItems = computed(() => {
     }
   })
 })
+
+const PAGE_SIZE = 25
+const { currentPage, startIndex, endIndex, pageSize } = usePagination(
+  () => filteredItems.value.length,
+  PAGE_SIZE
+)
+const paginatedItems = computed(() =>
+  filteredItems.value.slice(startIndex.value, endIndex.value)
+)
 
 const allSelected = computed(() => {
   return filteredItems.value.length > 0 && filteredItems.value.every(item => selectedIds.value.has(item.id))
@@ -192,6 +203,10 @@ const importParsedFlashcards = async (
       await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.tagIds)
     }
   }
+}
+
+const setPage = (n: number) => {
+  currentPage.value = n
 }
 </script>
 
@@ -405,7 +420,7 @@ const importParsedFlashcards = async (
         </thead>
         <tbody>
           <tr
-            v-for="item in filteredItems"
+            v-for="item in paginatedItems"
             :key="item.id"
           >
             <td>
@@ -448,6 +463,13 @@ const importParsedFlashcards = async (
         </tbody>
       </table>
     </div>
+
+    <PaginationNav
+      :total-items="filteredItems.length"
+      :page-size="pageSize"
+      :current-page="currentPage"
+      @update:current-page="setPage"
+    />
 
     <dialog
       :open="showViewModal"
