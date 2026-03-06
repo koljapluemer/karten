@@ -1,31 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FlashcardFormAdd from '@/entities/flashcard/FlashcardFormAdd.vue'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
-import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import { showToast } from '@/app/toast/toastStore'
-import type { Tag } from '@/db/Tag'
 
 const router = useRouter()
 const route = useRoute()
 
 const front = ref('')
 const back = ref('')
-const tags = ref<string[]>([])
 const frontMediaIds = ref<string[]>([])
 const backMediaIds = ref<string[]>([])
-const allTags = ref<Tag[]>([])
-
-onMounted(async () => {
-  allTags.value = await loadTags()
-})
-
-const handleCreateTag = async (content: string) => {
-  const tag = await getOrCreateTag(content)
-  allTags.value = await loadTags()
-  tags.value = [...tags.value, tag.id]
-}
 
 const handleSave = async () => {
   if (!front.value.trim() || !back.value.trim()) {
@@ -33,7 +19,7 @@ const handleSave = async () => {
     return
   }
 
-  const flashcard = await createFlashcard(front.value, back.value, [], tags.value, frontMediaIds.value, backMediaIds.value)
+  const flashcard = await createFlashcard(front.value, back.value, [], frontMediaIds.value, backMediaIds.value)
 
   showToast('Flashcard created', 'success')
 
@@ -63,10 +49,10 @@ const handleSaveAndAddAnother = async () => {
     return
   }
 
-  await createFlashcard(front.value, back.value, [], tags.value, frontMediaIds.value, backMediaIds.value)
+  await createFlashcard(front.value, back.value, [], frontMediaIds.value, backMediaIds.value)
   showToast('Flashcard created', 'success')
 
-  // Reset form for new entry, keeping tags
+  // Reset form for new entry
   front.value = ''
   back.value = ''
   frontMediaIds.value = []
@@ -89,11 +75,8 @@ const handleCancel = () => {
     <FlashcardFormAdd
       v-model:front="front"
       v-model:back="back"
-      v-model:tags="tags"
       v-model:front-media-ids="frontMediaIds"
       v-model:back-media-ids="backMediaIds"
-      :all-tags="allTags"
-      @create-tag="handleCreateTag"
     />
 
     <div class="flex gap-2 mt-4">

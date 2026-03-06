@@ -10,7 +10,6 @@ export const loadLearningContent = async (): Promise<LearningContent[]> => {
 export const createLearningContent = async (
   content: string,
   relatedFlashcards: string[] = [],
-  tags: string[] = [],
   mediaIds: string[] = []
 ): Promise<LearningContent> => {
   const id = buildLearningContentId()
@@ -19,7 +18,6 @@ export const createLearningContent = async (
     id,
     content,
     relatedFlashcards: [...relatedFlashcards],
-    tags: [...tags],
     mediaIds: [...mediaIds]
   }
 
@@ -31,13 +29,11 @@ export const updateLearningContent = async (
   id: string,
   content: string,
   relatedFlashcards: string[] = [],
-  tags: string[] = [],
   mediaIds: string[] = []
 ): Promise<void> => {
   await db.learningContent.update(id, {
     content,
     relatedFlashcards: [...relatedFlashcards],
-    tags: [...tags],
     mediaIds: [...mediaIds]
   })
 }

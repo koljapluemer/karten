@@ -5,7 +5,6 @@ import highlightjs from 'markdown-it-highlightjs'
 import 'github-markdown-css/github-markdown-light.css'
 import 'highlight.js/styles/github.css'
 import MediaAttachmentList from '@/entities/media/MediaAttachmentList.vue'
-import type { Tag } from '@/db/Tag'
 
 const md = new MarkdownIt({
   breaks: true,
@@ -18,7 +17,6 @@ const props = defineProps<{
   back: string
   showBack?: boolean
   flipped?: boolean
-  tags?: Tag[]
   frontMediaIds?: string[]
   backMediaIds?: string[]
 }>()
@@ -34,18 +32,6 @@ const backHtml = computed(() => md.render(props.back))
     :class="{ 'card-flipped': props.flipped }"
   >
     <div class="card-body gap-4 min-w-0">
-      <div
-        v-if="props.tags && props.tags.length > 0"
-        class="flex flex-wrap gap-1 pt-2"
-      >
-        <span
-          v-for="tag in props.tags"
-          :key="tag.id"
-          class="badge badge-outline badge-sm"
-        >
-          {{ tag.content }}
-        </span>
-      </div>
       <div
         class="markdown-body"
         v-html="frontHtml"

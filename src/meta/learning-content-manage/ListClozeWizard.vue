@@ -124,6 +124,8 @@ const handleCreate = async () => {
           card.front,
           card.back,
           blockedBy,
+          [],
+          []
         )
       }
     }

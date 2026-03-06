@@ -1,28 +1,22 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BlockedByManager from './BlockedByManager.vue'
-import TagInput from '@/dumb/TagInput.vue'
 import MediaSection from '@/entities/media/MediaSection.vue'
-import type { Tag } from '@/db/Tag'
 
 const props = defineProps<{
   front: string
   back: string
   blockedBy: string[]
-  tags: string[]
   frontMediaIds: string[]
   backMediaIds: string[]
-  allTags: Tag[]
 }>()
 
 const emit = defineEmits<{
   'update:front': [value: string]
   'update:back': [value: string]
   'update:blocked-by': [value: string[]]
-  'update:tags': [value: string[]]
   'update:frontMediaIds': [value: string[]]
   'update:backMediaIds': [value: string[]]
-  'create-tag': [content: string]
 }>()
 
 const frontValue = computed({
@@ -38,11 +32,6 @@ const backValue = computed({
 const blockedByValue = computed({
   get: () => props.blockedBy ?? [],
   set: (value: string[]) => emit('update:blocked-by', value)
-})
-
-const tagsValue = computed({
-  get: () => props.tags ?? [],
-  set: (value: string[]) => emit('update:tags', value)
 })
 </script>
 
@@ -89,14 +78,5 @@ const tagsValue = computed({
     />
 
     <BlockedByManager v-model="blockedByValue" />
-
-    <fieldset class="fieldset">
-      <label class="label">Tags</label>
-      <TagInput
-        v-model="tagsValue"
-        :all-tags="allTags"
-        @create-tag="(content) => emit('create-tag', content)"
-      />
-    </fieldset>
   </div>
 </template>

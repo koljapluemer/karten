@@ -4,7 +4,6 @@ export type ParsedLearningContent = {
   content: string
   filename: string
   media?: string[]
-  tags?: string[]
 }
 
 const parseLearningContentLine = (trimmed: string): ParsedLearningContent | null => {
@@ -20,13 +19,6 @@ const parseLearningContentLine = (trimmed: string): ParsedLearningContent | null
         const paths = parsed.media.filter((p: unknown) => typeof p === 'string')
         if (paths.length > 0) {
           item.media = paths
-        }
-      }
-
-      if (Array.isArray(parsed.tags)) {
-        const tags = parsed.tags.filter((t: unknown) => typeof t === 'string')
-        if (tags.length > 0) {
-          item.tags = tags
         }
       }
 

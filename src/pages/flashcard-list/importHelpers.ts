@@ -3,7 +3,6 @@ import JSZip from 'jszip'
 export type ParsedFlashcard = {
   front: string
   back: string
-  tags?: string[]
   ref?: string
   blockedBy?: string[]
   frontMedia?: string[]
@@ -20,13 +19,6 @@ const parseFlashcardLine = (trimmed: string): ParsedFlashcard | null => {
       const flashcard: ParsedFlashcard = {
         front: parsed.front,
         back: parsed.back,
-      }
-
-      if (Array.isArray(parsed.tags)) {
-        const parsedTags = parsed.tags.filter((tag: unknown) => typeof tag === 'string')
-        if (parsedTags.length > 0) {
-          flashcard.tags = parsedTags
-        }
       }
 
       if (typeof parsed.ref === 'string') {

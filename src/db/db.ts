@@ -4,7 +4,6 @@ import type { FlashCard } from './Flashcard'
 import type { LearningContent } from './LearningContent'
 import type { LearningProgress } from './LearningProgress'
 import type { ReviewCount } from './ReviewCount'
-import type { Tag } from './Tag'
 import type { Prompt } from './Prompt'
 import type { UserSettings } from './UserSettings'
 import type { Media } from './Media'
@@ -20,7 +19,6 @@ class KartenDatabase extends Dexie {
   declare learningContent: EntityTable<LearningContent, 'id'>
   declare learningProgress: EntityTable<LearningProgress, 'id'>
   declare reviewCounts: EntityTable<ReviewCount, 'id'>
-  declare tags: EntityTable<Tag, 'id'>
   declare prompts: EntityTable<Prompt, 'id'>
   declare userSettings: EntityTable<UserSettings, 'id'>
   declare media: EntityTable<Media, 'id'>
@@ -110,6 +108,20 @@ class KartenDatabase extends Dexie {
       prompts: 'id, name, owner, realmId',
       userSettings: 'id, owner, realmId',
       media: 'id, mediaType, owner, realmId'
+    })
+
+    this.version(9).stores({
+      flashcards: 'id, *blockedBy, owner, realmId',
+      learningContent: 'id, *relatedFlashcards, owner, realmId',
+      learningProgress: 'id, due, owner, realmId',
+      reviewCounts: 'id, date, owner, realmId',
+      prompts: 'id, name, owner, realmId',
+      userSettings: 'id, owner, realmId',
+      media: 'id, mediaType, owner, realmId'
+    }).upgrade(tx => {
+      return tx.table('userSettings').toCollection().modify(settings => {
+        delete (settings as Record<string, unknown>).untaggedPriority
+      })
     })
   }
 }

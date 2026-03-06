@@ -3,11 +3,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Pencil, Ban, Flag, Trash2 } from 'lucide-vue-next'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
-import { loadTags } from '@/entities/tag/tagStore'
-import { loadUserSettings } from '@/entities/user-settings/userSettingsStore'
-import { pickRandom, randomInt } from '@/dumb/random'
-import type { Tag } from '@/db/Tag'
-import type { UserSettings } from '@/db/UserSettings'
+import { pickRandom } from '@/dumb/random'
 import {
   loadLearningProgress,
   initializeNewCard,
@@ -32,8 +28,6 @@ const revealFlowRef = ref<InstanceType<typeof PracticeRevealFlow> | null>(null)
 const showShortcuts = ref(false)
 
 const flashcards = ref<FlashCard[]>([])
-const allTags = ref<Tag[]>([])
-const userSettings = ref<UserSettings | null>(null)
 const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const learningProgressByFlashcardId = progressMap
 const currentCard = ref<FlashCard | null>(null)
@@ -54,27 +48,17 @@ const isCurrentCardArchived = computed(() => {
   return progress?.isArchived ?? false
 })
 
-const currentCardTags = computed(() => {
-  if (!currentCard.value) return []
-  const tagIds = currentCard.value.tags ?? []
-  return allTags.value.filter(tag => tagIds.includes(tag.id))
-})
-
 function addToRecentCards(cardId: string) {
   recentCardIds.value = [cardId, ...recentCardIds.value].slice(0, COOLDOWN_SIZE)
 }
 
 async function loadData() {
-  const [cards, progressDocs, tags, settings] = await Promise.all([
+  const [cards, progressDocs] = await Promise.all([
     loadFlashcards(),
-    loadLearningProgress(),
-    loadTags(),
-    loadUserSettings()
+    loadLearningProgress()
   ])
 
   flashcards.value = cards
-  allTags.value = tags
-  userSettings.value = settings
 
   const map = new Map<string, LearningProgress>()
   progressDocs.forEach((p) => {
@@ -119,60 +103,12 @@ function selectNextCard(): FlashCard | null {
   })
 
   const preferUnseen = Math.random() < 0.1
-
-  // Tag-based selection
-  const roll = randomInt(0, 9)
-  const untaggedPriorityValue = userSettings.value?.untaggedPriority ?? 5
-
-  const eligibleTagIds = new Set(
-    allTags.value
-      .filter(tag => tag.priority <= roll)
-      .map(tag => tag.id)
-  )
-
-  const untaggedEligible = untaggedPriorityValue <= roll
-
-  const hasEligibleTag = (card: FlashCard): boolean => {
-    const cardTags = card.tags ?? []
-
-    // Untagged cards: check untagged priority
-    if (cardTags.length === 0) {
-      return untaggedEligible
-    }
-
-    // Tagged cards: check if any tag is eligible
-    return cardTags.some(tagId => eligibleTagIds.has(tagId))
-  }
-
-  // Determine primary and fallback pools based on preference
   const primaryPool = preferUnseen && unseen.length > 0 ? unseen : due
   const fallbackPool = preferUnseen && unseen.length > 0 ? due : unseen
 
-  // Try tag-filtered primary pool
-  if (eligibleTagIds.size > 0) {
-    const tagFilteredPrimary = primaryPool.filter(hasEligibleTag)
-    if (tagFilteredPrimary.length > 0) {
-      return pickRandom(tagFilteredPrimary) ?? null
-    }
-
-    // Try tag-filtered fallback pool
-    const tagFilteredFallback = fallbackPool.filter(hasEligibleTag)
-    if (tagFilteredFallback.length > 0) {
-      return pickRandom(tagFilteredFallback) ?? null
-    }
-  }
-
-  // Fall back to existing flow (ignore tags)
-  let nextCard: FlashCard | null = null
-  if (preferUnseen && unseen.length > 0) {
-    nextCard = pickRandom(unseen) ?? null
-  } else if (due.length > 0) {
-    nextCard = pickRandom(due) ?? null
-  } else if (unseen.length > 0) {
-    nextCard = pickRandom(unseen) ?? null
-  }
-
-  return nextCard
+  const fromPrimary = pickRandom(primaryPool)
+  if (fromPrimary) return fromPrimary
+  return pickRandom(fallbackPool) ?? null
 }
 
 async function handleNewCardComplete() {
@@ -220,7 +156,9 @@ async function handlePreviousKnowledgeAccept(cardIds: string[]) {
       pendingCard.value.id,
       pendingCard.value.front,
       pendingCard.value.back,
-      updatedBlockedBy
+      updatedBlockedBy,
+      pendingCard.value.frontMediaIds ?? [],
+      pendingCard.value.backMediaIds ?? []
     )
     showToast(`Added ${cardIds.length} flashcards as previous knowledge`, 'success')
   }
@@ -400,7 +338,6 @@ onBeforeUnmount(() => {
       ref="memorizeFlowRef"
       class="flex-1 w-full"
       :card="currentCard"
-      :tags="currentCardTags"
       :show-shortcuts="showShortcuts"
       @complete="handleNewCardComplete"
       @confused="handleConfused"
@@ -411,7 +348,6 @@ onBeforeUnmount(() => {
       ref="revealFlowRef"
       class="flex-1 w-full"
       :card="currentCard"
-      :tags="currentCardTags"
       :leech-streak-count="learningProgressByFlashcardId.get(currentCard.id)?.leechStreakCount"
       :show-shortcuts="showShortcuts"
       @complete="handleKnownCardComplete"

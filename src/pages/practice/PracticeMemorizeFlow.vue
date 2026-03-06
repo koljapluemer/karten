@@ -3,11 +3,9 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import { Sparkle } from 'lucide-vue-next'
 import type { FlashCard } from '@/db/Flashcard'
-import type { Tag } from '@/db/Tag'
 
 const props = defineProps<{
   card: FlashCard
-  tags?: Tag[]
   showShortcuts?: boolean
 }>()
 
@@ -91,7 +89,6 @@ defineExpose({ phase, skipToRecall, reveal: handleReveal, done: handleDone, conf
       :front="props.card.front"
       :back="props.card.back"
       :show-back="phase !== 'recall'"
-      :tags="props.tags"
       :front-media-ids="props.card.frontMediaIds"
       :back-media-ids="props.card.backMediaIds"
       @click="handleCardClick"

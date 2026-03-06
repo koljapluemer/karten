@@ -3,11 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { Eye, Pencil, Trash2, Plus, CheckSquare, Square } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
-import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
-import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import type { FlashCard } from '@/db/Flashcard'
-import type { Tag } from '@/db/Tag'
 import FileUploadButton from '@/dumb/FileUploadButton.vue'
 import PaginationNav from '@/dumb/PaginationNav.vue'
 import { usePagination } from '@/dumb/usePagination'
@@ -15,41 +12,16 @@ import { parseFlashcardsFromJsonl, parseFlashcardsFromZip } from './importHelper
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 
 const items = ref<FlashCard[]>([])
-const allTags = ref<Tag[]>([])
-const filterTags = ref<string[]>([])
-const filterMode = ref<TagFilterMode>('any')
 const viewModalCard = ref<FlashCard | null>(null)
 const showViewModal = ref(false)
 const uploading = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
 
-const viewModalTags = computed(() => {
-  if (!viewModalCard.value) return []
-  const tagIds = viewModalCard.value.tags ?? []
-  return allTags.value.filter(tag => tagIds.includes(tag.id))
-})
-
 onMounted(async () => {
   items.value = await loadFlashcards()
-  allTags.value = await loadTags()
 })
 
-const filteredItems = computed(() => {
-  if (filterTags.value.length === 0) {
-    return items.value
-  }
-
-  return items.value.filter(item => {
-    const itemTags = item.tags ?? []
-    if (filterMode.value === 'any') {
-      return filterTags.value.some(tagId => itemTags.includes(tagId))
-    } else if (filterMode.value === 'all') {
-      return filterTags.value.every(tagId => itemTags.includes(tagId))
-    } else {
-      return !filterTags.value.some(tagId => itemTags.includes(tagId))
-    }
-  })
-})
+const filteredItems = computed(() => items.value)
 
 const PAGE_SIZE = 25
 const { currentPage, startIndex, endIndex, pageSize } = usePagination(
@@ -124,7 +96,6 @@ const handleJsonlUpload = async (file: File) => {
     const parsed = await parseFlashcardsFromJsonl(file)
     await importParsedFlashcards(parsed, new Map())
     items.value = await loadFlashcards()
-    allTags.value = await loadTags()
   } finally {
     uploading.value = false
   }
@@ -147,7 +118,6 @@ const handleZipUpload = async (file: File) => {
 
     await importParsedFlashcards(cards, pathToMediaId)
     items.value = await loadFlashcards()
-    allTags.value = await loadTags()
   } finally {
     uploading.value = false
   }
@@ -158,17 +128,9 @@ const importParsedFlashcards = async (
   pathToMediaId: Map<string, string>
 ) => {
   const refToId = new Map<string, string>()
-  const cardsWithBlockedBy: Array<{ id: string; front: string; back: string; tagIds: string[]; blockedByRefs: string[] }> = []
+  const cardsWithBlockedBy: Array<{ id: string; front: string; back: string; frontMediaIds: string[]; backMediaIds: string[]; blockedByRefs: string[] }> = []
 
   for (const item of parsed) {
-    const tagIds: string[] = []
-    if (item.tags) {
-      for (const tagContent of item.tags) {
-        const tag = await getOrCreateTag(tagContent)
-        tagIds.push(tag.id)
-      }
-    }
-
     const frontMediaIds = (item.frontMedia ?? [])
       .map(p => pathToMediaId.get(p))
       .filter((id): id is string => id !== undefined)
@@ -177,7 +139,7 @@ const importParsedFlashcards = async (
       .map(p => pathToMediaId.get(p))
       .filter((id): id is string => id !== undefined)
 
-    const card = await createFlashcard(item.front, item.back, [], tagIds, frontMediaIds, backMediaIds)
+    const card = await createFlashcard(item.front, item.back, [], frontMediaIds, backMediaIds)
 
     if (item.ref) {
       refToId.set(item.ref, card.id)
@@ -188,7 +150,8 @@ const importParsedFlashcards = async (
         id: card.id,
         front: card.front,
         back: card.back,
-        tagIds,
+        frontMediaIds: card.frontMediaIds ?? [],
+        backMediaIds: card.backMediaIds ?? [],
         blockedByRefs: item.blockedBy
       })
     }
@@ -200,7 +163,7 @@ const importParsedFlashcards = async (
       .filter((id): id is string => id !== undefined)
 
     if (resolvedBlockedBy.length > 0) {
-      await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.tagIds)
+      await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.frontMediaIds, card.backMediaIds)
     }
   }
 }
@@ -258,11 +221,6 @@ const setPage = (n: number) => {
                   <td>Back side text</td>
                 </tr>
                 <tr>
-                  <td><code>tags</code></td>
-                  <td>string[], optional</td>
-                  <td>Tags (auto-created if new)</td>
-                </tr>
-                <tr>
                   <td><code>ref</code></td>
                   <td>string, optional</td>
                   <td>Reference ID for blockedBy links</td>
@@ -278,7 +236,7 @@ const setPage = (n: number) => {
           <p class="mt-3 text-sm opacity-70">
             Example:
           </p>
-          <pre class="bg-base-200 p-2 rounded text-xs mt-1">{"front": "What is 2+2?", "back": "4", "tags": ["math"], "ref": "q1"}
+          <pre class="bg-base-200 p-2 rounded text-xs mt-1">{"front": "What is 2+2?", "back": "4", "ref": "q1"}
 {"front": "What is 3+3?", "back": "6", "blockedBy": ["q1"]}</pre>
         </template>
       </FileUploadButton>
@@ -322,11 +280,6 @@ const setPage = (n: number) => {
                   <td><code>back</code></td>
                   <td>string, required</td>
                   <td>Back side text</td>
-                </tr>
-                <tr>
-                  <td><code>tags</code></td>
-                  <td>string[], optional</td>
-                  <td>Tags (auto-created if new)</td>
                 </tr>
                 <tr>
                   <td><code>ref</code></td>
@@ -382,17 +335,6 @@ const setPage = (n: number) => {
         <Trash2 class="w-4 h-4" />
         Delete Selected ({{ selectedIds.size }})
       </button>
-    </div>
-
-    <div
-      v-if="allTags.length > 0"
-      class="mb-4"
-    >
-      <TagFilter
-        v-model:selected-tags="filterTags"
-        v-model:mode="filterMode"
-        :all-tags="allTags"
-      />
     </div>
 
     <div class="overflow-x-auto">
@@ -481,7 +423,6 @@ const setPage = (n: number) => {
           :front="viewModalCard.front"
           :back="viewModalCard.back"
           :show-back="true"
-          :tags="viewModalTags"
           :front-media-ids="viewModalCard.frontMediaIds"
           :back-media-ids="viewModalCard.backMediaIds"
         />

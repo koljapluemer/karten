@@ -11,7 +11,6 @@ export const createFlashcard = async (
   front: string,
   back: string,
   blockedBy: string[] = [],
-  tags: string[] = [],
   frontMediaIds: string[] = [],
   backMediaIds: string[] = []
 ): Promise<FlashCard> => {
@@ -22,7 +21,6 @@ export const createFlashcard = async (
     front,
     back,
     blockedBy: [...blockedBy],
-    tags: [...tags],
     frontMediaIds: [...frontMediaIds],
     backMediaIds: [...backMediaIds]
   }
@@ -36,7 +34,6 @@ export const updateFlashcard = async (
   front: string,
   back: string,
   blockedBy: string[] = [],
-  tags: string[] = [],
   frontMediaIds: string[] = [],
   backMediaIds: string[] = []
 ): Promise<void> => {
@@ -44,7 +41,6 @@ export const updateFlashcard = async (
     front,
     back,
     blockedBy: [...blockedBy],
-    tags: [...tags],
     frontMediaIds: [...frontMediaIds],
     backMediaIds: [...backMediaIds]
   })

@@ -4,8 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
-import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
-import TagFilter, { type TagFilterMode } from '@/features/tag-filter/TagFilter.vue'
 import FileUploadButton from '@/dumb/FileUploadButton.vue'
 import PaginationNav from '@/dumb/PaginationNav.vue'
 import { usePagination } from '@/dumb/usePagination'
@@ -14,34 +12,13 @@ import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 import { showToast } from '@/app/toast/toastStore'
 import { pickRandom } from '@/dumb/random'
 import type { LearningContent } from '@/db/LearningContent'
-import type { Tag } from '@/db/Tag'
 
 const router = useRouter()
 const route = useRoute()
 const items = ref<LearningContent[]>([])
-const allTags = ref<Tag[]>([])
-const filterTags = ref<string[]>([])
-const filterMode = ref<TagFilterMode>('any')
 const uploading = ref(false)
 const flashcardFilter = ref<'all' | 'with' | 'without'>('all')
 const searchQuery = ref('')
-
-const parseTagsQuery = (value: unknown) => {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === 'string')
-  }
-  if (typeof value === 'string' && value.trim()) {
-    return [value]
-  }
-  return []
-}
-
-const parseFilterMode = (value: unknown): TagFilterMode => {
-  if (value === 'all' || value === 'any' || value === 'excludes') {
-    return value
-  }
-  return 'any'
-}
 
 const parseFlashcardFilter = (value: unknown): 'all' | 'with' | 'without' => {
   if (value === 'with' || value === 'without' || value === 'all') {
@@ -67,12 +44,6 @@ const buildQueryFromState = () => {
   if (flashcardFilter.value !== 'all') {
     query.flash = flashcardFilter.value
   }
-  if (filterMode.value !== 'any') {
-    query.mode = filterMode.value
-  }
-  if (filterTags.value.length > 0) {
-    query.tags = filterTags.value
-  }
   if (currentPage.value > 1) {
     query.page = String(currentPage.value)
   }
@@ -85,28 +56,14 @@ const parseQueryToState = (
 ) => {
   searchQuery.value = typeof query.q === 'string' ? query.q : ''
   flashcardFilter.value = parseFlashcardFilter(query.flash)
-  filterMode.value = parseFilterMode(query.mode)
-  filterTags.value = parseTagsQuery(query.tags)
   const page = parsePageQuery(query.page)
   options?.setPage(page)
 }
 
 const isQueryEqual = (left: typeof route.query, right: Record<string, string | string[]>) => {
-  const normalizeTags = (value: unknown) => {
-    if (Array.isArray(value)) {
-      return value.filter((item): item is string => typeof item === 'string')
-    }
-    if (typeof value === 'string' && value.trim()) {
-      return [value]
-    }
-    return []
-  }
-
   const normalize = (query: typeof route.query | Record<string, string | string[]>) => ({
     q: typeof query.q === 'string' ? query.q : '',
     flash: parseFlashcardFilter(query.flash),
-    mode: parseFilterMode(query.mode),
-    tags: normalizeTags(query.tags),
     page: parsePageQuery(query.page),
   })
 
@@ -115,16 +72,12 @@ const isQueryEqual = (left: typeof route.query, right: Record<string, string | s
 
   if (leftNormalized.q !== rightNormalized.q) return false
   if (leftNormalized.flash !== rightNormalized.flash) return false
-  if (leftNormalized.mode !== rightNormalized.mode) return false
-  if (leftNormalized.tags.length !== rightNormalized.tags.length) return false
   if (leftNormalized.page !== rightNormalized.page) return false
-
-  return leftNormalized.tags.every((tag, index) => tag === rightNormalized.tags[index])
+  return true
 }
 
 onMounted(async () => {
   items.value = await loadLearningContent()
-  allTags.value = await loadTags()
   setPage(parsePageQuery(route.query.page))
 })
 
@@ -136,20 +89,6 @@ const filteredItems = computed(() => {
     result = result.filter(item => item.relatedFlashcards && item.relatedFlashcards.length > 0)
   } else if (flashcardFilter.value === 'without') {
     result = result.filter(item => !item.relatedFlashcards || item.relatedFlashcards.length === 0)
-  }
-
-  // Filter by tags
-  if (filterTags.value.length > 0) {
-    result = result.filter(item => {
-      const itemTags = item.tags ?? []
-      if (filterMode.value === 'any') {
-        return filterTags.value.some(tagId => itemTags.includes(tagId))
-      } else if (filterMode.value === 'all') {
-        return filterTags.value.every(tagId => itemTags.includes(tagId))
-      } else {
-        return !filterTags.value.some(tagId => itemTags.includes(tagId))
-      }
-    })
   }
 
   // Fuzzy search
@@ -185,7 +124,7 @@ watch(
 )
 
 watch(
-  [searchQuery, flashcardFilter, filterMode, filterTags, currentPage],
+  [searchQuery, flashcardFilter, currentPage],
   () => {
     const query = buildQueryFromState()
     if (!isQueryEqual(route.query, query)) {
@@ -217,17 +156,9 @@ const handleJsonlUpload = async (file: File) => {
   try {
     const parsed = await parseLearningContentFromJsonl(file)
     for (const item of parsed) {
-      const tagIds: string[] = []
-      if (item.tags) {
-        for (const tagContent of item.tags) {
-          const tag = await getOrCreateTag(tagContent)
-          tagIds.push(tag.id)
-        }
-      }
-      await createLearningContent(item.content, [], tagIds)
+      await createLearningContent(item.content, [])
     }
     items.value = await loadLearningContent()
-    allTags.value = await loadTags()
   } finally {
     uploading.value = false
   }
@@ -239,7 +170,7 @@ const handleZipUpload = async (file: File) => {
     const { items: parsed, zip } = await parseLearningContentFromZip(file)
 
     if (zip) {
-      // Manifest mode: extract media and resolve tags
+      // Manifest mode: extract media
       const allMediaPaths: string[] = []
       for (const item of parsed) {
         if (item.media) allMediaPaths.push(...item.media)
@@ -254,15 +185,7 @@ const handleZipUpload = async (file: File) => {
           .map(p => pathToMediaId.get(p))
           .filter((id): id is string => id !== undefined)
 
-        const tagIds: string[] = []
-        if (item.tags) {
-          for (const tagContent of item.tags) {
-            const tag = await getOrCreateTag(tagContent)
-            tagIds.push(tag.id)
-          }
-        }
-
-        await createLearningContent(item.content, [], tagIds, mediaIds)
+        await createLearningContent(item.content, [], mediaIds)
       }
     } else {
       // Legacy mode: text files only
@@ -272,7 +195,6 @@ const handleZipUpload = async (file: File) => {
     }
 
     items.value = await loadLearningContent()
-    allTags.value = await loadTags()
   } finally {
     uploading.value = false
   }
@@ -331,17 +253,6 @@ const handleOpenRandom = () => {
     >
   </div>
 
-  <div
-    v-if="allTags.length > 0"
-    class="mb-4"
-  >
-    <TagFilter
-      v-model:selected-tags="filterTags"
-      v-model:mode="filterMode"
-      :all-tags="allTags"
-    />
-  </div>
-
   <div class="flex gap-2 mb-4">
     <button
       class="btn btn-primary btn-sm"
@@ -378,18 +289,13 @@ const handleOpenRandom = () => {
                 <td>string, required</td>
                 <td>Markdown content</td>
               </tr>
-              <tr>
-                <td><code>tags</code></td>
-                <td>string[], optional</td>
-                <td>Tags (auto-created if new)</td>
-              </tr>
             </tbody>
           </table>
         </div>
         <p class="mt-3 text-sm opacity-70">
           Example:
         </p>
-        <pre class="bg-base-200 p-2 rounded text-xs mt-1">{"content": "# Topic\n\nSome markdown...", "tags": ["science"]}
+        <pre class="bg-base-200 p-2 rounded text-xs mt-1">{"content": "# Topic\n\nSome markdown..."}
 {"content": "# Another\n\nMore content..."}</pre>
       </template>
     </FileUploadButton>
@@ -437,11 +343,6 @@ const handleOpenRandom = () => {
                 <td><code>content</code></td>
                 <td>string, required</td>
                 <td>Markdown content</td>
-              </tr>
-              <tr>
-                <td><code>tags</code></td>
-                <td>string[], optional</td>
-                <td>Tags (auto-created if new)</td>
               </tr>
               <tr>
                 <td><code>media</code></td>

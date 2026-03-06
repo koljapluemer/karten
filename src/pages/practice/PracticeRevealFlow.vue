@@ -2,13 +2,11 @@
 import { ref, watch } from 'vue'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import type { FlashCard } from '@/db/Flashcard'
-import type { Tag } from '@/db/Tag'
 import { Rating } from 'ts-fsrs'
 import { Sparkle } from 'lucide-vue-next'
 
 const props = defineProps<{
   card: FlashCard
-  tags?: Tag[]
   leechStreakCount?: number
   showShortcuts?: boolean
 }>()
@@ -49,7 +47,6 @@ defineExpose({ isRevealed, reveal: handleReveal, rate: handleRating, confused: h
       :front="card.front"
       :back="card.back"
       :show-back="isRevealed"
-      :tags="props.tags"
       :front-media-ids="card.frontMediaIds"
       :back-media-ids="card.backMediaIds"
       @click="handleCardClick"

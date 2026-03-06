@@ -3,16 +3,13 @@ import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
-import { loadTags } from '@/entities/tag/tagStore'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import type { FlashCard } from '@/db/Flashcard'
 import type { LearningProgress } from '@/db/LearningProgress'
-import type { Tag } from '@/db/Tag'
 
 interface FloatingCard {
   instanceId: number
   card: FlashCard
-  tags: Tag[]
   y: number
   duration: number
   scale: number
@@ -22,7 +19,6 @@ const router = useRouter()
 let nextInstanceId = 0
 
 const flashcards = ref<FlashCard[]>([])
-const allTags = ref<Tag[]>([])
 const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const isLoading = ref(true)
 const floatingCards = ref<FloatingCard[]>([])
@@ -47,18 +43,12 @@ const cardPool = computed<FlashCard[]>(() => {
   })
 })
 
-function getTagsForCard(card: FlashCard): Tag[] {
-  if (!card.tags || card.tags.length === 0) return []
-  return allTags.value.filter((t) => card.tags.includes(t.id))
-}
-
 function spawnCard(): FloatingCard | null {
   if (cardPool.value.length === 0) return null
   const card = cardPool.value[Math.floor(Math.random() * cardPool.value.length)]!
   return {
     instanceId: nextInstanceId++,
     card,
-    tags: getTagsForCard(card),
     y: Math.random() * 80,
     duration: 15 + Math.random() * 15,
     scale: 0.7 + Math.random() * 0.3
@@ -84,13 +74,11 @@ watch(maxCards, (newMax) => {
 })
 
 onMounted(async () => {
-  const [cards, progressDocs, tags] = await Promise.all([
+  const [cards, progressDocs] = await Promise.all([
     loadFlashcards(),
-    loadLearningProgress(),
-    loadTags()
+    loadLearningProgress()
   ])
   flashcards.value = cards
-  allTags.value = tags
   const map = new Map<string, LearningProgress>()
   progressDocs.forEach((p) => {
     const flashcardId = p.id.replace('learning-progress:', 'flashcard:')
@@ -156,7 +144,6 @@ onUnmounted(() => {
         :front="fc.card.front"
         :back="fc.card.back"
         :show-back="true"
-        :tags="fc.tags"
         :front-media-ids="fc.card.frontMediaIds"
         :back-media-ids="fc.card.backMediaIds"
       />

@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import { Pencil, Trash2, Link2Off, Link2, Plus } from 'lucide-vue-next'
 import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
 import type { FlashcardNode } from './relatedFlashcardsTypes'
-import type { Tag } from '@/db/Tag'
 
 defineOptions({
   name: 'RelatedFlashcardNode'
@@ -12,13 +11,7 @@ defineOptions({
 const props = defineProps<{
   node: FlashcardNode
   depth: number
-  allTags: Tag[]
 }>()
-
-const cardTags = computed(() => {
-  const tagIds = props.node.card.tags ?? []
-  return props.allTags.filter(tag => tagIds.includes(tag.id))
-})
 
 const emit = defineEmits<{
   edit: [id: string]
@@ -49,7 +42,6 @@ const depthClass = computed(() => {
         :front="node.card.front"
         :back="node.card.back"
         :show-back="true"
-        :tags="cardTags"
         :front-media-ids="node.card.frontMediaIds"
         :back-media-ids="node.card.backMediaIds"
       />
@@ -105,7 +97,6 @@ const depthClass = computed(() => {
         :key="child.card.id"
         :node="child"
         :depth="depth + 1"
-        :all-tags="allTags"
         @edit="emit('edit', $event)"
         @delete="emit('delete', $event)"
         @detach="emit('detach', $event)"

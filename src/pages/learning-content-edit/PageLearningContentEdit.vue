@@ -7,27 +7,21 @@ import SaveIndicator from '@/dumb/SaveIndicator.vue'
 import { useAutoSave } from '@/dumb/useAutoSave'
 import { getLearningContentById, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 import { getFlashcardById, updateFlashcard } from '@/entities/flashcard/flashcardStore'
-import { loadTags, getOrCreateTag } from '@/entities/tag/tagStore'
 import { showToast } from '@/app/toast/toastStore'
-import type { Tag } from '@/db/Tag'
 
 const router = useRouter()
 const route = useRoute()
 const content = ref('')
 const relatedFlashcards = ref<string[]>([])
-const tags = ref<string[]>([])
 const mediaIds = ref<string[]>([])
-const allTags = ref<Tag[]>([])
 const notFound = ref(false)
 
 const loadContent = async (id: string) => {
   notFound.value = false
   try {
-    allTags.value = await loadTags()
     const item = await getLearningContentById(id)
     content.value = item.content
     relatedFlashcards.value = item.relatedFlashcards ?? []
-    tags.value = item.tags ?? []
     mediaIds.value = item.mediaIds ?? []
 
     // Handle auto-attach of newly created flashcard
@@ -40,7 +34,7 @@ const loadContent = async (id: string) => {
         const parent = await getFlashcardById(attachToParentId)
         if (parent && !parent.blockedBy.includes(createdId)) {
           const updatedBlockedBy = [...parent.blockedBy, createdId]
-          await updateFlashcard(attachToParentId, parent.front, parent.back, updatedBlockedBy)
+          await updateFlashcard(attachToParentId, parent.front, parent.back, updatedBlockedBy, parent.frontMediaIds ?? [], parent.backMediaIds ?? [])
           showToast('Prerequisite flashcard attached', 'success')
         }
       } else if (!relatedFlashcards.value.includes(createdId)) {
@@ -69,16 +63,10 @@ watch(
 
 const save = async () => {
   const id = route.params.id as string
-  await updateLearningContent(id, content.value, relatedFlashcards.value, tags.value, mediaIds.value)
+  await updateLearningContent(id, content.value, relatedFlashcards.value, mediaIds.value)
 }
 
-const { status } = useAutoSave([content, relatedFlashcards, tags, mediaIds], save)
-
-const handleCreateTag = async (tagContent: string) => {
-  const tag = await getOrCreateTag(tagContent)
-  allTags.value = await loadTags()
-  tags.value = [...tags.value, tag.id]
-}
+const { status } = useAutoSave([content, relatedFlashcards, mediaIds], save)
 </script>
 
 <template>
@@ -107,10 +95,7 @@ const handleCreateTag = async (tagContent: string) => {
       <LearningContentManager
         v-model:content="content"
         v-model:related-flashcards="relatedFlashcards"
-        v-model:tags="tags"
         v-model:media-ids="mediaIds"
-        :all-tags="allTags"
-        @create-tag="handleCreateTag"
       />
 
       <LearningContentEditActionBar :current-id="($route.params.id as string)" />

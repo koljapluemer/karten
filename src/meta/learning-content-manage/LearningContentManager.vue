@@ -6,30 +6,24 @@ import GradualClozeDeletionWizard from './GradualClozeDeletionWizard.vue'
 import AIFlashcardGeneratorModal from './AIFlashcardGeneratorModal.vue'
 import ListClozeWizard from './ListClozeWizard.vue'
 import RelatedFlashcardNode from './RelatedFlashcardNode.vue'
-import TagInput from '@/dumb/TagInput.vue'
 import MediaSection from '@/entities/media/MediaSection.vue'
 import { showToast } from '@/app/toast/toastStore'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { getOpenAIKey } from '@/app/storage/openAIKey'
-import type { Tag } from '@/db/Tag'
 import type { FlashCard } from '@/db/Flashcard'
 import type { FlashcardNode } from './relatedFlashcardsTypes'
 
 const props = defineProps<{
   content: string
   relatedFlashcards: string[]
-  tags: string[]
   mediaIds: string[]
-  allTags: Tag[]
 }>()
 
 const emit = defineEmits<{
   'update:content': [value: string]
   'update:related-flashcards': [value: string[]]
-  'update:tags': [value: string[]]
   'update:mediaIds': [value: string[]]
-  'create-tag': [content: string]
 }>()
 
 const router = useRouter()
@@ -52,11 +46,6 @@ const contentValue = computed({
 const relatedFlashcardsValue = computed({
   get: () => props.relatedFlashcards ?? [],
   set: (value: string[]) => emit('update:related-flashcards', value)
-})
-
-const tagsValue = computed({
-  get: () => props.tags ?? [],
-  set: (value: string[]) => emit('update:tags', value)
 })
 
 const getCardById = (id: string): FlashCard | undefined =>
@@ -146,7 +135,7 @@ const attachBlockedBy = async (parentId: string, childId: string) => {
   const parent = getCardById(parentId)
   if (!parent || parent.blockedBy.includes(childId)) return
   const blockedBy = [...parent.blockedBy, childId]
-  await updateFlashcard(parent.id, parent.front, parent.back, blockedBy)
+  await updateFlashcard(parent.id, parent.front, parent.back, blockedBy, parent.frontMediaIds ?? [], parent.backMediaIds ?? [])
   updateLocalFlashcard({ ...parent, blockedBy })
   showToast('Flashcard attached', 'success')
 }
@@ -169,7 +158,7 @@ const handleDetach = async (payload: { cardId: string; parentId: string | null }
   const parent = getCardById(payload.parentId)
   if (!parent) return
   const blockedBy = parent.blockedBy.filter((id) => id !== payload.cardId)
-  await updateFlashcard(parent.id, parent.front, parent.back, blockedBy)
+  await updateFlashcard(parent.id, parent.front, parent.back, blockedBy, parent.frontMediaIds ?? [], parent.backMediaIds ?? [])
   updateLocalFlashcard({ ...parent, blockedBy })
   showToast('Flashcard detached', 'info')
 }
@@ -211,7 +200,7 @@ const handleDeleteFlashcard = async (id: string) => {
 
   for (const parent of parents) {
     const blockedBy = parent.blockedBy.filter((childId) => childId !== id)
-    await updateFlashcard(parent.id, parent.front, parent.back, blockedBy)
+    await updateFlashcard(parent.id, parent.front, parent.back, blockedBy, parent.frontMediaIds ?? [], parent.backMediaIds ?? [])
     updateLocalFlashcard({ ...parent, blockedBy })
   }
 
@@ -285,15 +274,6 @@ const handleListClozeComplete = async (topCardId: string) => {
           />
         </fieldset>
 
-        <fieldset class="fieldset">
-          <label class="label">Tags</label>
-          <TagInput
-            v-model="tagsValue"
-            :all-tags="allTags"
-            @create-tag="(content) => emit('create-tag', content)"
-          />
-        </fieldset>
-
         <MediaSection
           :media-ids="props.mediaIds"
           label="Media"
@@ -357,7 +337,6 @@ const handleListClozeComplete = async (topCardId: string) => {
             :key="node.card.id"
             :node="node"
             :depth="0"
-            :all-tags="allTags"
             @edit="handleEditFlashcard"
             @delete="handleDeleteFlashcard"
             @detach="handleDetach"
