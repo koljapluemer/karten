@@ -8,6 +8,13 @@ export const loadReviewCounts = async (): Promise<ReviewCount[]> => {
   return await db.reviewCounts.toArray()
 }
 
+export const getReviewCountForToday = async (): Promise<number> => {
+  const dateKey = format(new Date(), 'yyyy-MM-dd')
+  const id = buildReviewCountId(dateKey)
+  const existing = await db.reviewCounts.get(id)
+  return existing?.count ?? 0
+}
+
 export const incrementReviewCountForToday = async (): Promise<ReviewCount> => {
   const dateKey = format(new Date(), 'yyyy-MM-dd')
   const id = buildReviewCountId(dateKey)
