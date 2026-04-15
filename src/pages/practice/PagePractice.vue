@@ -301,21 +301,39 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <DailyGoalProgressBar v-if="!isLoading" :current="todayCount" :goal="dailyGoal" />
+  <DailyGoalProgressBar
+    v-if="!isLoading"
+    :current="todayCount"
+    :goal="dailyGoal"
+  />
   <div class="flex flex-col gap-4 items-center w-full max-w-lg mx-auto flex-1 pt-10 px-4">
-
-    <div v-if="currentCard" class="flex justify-center gap-1 items-center w-full">
-      <router-link :to="`/flashcards/${currentCard.id}/edit?returnTo=/practice`" class="btn btn-ghost btn-sm">
+    <div
+      v-if="currentCard"
+      class="flex justify-center gap-1 items-center w-full"
+    >
+      <router-link
+        :to="`/flashcards/${currentCard.id}/edit?returnTo=/practice`"
+        class="btn btn-ghost btn-sm"
+      >
         <Pencil />
       </router-link>
-      <button class="btn btn-ghost btn-sm" @click="handleDisable">
+      <button
+        class="btn btn-ghost btn-sm"
+        @click="handleDisable"
+      >
         <Ban />
       </button>
-      <button class="btn btn-sm" :class="isCurrentCardArchived ? 'btn-secondary' : 'btn-ghost'"
-        @click="handleToggleArchive">
+      <button
+        class="btn btn-sm"
+        :class="isCurrentCardArchived ? 'btn-secondary' : 'btn-ghost'"
+        @click="handleToggleArchive"
+      >
         <Flag />
       </button>
-      <button class="btn btn-ghost btn-sm" @click="handleDelete">
+      <button
+        class="btn btn-ghost btn-sm"
+        @click="handleDelete"
+      >
         <Trash2 />
       </button>
     </div>
@@ -328,14 +346,33 @@ onBeforeUnmount(() => {
       No cards available to practice right now.
     </div>
 
-    <PracticeMemorizeFlow v-else-if="isCurrentCardNew" ref="memorizeFlowRef" class="flex-1 w-full" :card="currentCard"
-      :show-shortcuts="showShortcuts" @complete="handleNewCardComplete" @confused="handleConfused" />
+    <PracticeMemorizeFlow
+      v-else-if="isCurrentCardNew"
+      ref="memorizeFlowRef"
+      class="flex-1 w-full"
+      :card="currentCard"
+      :show-shortcuts="showShortcuts"
+      @complete="handleNewCardComplete"
+      @confused="handleConfused"
+    />
 
-    <PracticeRevealFlow v-else ref="revealFlowRef" class="flex-1 w-full" :card="currentCard"
+    <PracticeRevealFlow
+      v-else
+      ref="revealFlowRef"
+      class="flex-1 w-full"
+      :card="currentCard"
       :leech-streak-count="learningProgressByFlashcardId.get(currentCard.id)?.leechStreakCount"
-      :show-shortcuts="showShortcuts" @complete="handleKnownCardComplete" @confused="handleConfused" />
+      :show-shortcuts="showShortcuts"
+      @complete="handleKnownCardComplete"
+      @confused="handleConfused"
+    />
 
-    <PreviousKnowledgeGeneratorModal v-if="pendingCard" :open="showPreviousKnowledgeModal" :card="pendingCard"
-      @close="handlePreviousKnowledgeClose" @accept="handlePreviousKnowledgeAccept" />
+    <PreviousKnowledgeGeneratorModal
+      v-if="pendingCard"
+      :open="showPreviousKnowledgeModal"
+      :card="pendingCard"
+      @close="handlePreviousKnowledgeClose"
+      @accept="handlePreviousKnowledgeAccept"
+    />
   </div>
 </template>
