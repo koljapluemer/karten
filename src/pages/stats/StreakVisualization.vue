@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Flame, Circle } from 'lucide-vue-next'
+import { calculateStreak } from './streak'
 type ChartDataPoint = {
   date: string
   count: number
@@ -24,35 +25,8 @@ const last14Days = computed<DayData[]>(() =>
 )
 
 const streak = computed<number>(() => {
-  // Use allData for streak calculation if provided, otherwise fall back to data
   const source = props.allData ?? props.data
-
-  // Convert to DayData and sort by date descending
-  const days = source
-    .map(day => ({ date: day.date, practiced: day.count > 0 }))
-    .sort((a, b) => b.date.localeCompare(a.date))
-
-  let currentStreak = 0
-  let missedOne = false
-
-  // Start from the most recent day and go backwards
-  for (const day of days) {
-    if (day.practiced) {
-      currentStreak++
-      missedOne = false
-    } else {
-      // Didn't practice this day
-      if (missedOne) {
-        // Already missed one day, this breaks the streak
-        break
-      } else {
-        // First miss, allow it but don't count it
-        missedOne = true
-      }
-    }
-  }
-
-  return currentStreak
+  return calculateStreak(source)
 })
 </script>
 
