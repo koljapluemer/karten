@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { RouterView, RouterLink, useRoute } from 'vue-router'
-import { Settings, Play, BookOpen, Layers, ChartBarBig, MessageSquareText, Wind } from 'lucide-vue-next'
+import { Settings, Play, Layers, ChartBarBig, MessageSquareText, Wind } from 'lucide-vue-next'
 import { initializeAuth } from '@/entities/auth/authStore'
-import ToastContainer from './toast/ToastContainer.vue'
+import ToastContainer from '@/dumb/ToastContainer.vue'
 
 const route = useRoute()
 const isFloatPage = computed(() => route.name === 'float')
@@ -24,13 +24,6 @@ onMounted(() => {
           >
             <Play />
             <span class="hidden sm:inline">Practice</span>
-          </RouterLink>
-          <RouterLink
-            to="/learning-content"
-            class="btn btn-ghost"
-          >
-            <BookOpen />
-            <span class="hidden sm:inline">Learning Content</span>
           </RouterLink>
           <RouterLink
             to="/flashcards"

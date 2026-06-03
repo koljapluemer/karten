@@ -2,12 +2,12 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { loadPrompts } from '@/entities/prompt/promptStore'
 import { ensureDefaultPrompts } from '@/entities/prompt/defaultPrompts'
-import { getLastSelectedPromptId, setLastSelectedPromptId } from '@/app/storage/lastSelectedPrompt'
+import { getLastSelectedPromptId, setLastSelectedPromptId } from '@/dumb/lastSelectedPrompt'
 import type { Prompt } from '@/db/Prompt'
 
 const props = defineProps<{
   magicValues: Record<string, string>
-  context: 'previous-knowledge' | 'learning-content'
+  context: string
 }>()
 
 const emit = defineEmits<{

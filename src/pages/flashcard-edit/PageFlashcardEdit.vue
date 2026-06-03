@@ -2,16 +2,14 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Trash2 } from 'lucide-vue-next'
-import FlashcardFormEdit from '@/entities/flashcard/FlashcardFormEdit.vue'
+import FlashcardFormEdit from './FlashcardFormEdit.vue'
 import SaveIndicator from '@/dumb/SaveIndicator.vue'
 import { useAutoSave } from '@/dumb/useAutoSave'
 import { getFlashcardById, updateFlashcard, deleteFlashcard, loadFlashcards } from '@/entities/flashcard/flashcardStore'
-import { loadLearningContent, updateLearningContent } from '@/entities/learning-content/learningContentStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { db } from '@/db/db'
 import type { LearningProgress } from '@/db/LearningProgress'
-import type { LearningContent } from '@/db/LearningContent'
-import { showToast } from '@/app/toast/toastStore'
+import { showToast } from '@/dumb/toastStore'
 
 const router = useRouter()
 const route = useRoute()
@@ -23,7 +21,6 @@ const frontMediaIds = ref<string[]>([])
 const backMediaIds = ref<string[]>([])
 const notFound = ref(false)
 const learningProgress = ref<LearningProgress | null>(null)
-const relatedLearningContent = ref<LearningContent[]>([])
 
 const stateLabel = computed(() => {
   if (!learningProgress.value) return ''
@@ -59,12 +56,6 @@ onMounted(async () => {
     const progressId = id.replace('flashcard:', 'learning-progress:')
     learningProgress.value = await db.learningProgress.get(progressId) || null
 
-    // Load related learning content
-    const allContent = await loadLearningContent()
-    relatedLearningContent.value = allContent.filter(lc =>
-      lc.relatedFlashcards.includes(id)
-    )
-
     // Handle auto-attach of newly created prerequisite flashcard
     const createdId = route.query.createdId as string
     if (createdId && !blockedBy.value.includes(createdId)) {
@@ -98,12 +89,6 @@ const handleClose = () => {
 const handleDelete = async () => {
   const id = route.params.id as string
   if (!confirm('Delete this flashcard?')) return
-
-  // Remove from learning content's relatedFlashcards
-  for (const lc of relatedLearningContent.value) {
-    const updatedRelated = lc.relatedFlashcards.filter(fcId => fcId !== id)
-    await updateLearningContent(lc.id, lc.content, updatedRelated)
-  }
 
   // Remove from other flashcards' blockedBy arrays
   const allFlashcards = await loadFlashcards()
@@ -189,30 +174,6 @@ const handleDelete = async () => {
               <span class="text-light">Last review:</span> {{ lastReviewDate }}
             </div>
           </div>
-        </div>
-      </div>
-
-      <div
-        v-if="relatedLearningContent.length > 0"
-        class="card shadow mt-4"
-      >
-        <div class="card-body">
-          <h3 class="card-title text-sm">
-            Related Learning Content
-          </h3>
-          <ul class="list-disc list-inside text-sm">
-            <li
-              v-for="lc in relatedLearningContent"
-              :key="lc.id"
-            >
-              <router-link
-                :to="`/learning-content/${lc.id}/edit?returnTo=${encodeURIComponent(route.fullPath)}`"
-                class="link link-primary"
-              >
-                {{ lc.content.substring(0, 60) }}{{ lc.content.length > 60 ? '...' : '' }}
-              </router-link>
-            </li>
-          </ul>
         </div>
       </div>
 

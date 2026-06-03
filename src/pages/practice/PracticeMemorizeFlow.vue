@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import FlashcardRenderer from '@/features/flashcard-render/FlashcardRenderer.vue'
 import { Sparkle } from 'lucide-vue-next'
 import type { FlashCard } from '@/db/Flashcard'
 

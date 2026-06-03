@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Bot, ListTree, List } from 'lucide-vue-next'
-import AIFlashcardGeneratorModal from '@/meta/learning-content-manage/AIFlashcardGeneratorModal.vue'
-import GradualClozeDeletionWizard from '@/meta/learning-content-manage/GradualClozeDeletionWizard.vue'
-import ListClozeWizard from '@/meta/learning-content-manage/ListClozeWizard.vue'
+import AIFlashcardGeneratorModal from './AIFlashcardGeneratorModal.vue'
+import GradualClozeDeletionWizard from './GradualClozeDeletionWizard.vue'
+import ListClozeWizard from './ListClozeWizard.vue'
 
 type Mode = 'ai' | 'cloze' | 'listcloze'
 

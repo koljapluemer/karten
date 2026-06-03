@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import FlashcardFormAdd from '@/entities/flashcard/FlashcardFormAdd.vue'
+import FlashcardFormAdd from './FlashcardFormAdd.vue'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
-import { showToast } from '@/app/toast/toastStore'
+import { showToast } from '@/dumb/toastStore'
 
 const router = useRouter()
 const route = useRoute()

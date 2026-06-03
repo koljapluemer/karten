@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { login, useAuthLoading } from '@/entities/auth/authStore'
-import { showToast } from '@/app/toast/toastStore'
+import { showToast } from '@/dumb/toastStore'
 import { LogIn } from 'lucide-vue-next'
 
 const email = ref('')

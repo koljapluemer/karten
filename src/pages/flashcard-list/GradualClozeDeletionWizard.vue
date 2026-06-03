@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
-import { showToast } from '@/app/toast/toastStore'
+import { showToast } from '@/dumb/toastStore'
 import { CLOZE_MARKER } from './gradualClozeDeletionTypes'
 import type { ClozeSelection, WizardPhase } from './gradualClozeDeletionTypes'
 

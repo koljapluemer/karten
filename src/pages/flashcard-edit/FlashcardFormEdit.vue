@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import BlockedByManager from './BlockedByManager.vue'
+import BlockedByManager from '@/entities/flashcard/BlockedByManager.vue'
 import MediaSection from '@/entities/media/MediaSection.vue'
 
 const props = defineProps<{

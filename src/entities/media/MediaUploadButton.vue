@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { Upload } from 'lucide-vue-next'
 import { processImage } from './imageCompression'
 import { createMedia } from './mediaStore'
-import { showToast } from '@/app/toast/toastStore'
+import { showToast } from '@/dumb/toastStore'
 import type { MediaType } from '@/db/Media'
 
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024 // 10MB

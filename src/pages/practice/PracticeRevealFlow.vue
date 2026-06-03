@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import FlashcardRenderer from '@/features/flashcard-render/FlashcardRenderer.vue'
 import type { FlashCard } from '@/db/Flashcard'
 import { Rating } from 'ts-fsrs'
 import { Sparkle } from 'lucide-vue-next'

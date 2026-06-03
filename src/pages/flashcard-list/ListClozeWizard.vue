@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
-import { showToast } from '@/app/toast/toastStore'
-import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import { showToast } from '@/dumb/toastStore'
+import FlashcardRenderer from '@/features/flashcard-render/FlashcardRenderer.vue'
 import {
   detectListItems,
   generateClozeFront,

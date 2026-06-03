@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { getOpenAIKey } from '@/app/storage/openAIKey'
-import { showToast } from '@/app/toast/toastStore'
+import { getOpenAIKey } from '@/dumb/openAIKey'
+import { showToast } from '@/dumb/toastStore'
 import { createFlashcard } from '@/entities/flashcard/flashcardStore'
 import { generateFlashcards } from '@/features/ai-flashcard-generate/openAIService'
 import type { GeneratedCard } from '@/features/ai-flashcard-generate/types'
-import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import FlashcardRenderer from '@/features/flashcard-render/FlashcardRenderer.vue'
 import PromptSelector from '@/features/prompt-select/PromptSelector.vue'
 
 const props = defineProps<{
@@ -135,7 +135,7 @@ const handleClose = () => {
       >
         <PromptSelector
           :magic-values="magicValues"
-          context="learning-content"
+          context="flashcard-generate"
           @prompt-change="handlePromptChange"
         />
 

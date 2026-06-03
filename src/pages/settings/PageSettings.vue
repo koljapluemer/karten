@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useIsLoggedIn } from '@/entities/auth/authStore'
 import AuthLoginForm from '@/features/auth-login/AuthLoginForm.vue'
 import AuthUserInfo from '@/features/auth-user-info/AuthUserInfo.vue'
-import { getOpenAIKey, setOpenAIKey, clearOpenAIKey } from '@/app/storage/openAIKey'
+import { getOpenAIKey, setOpenAIKey, clearOpenAIKey } from '@/dumb/openAIKey'
 import { loadUserSettings, setDailyFlippedCardGoal } from '@/entities/user-settings/userSettingsStore'
 
 const isLoggedIn = useIsLoggedIn()

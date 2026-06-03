@@ -8,13 +8,11 @@ import type { FlashcardCategoryCounts } from '@/features/flashcard-stats-bar/typ
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import { loadReviewCounts } from '@/entities/review-count/reviewCountStore'
-import { loadLearningContent } from '@/entities/learning-content/learningContentStore'
 import { loadUserSettings } from '@/entities/user-settings/userSettingsStore'
 import type { FlashCard } from '@/db/Flashcard'
 import type { UserSettings } from '@/db/UserSettings'
 import type { LearningProgress } from '@/db/LearningProgress'
 import type { ReviewCount } from '@/db/ReviewCount'
-import type { LearningContent } from '@/db/LearningContent'
 
 type ChartDataPoint = {
   date: string
@@ -24,7 +22,6 @@ type ChartDataPoint = {
 const flashcards = ref<FlashCard[]>([])
 const progress = ref<LearningProgress[]>([])
 const reviewCounts = ref<ReviewCount[]>([])
-const learningContent = ref<LearningContent[]>([])
 const userSettings = ref<UserSettings | null>(null)
 const isLoading = ref(true)
 
@@ -33,17 +30,15 @@ const progressIdToFlashcardId = (progressId: string): string =>
 
 const loadData = async () => {
   isLoading.value = true
-  const [cards, progressDocs, countDocs, contentDocs, settings] = await Promise.all([
+  const [cards, progressDocs, countDocs, settings] = await Promise.all([
     loadFlashcards(),
     loadLearningProgress(),
     loadReviewCounts(),
-    loadLearningContent(),
     loadUserSettings()
   ])
   flashcards.value = cards
   progress.value = progressDocs
   reviewCounts.value = countDocs
-  learningContent.value = contentDocs
   userSettings.value = settings
   isLoading.value = false
 }
@@ -110,12 +105,6 @@ const flashcardStats = computed<FlashcardCategoryCounts>(() => {
 
 const totalFlashcards = computed(() => flashcards.value.length)
 
-const learningContentCount = computed(() => learningContent.value.length)
-
-const learningContentWithoutFlashcardsCount = computed(() =>
-  learningContent.value.filter(item => item.relatedFlashcards.length === 0).length
-)
-
 const dailyFlips = computed<ChartDataPoint[]>(() => {
   const today = startOfDay(new Date())
   const counts = new Map<string, number>(
@@ -161,28 +150,6 @@ const allDailyFlips = computed<ChartDataPoint[]>(() => {
         <span class="font-bold">{{ totalFlashcards }}</span>
       </div>
       <FlashcardStatsBar :counts="flashcardStats" />
-    </div>
-
-    <div
-      v-if="!isLoading"
-      class="stats stats-vertical lg:stats-horizontal shadow"
-    >
-      <div class="stat">
-        <div class="stat-title text-light">
-          Learning content
-        </div>
-        <div class="stat-value">
-          {{ learningContentCount }}
-        </div>
-      </div>
-      <div class="stat">
-        <div class="stat-title text-light">
-          Without flashcards
-        </div>
-        <div class="stat-value">
-          {{ learningContentWithoutFlashcardsCount }}
-        </div>
-      </div>
     </div>
 
     <div>

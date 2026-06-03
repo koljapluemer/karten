@@ -3,7 +3,7 @@ import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadFlashcards } from '@/entities/flashcard/flashcardStore'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
-import FlashcardRenderer from '@/entities/flashcard/FlashcardRenderer.vue'
+import FlashcardRenderer from '@/features/flashcard-render/FlashcardRenderer.vue'
 import type { FlashCard } from '@/db/Flashcard'
 import type { LearningProgress } from '@/db/LearningProgress'
 

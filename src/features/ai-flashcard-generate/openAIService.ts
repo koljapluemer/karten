@@ -1,4 +1,4 @@
-import { getOpenAIKey } from '@/app/storage/openAIKey'
+import { getOpenAIKey } from '@/dumb/openAIKey'
 import type { GeneratedCard } from './types'
 
 export function buildSchema(): object {

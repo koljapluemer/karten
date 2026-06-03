@@ -1,4 +1,4 @@
-type PromptContext = 'previous-knowledge' | 'learning-content'
+type PromptContext = string
 
 const getStorageKey = (context: PromptContext): string => {
   return `last-selected-prompt-${context}`

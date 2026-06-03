@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { logout, useCurrentUser, useAuthLoading } from '@/entities/auth/authStore'
-import { showToast } from '@/app/toast/toastStore'
+import { showToast } from '@/dumb/toastStore'
 import { LogOut } from 'lucide-vue-next'
 
 const currentUser = useCurrentUser()
