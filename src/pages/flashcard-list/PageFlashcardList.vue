@@ -10,6 +10,7 @@ import PaginationNav from '@/dumb/PaginationNav.vue'
 import { usePagination } from '@/dumb/usePagination'
 import { parseFlashcardsFromJsonl, parseFlashcardsFromZip } from './importHelpers'
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
+import QuickGenerateMenu from './QuickGenerateMenu.vue'
 
 const items = ref<FlashCard[]>([])
 const viewModalCard = ref<FlashCard | null>(null)
@@ -171,6 +172,10 @@ const importParsedFlashcards = async (
 const setPage = (n: number) => {
   currentPage.value = n
 }
+
+const handleGenerateComplete = async () => {
+  items.value = await loadFlashcards()
+}
 </script>
 
 <template>
@@ -179,7 +184,7 @@ const setPage = (n: number) => {
       Flashcards
     </h1>
 
-    <div class="flex gap-2 mb-4">
+    <div class="flex flex-wrap gap-2 mb-4">
       <router-link
         to="/flashcards/add"
         class="btn btn-primary"
@@ -187,6 +192,7 @@ const setPage = (n: number) => {
         <Plus />
         Add Flashcard
       </router-link>
+      <QuickGenerateMenu @complete="handleGenerateComplete" />
       <FileUploadButton
         label="Import JSONL"
         accept=".jsonl"
