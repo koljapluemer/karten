@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Pencil, Trash2, Plus, Shuffle } from 'lucide-vue-next'
+import { Pencil, Trash2, Plus, Shuffle, Download } from 'lucide-vue-next'
 import { loadLearningContent, deleteLearningContent, createLearningContent } from '@/entities/learning-content/learningContentStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import FileUploadButton from '@/dumb/FileUploadButton.vue'
 import PaginationNav from '@/dumb/PaginationNav.vue'
 import { usePagination } from '@/dumb/usePagination'
 import { parseLearningContentFromJsonl, parseLearningContentFromZip } from './importHelpers'
+import { exportLearningContentAsZip } from './exportHelpers'
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 import { showToast } from '@/app/toast/toastStore'
 import { pickRandom } from '@/dumb/random'
@@ -200,6 +201,10 @@ const handleZipUpload = async (file: File) => {
   }
 }
 
+const handleDownload = async () => {
+  await exportLearningContentAsZip(items.value)
+}
+
 const handleOpenRandom = () => {
   const withoutFlashcards = items.value.filter(
     (item) => !item.relatedFlashcards || item.relatedFlashcards.length === 0
@@ -357,6 +362,13 @@ const handleOpenRandom = () => {
         </p>
       </template>
     </FileUploadButton>
+    <button
+      class="btn btn-sm"
+      @click="handleDownload"
+    >
+      <Download />
+      Download ZIP
+    </button>
     <button
       class="btn btn-sm"
       @click="handleOpenRandom"
