@@ -82,14 +82,8 @@ async function loadData() {
 
 function isCardEligible(card: FlashCard): boolean {
   for (const blockedId of card.blockedBy) {
-    const blockedProgress = progressMap.value.get(blockedId)
-
-    if (!blockedProgress) return false
-
-    const blockedDue = new Date(blockedProgress.due)
-    if (blockedDue <= new Date()) return false
+    if (!progressMap.value.has(blockedId)) return false
   }
-
   return true
 }
 
