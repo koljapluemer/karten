@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Pencil, Ban, Flag, Trash2 } from 'lucide-vue-next'
+import { Pencil, Ban, Flag, Trash2, Target, X } from 'lucide-vue-next'
 import { loadFlashcards, updateFlashcard, deleteFlashcard } from '@/entities/flashcard/flashcardStore'
 import { pickRandom } from '@/dumb/random'
 import {
@@ -22,6 +22,7 @@ import DailyGoalProgressBar from './DailyGoalProgressBar.vue'
 import PracticeMemorizeFlow from './PracticeMemorizeFlow.vue'
 import PracticeRevealFlow from './PracticeRevealFlow.vue'
 import PreviousKnowledgeGeneratorModal from './PreviousKnowledgeGeneratorModal.vue'
+import FocusModeModal from './FocusModeModal.vue'
 
 const router = useRouter()
 
@@ -39,6 +40,8 @@ const isLoading = ref(true)
 
 const pendingCard = ref<FlashCard | null>(null)
 const showPreviousKnowledgeModal = ref(false)
+const focusFilter = ref<string | null>(null)
+const showFocusModeModal = ref(false)
 const dailyGoal = ref(0)
 const todayCount = ref(0)
 
@@ -89,34 +92,64 @@ function isCardEligible(card: FlashCard): boolean {
   return true
 }
 
-function selectNextCard(): FlashCard | null {
-  const notDisabled = flashcards.value.filter((c) => {
-    const progress = progressMap.value.get(c.id)
-    return !progress?.isDisabled
-  })
+function isDueCard(card: FlashCard): boolean {
+  const p = progressMap.value.get(card.id)
+  return !!p && new Date(p.due) <= new Date()
+}
+
+function getEligiblePool(): FlashCard[] {
+  const notDisabled = flashcards.value.filter((c) => !progressMap.value.get(c.id)?.isDisabled)
   const eligible = notDisabled.filter(isCardEligible)
+  const excludingRecent = eligible.filter((c) => !recentCardIds.value.includes(c.id))
+  return excludingRecent.length > 0 ? excludingRecent : eligible
+}
 
-  if (eligible.length === 0) return null
+function selectFocusCard(pool: FlashCard[]): FlashCard | null {
+  const filter = focusFilter.value!.toLowerCase()
+  const focused = pool.filter(
+    (c) => c.front.toLowerCase().includes(filter) || c.back.toLowerCase().includes(filter)
+  )
 
-  // Exclude recent cards to prevent repeats (4-card cooldown)
-  const eligibleExcludingRecent = eligible.filter((c) => !recentCardIds.value.includes(c.id))
+  const due = focused.filter(isDueCard)
+  if (due.length > 0) return pickRandom(due) ?? null
 
-  // If all eligible cards were filtered out, use eligible
-  const pool = eligibleExcludingRecent.length > 0 ? eligibleExcludingRecent : eligible
+  const unseen = focused.filter((c) => !progressMap.value.has(c.id))
+  if (unseen.length > 0) return pickRandom(unseen) ?? null
+
+  const seenNotDue = focused.filter((c) => progressMap.value.has(c.id) && !isDueCard(c))
+  if (seenNotDue.length > 0) {
+    seenNotDue.sort(
+      (a, b) =>
+        new Date(progressMap.value.get(a.id)!.due).getTime() -
+        new Date(progressMap.value.get(b.id)!.due).getTime()
+    )
+    return seenNotDue[0] ?? null
+  }
+
+  return null
+}
+
+function selectNextCard(): FlashCard | null {
+  const pool = getEligiblePool()
+  if (pool.length === 0) return null
+
+  if (focusFilter.value) {
+    if (Math.random() < 5 / 6) {
+      return selectFocusCard(pool)
+    } else {
+      const globalDue = pool.filter(isDueCard)
+      return pickRandom(globalDue) ?? selectFocusCard(pool) ?? null
+    }
+  }
 
   const unseen = pool.filter((c) => !progressMap.value.has(c.id))
-  const due = pool.filter((c) => {
-    const progress = progressMap.value.get(c.id)
-    return progress && new Date(progress.due) <= new Date()
-  })
+  const due = pool.filter(isDueCard)
 
   const preferUnseen = Math.random() < 0.1
   const primaryPool = preferUnseen && unseen.length > 0 ? unseen : due
   const fallbackPool = preferUnseen && unseen.length > 0 ? due : unseen
 
-  const fromPrimary = pickRandom(primaryPool)
-  if (fromPrimary) return fromPrimary
-  return pickRandom(fallbackPool) ?? null
+  return pickRandom(primaryPool) ?? pickRandom(fallbackPool) ?? null
 }
 
 async function handleNewCardComplete() {
@@ -226,7 +259,7 @@ function onKeydown(e: KeyboardEvent) {
     return
   }
 
-  if (showPreviousKnowledgeModal.value) return
+  if (showPreviousKnowledgeModal.value || showFocusModeModal.value) return
 
   const target = e.target as HTMLElement
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
@@ -308,6 +341,17 @@ onBeforeUnmount(() => {
   />
   <div class="flex flex-col gap-4 items-center w-full max-w-lg mx-auto flex-1 pt-10 px-4">
     <div
+      v-if="focusFilter"
+      class="badge badge-primary gap-2 self-start py-3"
+    >
+      <Target class="w-3 h-3" />
+      <span class="max-w-48 truncate">{{ focusFilter }}</span>
+      <button @click="focusFilter = null">
+        <X class="w-3 h-3" />
+      </button>
+    </div>
+
+    <div
       v-if="currentCard"
       class="flex justify-center gap-1 items-center w-full"
     >
@@ -335,6 +379,13 @@ onBeforeUnmount(() => {
         @click="handleDelete"
       >
         <Trash2 />
+      </button>
+      <button
+        class="btn btn-sm"
+        :class="focusFilter ? 'btn-primary' : 'btn-ghost'"
+        @click="showFocusModeModal = true"
+      >
+        <Target />
       </button>
     </div>
 
@@ -373,6 +424,14 @@ onBeforeUnmount(() => {
       :card="pendingCard"
       @close="handlePreviousKnowledgeClose"
       @accept="handlePreviousKnowledgeAccept"
+    />
+
+    <FocusModeModal
+      :open="showFocusModeModal"
+      :current-filter="focusFilter"
+      @close="showFocusModeModal = false"
+      @activate="(f) => { focusFilter = f; showFocusModeModal = false }"
+      @deactivate="() => { focusFilter = null; showFocusModeModal = false }"
     />
   </div>
 </template>
