@@ -23,6 +23,7 @@ import PracticeMemorizeFlow from './PracticeMemorizeFlow.vue'
 import PracticeRevealFlow from './PracticeRevealFlow.vue'
 import PreviousKnowledgeGeneratorModal from './PreviousKnowledgeGeneratorModal.vue'
 import FocusModeModal from './FocusModeModal.vue'
+import { useFocusFilter } from './useFocusFilter'
 
 const router = useRouter()
 
@@ -40,8 +41,8 @@ const isLoading = ref(true)
 
 const pendingCard = ref<FlashCard | null>(null)
 const showPreviousKnowledgeModal = ref(false)
-const focusFilter = ref<string | null>(null)
 const showFocusModeModal = ref(false)
+const { focusFilter } = useFocusFilter()
 const dailyGoal = ref(0)
 const todayCount = ref(0)
 
