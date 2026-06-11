@@ -3,8 +3,10 @@ import { ref, onMounted, computed } from 'vue'
 import { Eye, Pencil, Trash2, Plus, CheckSquare, Square } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
+import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
 import FlashcardRenderer from '@/features/flashcard-render/FlashcardRenderer.vue'
 import type { FlashCard } from '@/db/Flashcard'
+import type { LearningProgress } from '@/db/LearningProgress'
 import FileUploadButton from '@/dumb/FileUploadButton.vue'
 import PaginationNav from '@/dumb/PaginationNav.vue'
 import { usePagination } from '@/dumb/usePagination'
@@ -12,17 +14,35 @@ import { parseFlashcardsFromJsonl, parseFlashcardsFromZip } from './importHelper
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
 import QuickGenerateMenu from './QuickGenerateMenu.vue'
 
+type FilterMode = 'all' | 'unseen' | 'practiced'
+
 const items = ref<FlashCard[]>([])
+const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const viewModalCard = ref<FlashCard | null>(null)
 const showViewModal = ref(false)
 const uploading = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
+const filterMode = ref<FilterMode>('all')
 
-onMounted(async () => {
-  items.value = await loadFlashcards()
+const loadAll = async () => {
+  ;[items.value] = await Promise.all([loadFlashcards()])
+  const progress = await loadLearningProgress()
+  progressMap.value = new Map(progress.map(p => [p.id, p]))
+}
+
+onMounted(loadAll)
+
+const isPracticed = (card: FlashCard): boolean => {
+  const progressId = card.id.replace('flashcard:', 'learning-progress:')
+  const progress = progressMap.value.get(progressId)
+  return progress !== undefined && (progress.reps ?? 0) > 0
+}
+
+const filteredItems = computed(() => {
+  if (filterMode.value === 'unseen') return items.value.filter(c => !isPracticed(c))
+  if (filterMode.value === 'practiced') return items.value.filter(c => isPracticed(c))
+  return items.value
 })
-
-const filteredItems = computed(() => items.value)
 
 const PAGE_SIZE = 25
 const { currentPage, startIndex, endIndex, pageSize } = usePagination(
@@ -69,7 +89,7 @@ const handleDeleteSelected = async () => {
     await deleteFlashcard(id)
   }
   selectedIds.value = new Set()
-  items.value = await loadFlashcards()
+  await loadAll()
   await cleanupOrphanedMedia(mediaToCleanup)
 }
 
@@ -83,7 +103,7 @@ const handleDelete = async (id: string) => {
   const card = items.value.find(c => c.id === id)
   const mediaToCleanup = [...(card?.frontMediaIds ?? []), ...(card?.backMediaIds ?? [])]
   await deleteFlashcard(id)
-  items.value = await loadFlashcards()
+  await loadAll()
   await cleanupOrphanedMedia(mediaToCleanup)
 }
 
@@ -96,7 +116,7 @@ const handleJsonlUpload = async (file: File) => {
   try {
     const parsed = await parseFlashcardsFromJsonl(file)
     await importParsedFlashcards(parsed, new Map())
-    items.value = await loadFlashcards()
+    await loadAll()
   } finally {
     uploading.value = false
   }
@@ -118,7 +138,7 @@ const handleZipUpload = async (file: File) => {
       : new Map<string, string>()
 
     await importParsedFlashcards(cards, pathToMediaId)
-    items.value = await loadFlashcards()
+    await loadAll()
   } finally {
     uploading.value = false
   }
@@ -174,7 +194,7 @@ const setPage = (n: number) => {
 }
 
 const handleGenerateComplete = async () => {
-  items.value = await loadFlashcards()
+  await loadAll()
 }
 </script>
 
@@ -341,6 +361,24 @@ const handleGenerateComplete = async () => {
         <Trash2 class="w-4 h-4" />
         Delete Selected ({{ selectedIds.size }})
       </button>
+    </div>
+
+    <div class="flex gap-4 mb-4">
+      <label
+        v-for="option in ([{ value: 'all', label: 'All' }, { value: 'unseen', label: 'Unseen Only' }, { value: 'practiced', label: 'Practiced Only' }] as const)"
+        :key="option.value"
+        class="flex items-center gap-1.5 cursor-pointer"
+      >
+        <input
+          type="radio"
+          class="radio radio-sm"
+          name="filter-mode"
+          :value="option.value"
+          :checked="filterMode === option.value"
+          @change="filterMode = option.value"
+        >
+        {{ option.label }}
+      </label>
     </div>
 
     <div class="overflow-x-auto">
