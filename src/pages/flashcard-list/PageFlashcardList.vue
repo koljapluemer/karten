@@ -23,6 +23,7 @@ const showViewModal = ref(false)
 const uploading = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
 const filterMode = ref<FilterMode>('all')
+const searchQuery = ref('')
 
 const loadAll = async () => {
   ;[items.value] = await Promise.all([loadFlashcards()])
@@ -39,9 +40,12 @@ const isPracticed = (card: FlashCard): boolean => {
 }
 
 const filteredItems = computed(() => {
-  if (filterMode.value === 'unseen') return items.value.filter(c => !isPracticed(c))
-  if (filterMode.value === 'practiced') return items.value.filter(c => isPracticed(c))
-  return items.value
+  let result = items.value
+  if (filterMode.value === 'unseen') result = result.filter(c => !isPracticed(c))
+  else if (filterMode.value === 'practiced') result = result.filter(c => isPracticed(c))
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q) result = result.filter(c => c.front.toLowerCase().includes(q) || c.back.toLowerCase().includes(q))
+  return result
 })
 
 const PAGE_SIZE = 25
@@ -376,22 +380,30 @@ const handleGenerateComplete = async () => {
       </button>
     </div>
 
-    <div class="flex gap-4 mb-4">
-      <label
-        v-for="option in ([{ value: 'all', label: 'All' }, { value: 'unseen', label: 'Unseen Only' }, { value: 'practiced', label: 'Practiced Only' }] as const)"
-        :key="option.value"
-        class="flex items-center gap-1.5 cursor-pointer"
+    <div class="flex flex-wrap items-center gap-4 mb-4">
+      <input
+        v-model="searchQuery"
+        type="search"
+        class="input input-sm input-bordered flex-1 min-w-48"
+        placeholder="Search…"
       >
-        <input
-          type="radio"
-          class="radio radio-sm"
-          name="filter-mode"
-          :value="option.value"
-          :checked="filterMode === option.value"
-          @change="filterMode = option.value"
+      <div class="flex gap-4">
+        <label
+          v-for="option in ([{ value: 'all', label: 'All' }, { value: 'unseen', label: 'Unseen Only' }, { value: 'practiced', label: 'Practiced Only' }] as const)"
+          :key="option.value"
+          class="flex items-center gap-1.5 cursor-pointer"
         >
-        {{ option.label }}
-      </label>
+          <input
+            type="radio"
+            class="radio radio-sm"
+            name="filter-mode"
+            :value="option.value"
+            :checked="filterMode === option.value"
+            @change="filterMode = option.value"
+          >
+          {{ option.label }}
+        </label>
+      </div>
     </div>
 
     <div class="overflow-x-auto">
