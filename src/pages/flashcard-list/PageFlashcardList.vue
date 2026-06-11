@@ -69,6 +69,12 @@ const toggleSelect = (id: string) => {
   selectedIds.value = newSet
 }
 
+const selectPage = () => {
+  const newSet = new Set(selectedIds.value)
+  paginatedItems.value.forEach(item => newSet.add(item.id))
+  selectedIds.value = newSet
+}
+
 const selectAll = () => {
   selectedIds.value = new Set(filteredItems.value.map(item => item.id))
 }
@@ -340,10 +346,17 @@ const handleGenerateComplete = async () => {
     <div class="flex gap-2 mb-4">
       <button
         class="btn btn-sm btn-outline"
+        @click="selectPage"
+      >
+        <CheckSquare class="w-4 h-4" />
+        Select Page
+      </button>
+      <button
+        class="btn btn-sm btn-outline"
         @click="selectAll"
       >
         <CheckSquare class="w-4 h-4" />
-        Select All
+        Select All ({{ filteredItems.length }})
       </button>
       <button
         class="btn btn-sm btn-outline"
