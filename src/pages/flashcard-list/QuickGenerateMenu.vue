@@ -56,21 +56,21 @@ function onAIClose() {
 
 <template>
   <button
-    class="btn btn-outline"
+    class="btn btn-sm btn-outline"
     @click="openTextStep('ai')"
   >
     <Bot class="w-4 h-4" />
     AI Flashcards
   </button>
   <button
-    class="btn btn-outline"
+    class="btn btn-sm btn-outline"
     @click="openTextStep('cloze')"
   >
     <ListTree class="w-4 h-4" />
     Gradual Cloze
   </button>
   <button
-    class="btn btn-outline"
+    class="btn btn-sm btn-outline"
     @click="openTextStep('listcloze')"
   >
     <List class="w-4 h-4" />

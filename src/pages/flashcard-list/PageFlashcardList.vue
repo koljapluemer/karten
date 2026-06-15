@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { Eye, Pencil, Trash2, Plus, CheckSquare, Square } from 'lucide-vue-next'
+import { Eye, Pencil, Trash2, Plus, CheckSquare, Square, Download } from 'lucide-vue-next'
 import { loadFlashcards, deleteFlashcard, createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { cleanupOrphanedMedia } from '@/entities/media/mediaCleanup'
 import { loadLearningProgress } from '@/entities/learning-progress/LearningProgressStore'
@@ -12,6 +12,7 @@ import PaginationNav from '@/dumb/PaginationNav.vue'
 import { usePagination } from '@/dumb/usePagination'
 import { parseFlashcardsFromJsonl, parseFlashcardsFromZip } from './importHelpers'
 import { extractMediaFromZip } from '@/entities/media/zipMediaImport'
+import { exportFlashcardsAsZip } from './exportHelpers'
 import QuickGenerateMenu from './QuickGenerateMenu.vue'
 
 type FilterMode = 'all' | 'unseen' | 'practiced'
@@ -21,6 +22,7 @@ const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const viewModalCard = ref<FlashCard | null>(null)
 const showViewModal = ref(false)
 const uploading = ref(false)
+const exporting = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
 const filterMode = ref<FilterMode>('all')
 const searchQuery = ref('')
@@ -203,6 +205,15 @@ const setPage = (n: number) => {
   currentPage.value = n
 }
 
+const handleExport = async () => {
+  exporting.value = true
+  try {
+    await exportFlashcardsAsZip()
+  } finally {
+    exporting.value = false
+  }
+}
+
 const handleGenerateComplete = async () => {
   await loadAll()
 }
@@ -214,13 +225,13 @@ const handleGenerateComplete = async () => {
       Flashcards
     </h1>
 
-    <div class="flex flex-wrap gap-2 mb-4">
+    <div class="flex flex-wrap gap-2 mb-2">
       <router-link
         to="/flashcards/add"
-        class="btn btn-primary"
+        class="btn btn-sm btn-primary"
       >
-        <Plus />
-        Add Flashcard
+        <Plus class="w-4 h-4" />
+        Add
       </router-link>
       <QuickGenerateMenu @complete="handleGenerateComplete" />
       <FileUploadButton
@@ -345,9 +356,52 @@ const handleGenerateComplete = async () => {
           </p>
         </template>
       </FileUploadButton>
+      <button
+        class="btn btn-sm btn-outline"
+        :disabled="exporting"
+        @click="handleExport"
+      >
+        <Download class="w-4 h-4" />
+        Export ZIP
+      </button>
     </div>
 
-    <div class="flex gap-2 mb-4">
+    <div class="flex flex-wrap items-center gap-2 mb-2">
+      <input
+        v-model="searchQuery"
+        type="search"
+        class="input input-sm input-bordered flex-1 min-w-48"
+        placeholder="Search…"
+      >
+      <div class="join">
+        <input
+          v-model="filterMode"
+          type="radio"
+          class="join-item btn btn-sm"
+          name="filter-mode"
+          value="all"
+          aria-label="All"
+        >
+        <input
+          v-model="filterMode"
+          type="radio"
+          class="join-item btn btn-sm"
+          name="filter-mode"
+          value="unseen"
+          aria-label="Unseen"
+        >
+        <input
+          v-model="filterMode"
+          type="radio"
+          class="join-item btn btn-sm"
+          name="filter-mode"
+          value="practiced"
+          aria-label="Practiced"
+        >
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-4">
       <button
         class="btn btn-sm btn-outline"
         @click="selectPage"
@@ -376,34 +430,8 @@ const handleGenerateComplete = async () => {
         @click="handleDeleteSelected"
       >
         <Trash2 class="w-4 h-4" />
-        Delete Selected ({{ selectedIds.size }})
+        Delete ({{ selectedIds.size }})
       </button>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-4 mb-4">
-      <input
-        v-model="searchQuery"
-        type="search"
-        class="input input-sm input-bordered flex-1 min-w-48"
-        placeholder="Search…"
-      >
-      <div class="flex gap-4">
-        <label
-          v-for="option in ([{ value: 'all', label: 'All' }, { value: 'unseen', label: 'Unseen Only' }, { value: 'practiced', label: 'Practiced Only' }] as const)"
-          :key="option.value"
-          class="flex items-center gap-1.5 cursor-pointer"
-        >
-          <input
-            type="radio"
-            class="radio radio-sm"
-            name="filter-mode"
-            :value="option.value"
-            :checked="filterMode === option.value"
-            @change="filterMode = option.value"
-          >
-          {{ option.label }}
-        </label>
-      </div>
     </div>
 
     <div class="overflow-x-auto">
