@@ -24,8 +24,13 @@ flowchart TD
     FOCUS -->|No| COIN{"Random roll:\n10% prefer unseen\n90% prefer due"}
     COIN -->|Prefer due| DUE_FIRST["Primary = due cards\nFallback = unseen cards"]
     COIN -->|Prefer unseen| UNSEEN_FIRST["Primary = unseen cards\nFallback = due cards"]
-    DUE_FIRST --> PICK["pickRandom(primary)\n?? pickRandom(fallback)\n?? null"]
-    UNSEEN_FIRST --> PICK
+    DUE_FIRST --> HOT{"50% try\nhot pool?"}
+    UNSEEN_FIRST --> HOT
+    HOT -->|Yes| HOTFILT["Filter hot pool to\nprimary category cards"]
+    HOTFILT --> HOTFOUND{"Any hot\ncandidates?"}
+    HOTFOUND -->|Yes| DONE_HOT([Return hot card])
+    HOTFOUND -->|No| PICK["pickRandom(primary)\n?? pickRandom(fallback)\n?? null"]
+    HOT -->|No| PICK
     PICK --> DONE2([Return card])
 
     SF --> SF1["Filter pool to cards\nmatching focus text\n(front or back)"]

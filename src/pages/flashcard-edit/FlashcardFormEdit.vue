@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BlockedByManager from '@/entities/flashcard/BlockedByManager.vue'
+import BefriendedCardsManager from '@/entities/flashcard/BefriendedCardsManager.vue'
 import MediaSection from '@/entities/media/MediaSection.vue'
 
 const props = defineProps<{
   front: string
   back: string
   blockedBy: string[]
+  befriendedCards: string[]
   frontMediaIds: string[]
   backMediaIds: string[]
 }>()
@@ -15,6 +17,7 @@ const emit = defineEmits<{
   'update:front': [value: string]
   'update:back': [value: string]
   'update:blocked-by': [value: string[]]
+  'update:befriended-cards': [value: string[]]
   'update:frontMediaIds': [value: string[]]
   'update:backMediaIds': [value: string[]]
 }>()
@@ -32,6 +35,11 @@ const backValue = computed({
 const blockedByValue = computed({
   get: () => props.blockedBy ?? [],
   set: (value: string[]) => emit('update:blocked-by', value)
+})
+
+const befriendedCardsValue = computed({
+  get: () => props.befriendedCards ?? [],
+  set: (value: string[]) => emit('update:befriended-cards', value)
 })
 </script>
 
@@ -78,5 +86,6 @@ const blockedByValue = computed({
     />
 
     <BlockedByManager v-model="blockedByValue" />
+    <BefriendedCardsManager v-model="befriendedCardsValue" />
   </div>
 </template>

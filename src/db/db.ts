@@ -128,6 +128,16 @@ class KartenDatabase extends Dexie {
       userSettings: 'id, owner, realmId',
       media: 'id, mediaType, owner, realmId'
     })
+
+    this.version(11).stores({
+      flashcards: 'id, *blockedBy, *befriendedCards, owner, realmId',
+      learningContent: null,
+      learningProgress: 'id, due, owner, realmId',
+      reviewCounts: 'id, date, owner, realmId',
+      prompts: 'id, name, owner, realmId',
+      userSettings: 'id, owner, realmId',
+      media: 'id, mediaType, owner, realmId'
+    })
   }
 }
 

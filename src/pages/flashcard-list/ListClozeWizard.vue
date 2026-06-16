@@ -116,17 +116,20 @@ const handleCreate = async () => {
 
     const blockedByMap = buildBlockedByTiers(createdCards)
 
+    const befriendedCardsMap = new Map<string, string[]>()
+    for (const [cardId, prereqs] of blockedByMap) {
+      for (const prereqId of prereqs) {
+        const arr = befriendedCardsMap.get(prereqId) ?? []
+        arr.push(cardId)
+        befriendedCardsMap.set(prereqId, arr)
+      }
+    }
+
     for (const card of createdCards) {
       const blockedBy = blockedByMap.get(card.id) ?? []
-      if (blockedBy.length > 0) {
-        await updateFlashcard(
-          card.id,
-          card.front,
-          card.back,
-          blockedBy,
-          [],
-          []
-        )
+      const befriendedCards = befriendedCardsMap.get(card.id) ?? []
+      if (blockedBy.length > 0 || befriendedCards.length > 0) {
+        await updateFlashcard(card.id, card.front, card.back, blockedBy, [], [], befriendedCards)
       }
     }
 

@@ -5,6 +5,7 @@ export type ParsedFlashcard = {
   back: string
   ref?: string
   blockedBy?: string[]
+  befriendedCards?: string[]
   frontMedia?: string[]
   backMedia?: string[]
 }
@@ -29,6 +30,13 @@ const parseFlashcardLine = (trimmed: string): ParsedFlashcard | null => {
         const parsedBlockedBy = parsed.blockedBy.filter((ref: unknown) => typeof ref === 'string')
         if (parsedBlockedBy.length > 0) {
           flashcard.blockedBy = parsedBlockedBy
+        }
+      }
+
+      if (Array.isArray(parsed.befriendedCards)) {
+        const refs = parsed.befriendedCards.filter((r: unknown) => typeof r === 'string')
+        if (refs.length > 0) {
+          flashcard.befriendedCards = refs
         }
       }
 

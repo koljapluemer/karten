@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { createFlashcard } from '@/entities/flashcard/flashcardStore'
+import { createFlashcard, updateFlashcard } from '@/entities/flashcard/flashcardStore'
 import { showToast } from '@/dumb/toastStore'
 import { CLOZE_MARKER } from './gradualClozeDeletionTypes'
 import type { ClozeSelection, WizardPhase } from './gradualClozeDeletionTypes'
@@ -103,33 +103,32 @@ const handleFinish = async () => {
   }
 
   try {
-    const cardIds: string[] = []
+    const created: Array<{ id: string; front: string; blockedBy: string[] }> = []
 
     for (let i = 0; i < selections.value.length; i++) {
       const selection = selections.value[i]
       if (!selection) continue
 
-      const blockedBy = i === 0 ? [] : [cardIds[i - 1]!]
-
-      const card = await createFlashcard(
-        selection.clozedVersion,
-        baseContent.value,
-        blockedBy
-      )
-
-      cardIds.push(card.id)
+      const blockedBy = i === 0 ? [] : [created[i - 1]!.id]
+      const card = await createFlashcard(selection.clozedVersion, baseContent.value, blockedBy)
+      created.push({ id: card.id, front: selection.clozedVersion, blockedBy })
     }
 
-    const lastCardId = cardIds[cardIds.length - 1]
+    for (let i = 0; i < created.length - 1; i++) {
+      const c = created[i]!
+      await updateFlashcard(c.id, c.front, baseContent.value, c.blockedBy, [], [], [created[i + 1]!.id])
+    }
+
+    const lastCardId = created[created.length - 1]?.id
     if (!lastCardId) {
       showToast('Failed to create flashcards', 'error')
       return
     }
 
-    emit('complete', lastCardId)
+    emit('complete', lastCardId!)
     emit('update:open', false)
 
-    showToast(`Created ${selections.value.length} flashcards`, 'success')
+    showToast(`Created ${created.length} flashcards`, 'success')
 
     resetWizard()
   } catch (error) {

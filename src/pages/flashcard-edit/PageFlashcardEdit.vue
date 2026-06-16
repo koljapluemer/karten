@@ -17,6 +17,7 @@ const route = useRoute()
 const front = ref('')
 const back = ref('')
 const blockedBy = ref<string[]>([])
+const befriendedCards = ref<string[]>([])
 const frontMediaIds = ref<string[]>([])
 const backMediaIds = ref<string[]>([])
 const notFound = ref(false)
@@ -49,6 +50,7 @@ onMounted(async () => {
     front.value = flashcard.front
     back.value = flashcard.back
     blockedBy.value = flashcard.blockedBy ?? []
+    befriendedCards.value = flashcard.befriendedCards ?? []
     frontMediaIds.value = flashcard.frontMediaIds ?? []
     backMediaIds.value = flashcard.backMediaIds ?? []
     notFound.value = false
@@ -60,7 +62,7 @@ onMounted(async () => {
     const createdId = route.query.createdId as string
     if (createdId && !blockedBy.value.includes(createdId)) {
       blockedBy.value = [...blockedBy.value, createdId]
-      await updateFlashcard(id, front.value, back.value, blockedBy.value, frontMediaIds.value, backMediaIds.value)
+      await updateFlashcard(id, front.value, back.value, blockedBy.value, frontMediaIds.value, backMediaIds.value, befriendedCards.value)
       showToast('Prerequisite flashcard attached', 'success')
 
       // Clean URL by removing createdId param
@@ -76,10 +78,10 @@ onMounted(async () => {
 const save = async () => {
   const id = route.params.id as string
   if (!id) return
-  await updateFlashcard(id, front.value, back.value, blockedBy.value, frontMediaIds.value, backMediaIds.value)
+  await updateFlashcard(id, front.value, back.value, blockedBy.value, frontMediaIds.value, backMediaIds.value, befriendedCards.value)
 }
 
-const { status } = useAutoSave([front, back, blockedBy, frontMediaIds, backMediaIds], save)
+const { status } = useAutoSave([front, back, blockedBy, befriendedCards, frontMediaIds, backMediaIds], save)
 
 const handleClose = () => {
   const returnTo = route.query.returnTo as string || '/flashcards'
@@ -90,12 +92,17 @@ const handleDelete = async () => {
   const id = route.params.id as string
   if (!confirm('Delete this flashcard?')) return
 
-  // Remove from other flashcards' blockedBy arrays
+  // Remove from other flashcards' blockedBy and befriendedCards arrays
   const allFlashcards = await loadFlashcards()
   for (const fc of allFlashcards) {
-    if (fc.blockedBy.includes(id)) {
-      const updatedBlockedBy = fc.blockedBy.filter(blockedId => blockedId !== id)
-      await updateFlashcard(fc.id, fc.front, fc.back, updatedBlockedBy, fc.frontMediaIds ?? [], fc.backMediaIds ?? [])
+    const needsUpdate = fc.blockedBy.includes(id) || (fc.befriendedCards ?? []).includes(id)
+    if (needsUpdate) {
+      await updateFlashcard(
+        fc.id, fc.front, fc.back,
+        fc.blockedBy.filter(x => x !== id),
+        fc.frontMediaIds ?? [], fc.backMediaIds ?? [],
+        (fc.befriendedCards ?? []).filter(x => x !== id)
+      )
     }
   }
 
@@ -139,6 +146,7 @@ const handleDelete = async () => {
         v-model:front="front"
         v-model:back="back"
         v-model:blocked-by="blockedBy"
+        v-model:befriended-cards="befriendedCards"
         v-model:front-media-ids="frontMediaIds"
         v-model:back-media-ids="backMediaIds"
       />

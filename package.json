@@ -8,7 +8,8 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "docs:diagrams": "sed -n '/^```mermaid$/,/^```$/p' doc/card-selection.md | sed '1d;$d' | npx @mermaid-js/mermaid-cli -i - -o doc/card-selection.png --backgroundColor white -p puppeteer-config.json"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

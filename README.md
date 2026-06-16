@@ -35,7 +35,12 @@ npm run lint
 
 # Fix linting issues
 npm run lint:fix
+
+# Regenerate doc diagrams (from doc/*.md mermaid blocks → PNG)
+npm run docs:diagrams
 ```
+
+> **Note on `docs:diagrams`:** uses `puppeteer-config.json` (sets `--no-sandbox`) to run headless Chromium on Linux. If you hit sandbox errors, ensure the file exists at the repo root.
 
 ## Architecture
 

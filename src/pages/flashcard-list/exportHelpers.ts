@@ -59,6 +59,11 @@ export const exportFlashcardsAsZip = async (): Promise<void> => {
       .filter((r): r is string => r != null)
     if (blockedByRefs?.length) line.blockedBy = blockedByRefs
 
+    const befriendedRefs = card.befriendedCards
+      ?.map(id => idToRef.get(id))
+      .filter((r): r is string => r != null)
+    if (befriendedRefs?.length) line.befriendedCards = befriendedRefs
+
     const frontMedia = card.frontMediaIds
       ?.map(id => mediaIdToPath.get(id))
       .filter((p): p is string => p != null)

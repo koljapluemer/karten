@@ -161,7 +161,12 @@ const importParsedFlashcards = async (
   pathToMediaId: Map<string, string>
 ) => {
   const refToId = new Map<string, string>()
-  const cardsWithBlockedBy: Array<{ id: string; front: string; back: string; frontMediaIds: string[]; backMediaIds: string[]; blockedByRefs: string[] }> = []
+  type CardWithRefs = {
+    id: string; front: string; back: string
+    frontMediaIds: string[]; backMediaIds: string[]
+    blockedByRefs: string[]; befriendedCardsRefs: string[]
+  }
+  const cardsWithRefs: CardWithRefs[] = []
 
   for (const item of parsed) {
     const frontMediaIds = (item.frontMedia ?? [])
@@ -178,25 +183,31 @@ const importParsedFlashcards = async (
       refToId.set(item.ref, card.id)
     }
 
-    if (item.blockedBy && item.blockedBy.length > 0) {
-      cardsWithBlockedBy.push({
+    const hasRefs = (item.blockedBy?.length ?? 0) > 0 || (item.befriendedCards?.length ?? 0) > 0
+    if (hasRefs) {
+      cardsWithRefs.push({
         id: card.id,
         front: card.front,
         back: card.back,
         frontMediaIds: card.frontMediaIds ?? [],
         backMediaIds: card.backMediaIds ?? [],
-        blockedByRefs: item.blockedBy
+        blockedByRefs: item.blockedBy ?? [],
+        befriendedCardsRefs: item.befriendedCards ?? []
       })
     }
   }
 
-  for (const card of cardsWithBlockedBy) {
+  for (const card of cardsWithRefs) {
     const resolvedBlockedBy = card.blockedByRefs
       .map(ref => refToId.get(ref))
       .filter((id): id is string => id !== undefined)
 
-    if (resolvedBlockedBy.length > 0) {
-      await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.frontMediaIds, card.backMediaIds)
+    const resolvedBefriendedCards = card.befriendedCardsRefs
+      .map(ref => refToId.get(ref))
+      .filter((id): id is string => id !== undefined)
+
+    if (resolvedBlockedBy.length > 0 || resolvedBefriendedCards.length > 0) {
+      await updateFlashcard(card.id, card.front, card.back, resolvedBlockedBy, card.frontMediaIds, card.backMediaIds, resolvedBefriendedCards)
     }
   }
 }

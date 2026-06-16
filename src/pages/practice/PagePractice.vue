@@ -36,6 +36,7 @@ const progressMap = ref<Map<string, LearningProgress>>(new Map())
 const learningProgressByFlashcardId = progressMap
 const currentCard = ref<FlashCard | null>(null)
 const recentCardIds = ref<string[]>([])
+const hotPool = ref<string[]>([])
 const COOLDOWN_SIZE = 4
 const isLoading = ref(true)
 
@@ -58,6 +59,15 @@ const isCurrentCardArchived = computed(() => {
 
 function addToRecentCards(cardId: string) {
   recentCardIds.value = [cardId, ...recentCardIds.value].slice(0, COOLDOWN_SIZE)
+}
+
+function processHotPool(card: FlashCard) {
+  for (const id of card.befriendedCards ?? []) {
+    if (!hotPool.value.includes(id)) hotPool.value.push(id)
+  }
+  if (hotPool.value.length > 0) {
+    hotPool.value.splice(Math.floor(Math.random() * hotPool.value.length), 1)
+  }
 }
 
 async function loadData() {
@@ -144,28 +154,39 @@ function selectNextCard(): FlashCard | null {
   const primaryPool = preferUnseen && unseen.length > 0 ? unseen : due
   const fallbackPool = preferUnseen && unseen.length > 0 ? due : unseen
 
+  if (Math.random() < 0.5 && hotPool.value.length > 0) {
+    const primaryIds = new Set(primaryPool.map((c) => c.id))
+    const hotCandidates = hotPool.value
+      .map((id) => primaryPool.find((c) => c.id === id))
+      .filter((c): c is FlashCard => c !== undefined && primaryIds.has(c.id))
+    const picked = pickRandom(hotCandidates)
+    if (picked) return picked
+  }
+
   return pickRandom(primaryPool) ?? pickRandom(fallbackPool) ?? null
 }
 
 async function handleNewCardComplete() {
   if (!currentCard.value) return
 
-  const completedCardId = currentCard.value.id
-  await initializeNewCard(completedCardId)
+  const completedCard = currentCard.value
+  await initializeNewCard(completedCard.id)
   await incrementReviewCountForToday()
+  processHotPool(completedCard)
   await loadData()
-  addToRecentCards(completedCardId)
+  addToRecentCards(completedCard.id)
   currentCard.value = selectNextCard()
 }
 
 async function handleKnownCardComplete(rating: Rating) {
   if (!currentCard.value) return
 
-  const completedCardId = currentCard.value.id
-  await updateCardProgress(completedCardId, rating)
+  const completedCard = currentCard.value
+  await updateCardProgress(completedCard.id, rating)
   await incrementReviewCountForToday()
+  processHotPool(completedCard)
   await loadData()
-  addToRecentCards(completedCardId)
+  addToRecentCards(completedCard.id)
   currentCard.value = selectNextCard()
 }
 
@@ -194,18 +215,20 @@ async function handlePreviousKnowledgeAccept(cardIds: string[]) {
       pendingCard.value.back,
       updatedBlockedBy,
       pendingCard.value.frontMediaIds ?? [],
-      pendingCard.value.backMediaIds ?? []
+      pendingCard.value.backMediaIds ?? [],
+      pendingCard.value.befriendedCards ?? []
     )
     showToast(`Added ${cardIds.length} flashcards as previous knowledge`, 'success')
   }
 
   // Apply "Again" rating after generating previous knowledge
   if (pendingCard.value) {
-    const completedCardId = pendingCard.value.id
-    await updateCardProgress(completedCardId, 1 as Rating)
+    const completedCard = pendingCard.value
+    await updateCardProgress(completedCard.id, 1 as Rating)
     await incrementReviewCountForToday()
+    processHotPool(completedCard)
     await loadData()
-    addToRecentCards(completedCardId)
+    addToRecentCards(completedCard.id)
     currentCard.value = selectNextCard()
     pendingCard.value = null
   }
@@ -216,11 +239,12 @@ async function handlePreviousKnowledgeClose() {
 
   // Apply "Again" rating even if modal is closed without generating
   if (pendingCard.value) {
-    const completedCardId = pendingCard.value.id
-    await updateCardProgress(completedCardId, 1 as Rating)
+    const completedCard = pendingCard.value
+    await updateCardProgress(completedCard.id, 1 as Rating)
     await incrementReviewCountForToday()
+    processHotPool(completedCard)
     await loadData()
-    addToRecentCards(completedCardId)
+    addToRecentCards(completedCard.id)
     currentCard.value = selectNextCard()
     pendingCard.value = null
   }
